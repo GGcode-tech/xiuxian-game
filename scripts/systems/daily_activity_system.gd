@@ -271,7 +271,7 @@ func get_available_activities() -> Array:
 		
 		# 检查等级
 		var player = _get_current_player()
-		if player and player.get("realm_tier", 1) * 10 < act_data.level_requirement:
+		if player and player.get_realm_tier() * 10 < act_data.level_requirement:
 			continue
 		
 		result.append(act_data)
@@ -334,7 +334,7 @@ func start_activity(activity_id: String) -> Dictionary:
 	if not player:
 		return {"success": false, "reason": "玩家不存在"}
 	
-	if player.get("realm_tier", 1) * 10 < activity.level_requirement:
+	if player.get_realm_tier() * 10 < activity.level_requirement:
 		return {"success": false, "reason": "等级不足"}
 	
 	# 检查次数限制
@@ -497,7 +497,7 @@ func _calculate_player_power() -> int:
 	if not player:
 		return 0
 	
-	var stats = player.get("base_stats", {})
+	var stats = player.base_stats
 	return stats.get("attack", 10) * 2 + stats.get("max_hp", 100) + stats.get("defense", 5) * 3
 
 
@@ -698,7 +698,7 @@ func get_activity_status(activity_id: String) -> ActivityStatus:
 	
 	# 检查等级
 	var player = _get_current_player()
-	if player and player.get("realm_tier", 1) * 10 < activity.level_requirement:
+	if player and player.get_realm_tier() * 10 < activity.level_requirement:
 		return ActivityStatus.LOCKED
 	
 	# 检查体力

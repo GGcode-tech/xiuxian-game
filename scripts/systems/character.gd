@@ -295,6 +295,14 @@ func _apply_realm(realm) -> void:
 	recalculate_stats()
 
 
+## 获取境界层级（从realm_id推算）
+func get_realm_tier() -> int:
+	var realm = DataManager.get_realm(realm_id)
+	if realm:
+		return realm.get("tier", 1)
+	return 1
+
+
 func _apply_breakthrough_failure(realm) -> void:
 	var penalty = realm.failure_penalty
 	
