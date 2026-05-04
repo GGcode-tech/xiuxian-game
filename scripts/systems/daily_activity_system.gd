@@ -759,8 +759,6 @@ func get_activity_stats() -> Dictionary:
 		"daily_vitality": daily_vitality,
 		"daily_target": _get_daily_vitality_target(),
 		"weekly_vitality": weekly_vitality,
-		"completed_today": player_activities.values().filter(func(inst): 
-			return inst.today_count > 0
-		).size(),
+		"completed_today": player_activities.values().filter(func(inst): return inst.today_count > 0).size(),
 		"total_activities": activities_data.size()
 	}
