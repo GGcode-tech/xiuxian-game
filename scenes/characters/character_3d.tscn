@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://bcharacter_3d"]
+
+[ext_resource type="Script" path="res://scenes/characters/character_3d.gd" id="1"]
+
+[node name="Character3D" type="CharacterBody3D"]
+script = ExtResource("1")
+
+[node name="Body" type="CSGCapsule3D" parent="."]
+radius = 0.3
+height = 1.6
+
+[node name="Head" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+radius = 0.25
+
+[node name="NameLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+pixel_size = 0.01
+billboard = 1
+text = "角色名"
+
+[node name="RealmIndicator" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 0)

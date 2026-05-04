@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "scroll_basic_cultivation"
+name = "基础修炼法"
+type = 3
+description = "最基础的修炼功法，适合初入修仙者。学习后可修炼至炼气十三层。"
+quality = 1
+stackable = false
+max_stack = 1
+effects = [{"type": "learn_technique", "id": "basic_cultivation"}]
+buy_value = 100
+sell_value = 50
+drop_chance = 0.1
+equip_stats = {}
+equip_slot = ""

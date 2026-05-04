@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "beast_taming_art"
+name = "万兽归心诀"
+type = 2
+description = "御兽门核心功法，可驯服灵兽为战力。修炼至大成可与灵兽心意相通，甚至合体作战。"
+max_level = 10
+exp_per_level = 900
+cultivation_speed = 1.0
+stat_bonuses_per_level = {"max_hp": 10, "max_mp": 15, "attack": 2, "defense": 2, "spirit": 3}
+element = "wood"
+required_spirit_root = {"wood": 0.3}
+required_bloodline = ""
+min_realm_tier = 1
+skill_unlock_levels = [2, 4, 7, 10]
+skill_unlock_ids = ["tame_beast", "beast_contract", "beast_fusion", "beast_legion"]
+quality = 3
+rarity = 0.06
+can_be_main = true

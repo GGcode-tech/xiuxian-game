@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spirit_ore"
+name = "灵矿"
+type = 0
+description = "蕴含灵气的矿石，可用于炼器。"
+quality = 2
+stackable = true
+max_stack = 99
+effects = []
+buy_value = 30
+sell_value = 15
+drop_chance = 0.15
+equip_stats = {}
+equip_slot = ""

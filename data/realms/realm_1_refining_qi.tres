@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "refining_qi"
+name = "炼气期"
+tier = 1
+description = "修仙之始，感应天地灵气，引入体内循环，奠定修仙根基。炼气期分为一至十三层，每三层为一个小阶段。"
+required_exp = 100
+base_breakthrough_rate = 0.9
+max_hp_bonus = 50
+max_mp_bonus = 30
+attack_bonus = 5
+defense_bonus = 3
+spirit_bonus = 5
+speed_bonus = 2
+lifespan_bonus = 50
+spirit_bonus_rate = 0.1
+required_resources = {}
+skill_unlocks = ["basic_sense", "spirit_shield"]
+failure_penalty = {"exp_loss_rate": 0.2, "injury_chance": 0.05, "death_chance": 0.0}
+sub_stages = 13

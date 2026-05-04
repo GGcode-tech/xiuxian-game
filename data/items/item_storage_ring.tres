@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "storage_ring"
+name = "储物戒"
+type = 2
+description = "内含空间的戒指，可储存物品。基础款空间有限。"
+quality = 2
+stackable = false
+max_stack = 1
+effects = []
+buy_value = 1000
+sell_value = 500
+drop_chance = 0.02
+equip_stats = {"max_mp": 20}
+equip_slot = "accessory1"

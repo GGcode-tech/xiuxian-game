@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fire_spirit_grass"
+name = "火灵草"
+type = 0
+description = "火属性灵药材料，生长于火山附近，炼制火属性丹药的必备材料。"
+quality = 2
+stackable = true
+max_stack = 50
+effects = []
+buy_value = 50
+sell_value = 25
+drop_chance = 0.1
+equip_stats = {}
+equip_slot = ""

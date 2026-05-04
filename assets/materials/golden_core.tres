@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bqygolden_core_mat"]
+
+[resource]
+resource_name = "Golden Core"
+albedo_color = Color(1.0, 0.85, 0.3, 1.0)
+roughness = 0.8
+emission_enabled = true
+emission = Color(0.8, 0.68, 0.24, 1)
+emission_energy = 1.5

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sword_intent_art"
+name = "万剑归宗"
+type = 1
+description = "天剑宗至高战斗功法，修炼剑意，一剑可斩天地。非剑修不可修炼。"
+max_level = 10
+exp_per_level = 2000
+cultivation_speed = 0.9
+stat_bonuses_per_level = {"max_hp": 5, "max_mp": 10, "attack": 12, "defense": 0, "spirit": 3}
+element = "gold"
+required_spirit_root = {"gold": 0.6}
+required_bloodline = ""
+min_realm_tier = 3
+skill_unlock_levels = [2, 5, 8, 10]
+skill_unlock_ids = ["sword_qi", "sword_domain", "sword_intent", "sword_heart"]
+quality = 5
+rarity = 0.01
+can_be_main = false

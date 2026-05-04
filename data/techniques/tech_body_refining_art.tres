@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "body_refining_art"
+name = "金刚不灭体"
+type = 3
+description = "上古炼体功法，不以灵气为主，而以天地之力淬炼肉身。大成者肉身坚逾金刚，万法不侵。"
+max_level = 10
+exp_per_level = 1500
+cultivation_speed = 0.8
+stat_bonuses_per_level = {"max_hp": 50, "max_mp": 0, "attack": 3, "defense": 8, "spirit": 0}
+element = "earth"
+required_spirit_root = {"earth": 0.3}
+required_bloodline = ""
+min_realm_tier = 1
+skill_unlock_levels = [2, 5, 8, 10]
+skill_unlock_ids = ["iron_body", "diamond_body", "immortal_body", "indestructible"]
+quality = 4
+rarity = 0.04
+can_be_main = false

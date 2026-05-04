@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heavenly_fire_art"
+name = "天火焚天诀"
+type = 0
+description = "丹鼎宗秘传功法，以火属性灵气为主，修炼者体温炽热，可引天火入体。大成者一念可焚城。"
+max_level = 10
+exp_per_level = 1200
+cultivation_speed = 1.0
+stat_bonuses_per_level = {"max_hp": 10, "max_mp": 25, "attack": 8, "defense": 0, "spirit": 5}
+element = "fire"
+required_spirit_root = {"fire": 0.6}
+required_bloodline = ""
+min_realm_tier = 2
+skill_unlock_levels = [3, 6, 9]
+skill_unlock_ids = ["fire_control", "heavenly_flame", "purgatory_burn"]
+quality = 4
+rarity = 0.03
+can_be_main = true

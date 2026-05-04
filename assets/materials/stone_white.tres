@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bqystone_white_mat"]
+
+[resource]
+resource_name = "White Jade"
+albedo_color = Color(0.92, 0.88, 0.82, 1.0)
+roughness = 0.8

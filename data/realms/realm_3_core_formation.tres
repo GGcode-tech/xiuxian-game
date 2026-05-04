@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "core_formation"
+name = "结丹期"
+tier = 3
+description = "灵力凝聚成丹，体内结成金丹。结丹期修士已可飞行，寿元大增，是修仙路上的重要里程碑。分为初期、中期、后期。"
+required_exp = 2000
+base_breakthrough_rate = 0.5
+max_hp_bonus = 200
+max_mp_bonus = 120
+attack_bonus = 25
+defense_bonus = 15
+spirit_bonus = 20
+speed_bonus = 10
+lifespan_bonus = 200
+spirit_bonus_rate = 0.3
+required_resources = {"spirit_stone": 500, "blood_essence": 1}
+skill_unlocks = ["fly_advanced", "alchemy_basic", "treasure_refine"]
+failure_penalty = {"exp_loss_rate": 0.3, "injury_chance": 0.15, "death_chance": 0.0}
+sub_stages = 3

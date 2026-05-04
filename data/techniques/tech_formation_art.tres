@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "formation_art"
+name = "天机阵法"
+type = 2
+description = "阵法宗传承，精通各种阵法布置。大成者以天地为阵，一指点下便是困仙大阵。"
+max_level = 10
+exp_per_level = 800
+cultivation_speed = 1.0
+stat_bonuses_per_level = {"max_hp": 5, "max_mp": 20, "attack": 0, "defense": 5, "spirit": 5}
+element = ""
+required_spirit_root = {}
+required_bloodline = ""
+min_realm_tier = 2
+skill_unlock_levels = [2, 4, 7, 10]
+skill_unlock_ids = ["basic_formation", "defensive_array", "trapping_array", "heavenly_array"]
+quality = 3
+rarity = 0.06
+can_be_main = false

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "foundation"
+name = "筑基期"
+tier = 2
+description = "灵气凝聚成基，体内形成灵力根基。筑基是修仙的第一道大关，决定了日后的修炼潜力。筑基分为初期、中期、后期、大圆满四个小境界。"
+required_exp = 500
+base_breakthrough_rate = 0.7
+max_hp_bonus = 100
+max_mp_bonus = 60
+attack_bonus = 12
+defense_bonus = 8
+spirit_bonus = 10
+speed_bonus = 5
+lifespan_bonus = 100
+spirit_bonus_rate = 0.2
+required_resources = {"spirit_stone": 100}
+skill_unlocks = ["fly_basic", "spirit_sense"]
+failure_penalty = {"exp_loss_rate": 0.25, "injury_chance": 0.1, "death_chance": 0.0}
+sub_stages = 4

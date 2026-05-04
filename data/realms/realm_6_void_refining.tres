@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "void_refining"
+name = "炼虚期"
+tier = 6
+description = "炼化虚空之力，可开辟小世界。炼虚期修士体内灵力已化为实质，一掌可碎山河。分为初期、中期、后期。"
+required_exp = 100000
+base_breakthrough_rate = 0.15
+max_hp_bonus = 2000
+max_mp_bonus = 1200
+attack_bonus = 200
+defense_bonus = 120
+spirit_bonus = 150
+speed_bonus = 60
+lifespan_bonus = 2000
+spirit_bonus_rate = 0.6
+required_resources = {"spirit_stone": 50000, "blood_essence": 50, "spirit_ore": 200}
+skill_unlocks = ['void_travel', 'create_small_world', 'time_slow']
+failure_penalty = {"exp_loss_rate": 0.6, "injury_chance": 0.4, "death_chance": 0.05}
+sub_stages = 3

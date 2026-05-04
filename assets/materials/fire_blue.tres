@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bqyfire_blue_mat"]
+
+[resource]
+resource_name = "Spirit Fire"
+albedo_color = Color(0.3, 0.5, 1.0, 1.0)
+roughness = 0.8
+emission_enabled = true
+emission = Color(0.24, 0.4, 0.8, 1)
+emission_energy = 2.0

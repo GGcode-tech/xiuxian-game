@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "thunder_sword"
+name = "雷鸣剑"
+type = 2
+description = "蕴含雷属性之力的飞剑，攻击时附带雷击效果。稀有装备。"
+quality = 4
+stackable = false
+max_stack = 1
+effects = []
+buy_value = 10000
+sell_value = 5000
+drop_chance = 0.005
+equip_stats = {"attack": 80, "speed": 15, "spirit": 20}
+equip_slot = "weapon"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spirit_sword"
+name = "灵剑"
+type = 2
+description = "注入灵力的剑器，剑身流转灵光，削铁如泥。"
+quality = 2
+stackable = false
+max_stack = 1
+effects = []
+buy_value = 500
+sell_value = 250
+drop_chance = 0.05
+equip_stats = {"attack": 20, "speed": 5}
+equip_slot = "weapon"

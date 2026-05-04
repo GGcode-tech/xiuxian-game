@@ -1,0 +1,135 @@
+[gd_scene load_steps=2 format=3 uid="uid://bfamily_panel"]
+
+[ext_resource type="Script" path="res://ui/family_panel.gd" id="1"]
+
+[node name="FamilyPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -350.0
+offset_right = 400.0
+offset_bottom = 350.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleBar" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="FamilyNameLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "家族名称"
+
+[node name="LevelLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "等级: 1"
+
+[node name="ResourceGrid" type="GridContainer" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 4
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="MemberSection" type="VBoxContainer" parent="Panel/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MemberLabel" type="Label" parent="Panel/VBox/HBox/MemberSection"]
+layout_mode = 2
+text = "族人列表"
+
+[node name="MemberList" type="ItemList" parent="Panel/VBox/HBox/MemberSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+item_count = 0
+
+[node name="BuildingSection" type="VBoxContainer" parent="Panel/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BuildingLabel" type="Label" parent="Panel/VBox/HBox/BuildingSection"]
+layout_mode = 2
+text = "建筑列表"
+
+[node name="BuildingList" type="ItemList" parent="Panel/VBox/HBox/BuildingSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+item_count = 0
+
+[node name="TerritorySection" type="VBoxContainer" parent="Panel/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TerritoryLabel" type="Label" parent="Panel/VBox/HBox/TerritorySection"]
+layout_mode = 2
+text = "领地列表"
+
+[node name="TerritoryList" type="ItemList" parent="Panel/VBox/HBox/TerritorySection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+item_count = 0
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="ActionsHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RecruitButton" type="Button" parent="Panel/VBox/ActionsHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 36)
+text = "招募族人"
+
+[node name="BuildButton" type="Button" parent="Panel/VBox/ActionsHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 36)
+text = "建造"
+
+[node name="ExploreButton" type="Button" parent="Panel/VBox/ActionsHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 36)
+text = "探索"
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/ActionsHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 36)
+text = "关闭"
+
+[connection signal="item_selected" from="Panel/VBox/HBox/MemberSection/MemberList" to="." method="_on_member_selected"]
+[connection signal="pressed" from="Panel/VBox/ActionsHBox/RecruitButton" to="." method="_on_recruit_pressed"]
+[connection signal="pressed" from="Panel/VBox/ActionsHBox/BuildButton" to="." method="_on_build_pressed"]
+[connection signal="pressed" from="Panel/VBox/ActionsHBox/ExploreButton" to="." method="_on_explore_pressed"]
+[connection signal="pressed" from="Panel/VBox/ActionsHBox/CloseButton" to="." method="hide"]

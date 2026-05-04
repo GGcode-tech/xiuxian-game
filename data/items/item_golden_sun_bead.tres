@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "golden_sun_bead"
+name = "金阳珠"
+type = 4
+description = "上古修士遗留之物，可释放灼热金光，攻防一体。"
+quality = 5
+stackable = false
+max_stack = 1
+effects = []
+buy_value = 100000
+sell_value = 50000
+drop_chance = 0.001
+equip_stats = {"attack": 50, "defense": 30, "max_hp": 500, "spirit": 40}
+equip_slot = "accessory2"

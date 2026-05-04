@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bqyfabric_green_mat"]
+
+[resource]
+resource_name = "Green Silk"
+albedo_color = Color(0.2, 0.6, 0.3, 1.0)
+roughness = 0.8

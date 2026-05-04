@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "blood_essence_stone"
+name = "精血石"
+type = 0
+description = "蕴含精血之力的奇石，突破高阶境界所需。"
+quality = 4
+stackable = true
+max_stack = 10
+effects = []
+buy_value = 1000
+sell_value = 500
+drop_chance = 0.01
+equip_stats = {}
+equip_slot = ""

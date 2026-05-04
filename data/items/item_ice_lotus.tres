@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ice_lotus"
+name = "冰莲"
+type = 0
+description = "极寒之地生长的灵药，花瓣晶莹剔透，是炼制冰属性丹药的珍稀材料。"
+quality = 3
+stackable = true
+max_stack = 20
+effects = []
+buy_value = 200
+sell_value = 100
+drop_chance = 0.03
+equip_stats = {}
+equip_slot = ""

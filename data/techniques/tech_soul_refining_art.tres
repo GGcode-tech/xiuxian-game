@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "soul_refining_art"
+name = "神识淬炼法"
+type = 4
+description = "专修神识的辅助功法，可大幅增强神识强度和范围。修炼者可探查更远，感知更敏锐。"
+max_level = 10
+exp_per_level = 600
+cultivation_speed = 1.0
+stat_bonuses_per_level = {"max_hp": 0, "max_mp": 10, "attack": 0, "defense": 0, "spirit": 10}
+element = ""
+required_spirit_root = {}
+required_bloodline = ""
+min_realm_tier = 2
+skill_unlock_levels = [3, 6, 9]
+skill_unlock_ids = ["spirit_sense_advanced", "soul_strike", "mind_reading"]
+quality = 3
+rarity = 0.07
+can_be_main = false

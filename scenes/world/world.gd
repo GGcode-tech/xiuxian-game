@@ -1,0 +1,489 @@
+## 世界节点 - 管理3D世界渲染和交互
+## 使用程序化生成器创建建筑、角色、自然物
+extends Node3D
+
+# 3D场景节点
+@onready var terrain: Node3D = $Terrain
+@onready var buildings: Node3D = $Buildings
+@onready var characters_node: Node3D = $Characters
+@onready var nature: Node3D = $Nature
+@onready var effects: Node3D = $Effects
+@onready var camera: Camera3D = $Camera3D
+@onready var environment: WorldEnvironment = $WorldEnvironment
+@onready var lighting: DirectionalLight3D = $Lighting
+
+# 缓存
+var _character_nodes: Dictionary = {}
+var _building_nodes: Dictionary = {}
+
+# 地形参数
+@export var terrain_size: float = 100.0
+@export var tree_count: int = 50
+@export var rock_count: int = 20
+
+
+func initialize() -> void:
+	_generate_terrain()
+	_place_buildings()
+	_generate_nature()
+	_spawn_characters()
+	_setup_camera()
+
+
+func _generate_terrain() -> void:
+	var ground := CSGBox3D.new()
+	ground.size = Vector3(terrain_size, 0.5, terrain_size)
+	ground.position.y = -0.25
+	var ground_mat := StandardMaterial3D.new()
+	ground_mat.albedo_color = Color(0.25, 0.45, 0.25)
+	ground.material = ground_mat
+	terrain.add_child(ground)
+
+	var pond := CSGCylinder3D.new()
+	pond.radius = 8.0
+	pond.height = 0.1
+	pond.position = Vector3(20, 0.05, 15)
+	var water_mat := StandardMaterial3D.new()
+	water_mat.albedo_color = Color(0.2, 0.4, 0.6, 0.7)
+	water_mat.roughness = 0.1
+	water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	pond.material = water_mat
+	terrain.add_child(pond)
+
+	for i in range(5):
+		var lotus := _create_plant(0)
+		lotus.position = Vector3(18 + randf() * 4, 0.1, 13 + randf() * 4)
+		nature.add_child(lotus)
+
+
+func _place_buildings() -> void:
+	var family = GameManager.get_player_family()
+	if not family:
+		_create_default_buildings()
+		return
+	_place_family_buildings(family)
+
+
+func _create_default_buildings() -> void:
+	var layout: Array = [
+		{"type": 0, "pos": Vector3(0, 0, 30), "name": "山门"},
+		{"type": 1, "pos": Vector3(0, 0, 15), "name": "主殿"},
+		{"type": 2, "pos": Vector3(0, 0, 0), "name": "祭坛"},
+		{"type": 3, "pos": Vector3(-15, 0, 10), "name": "藏经阁"},
+		{"type": 4, "pos": Vector3(15, 0, 10), "name": "炼丹房"},
+		{"type": 5, "pos": Vector3(20, 0, -5), "name": "炼器房"},
+		{"type": 6, "pos": Vector3(-20, 0, -5), "name": "修炼塔"},
+		{"type": 7, "pos": Vector3(0, 0, -15), "name": "观景亭"},
+		{"type": 8, "pos": Vector3(-10, 0, -20), "name": "居室A"},
+		{"type": 8, "pos": Vector3(10, 0, -20), "name": "居室B"},
+	]
+
+	for item in layout:
+		var building: MeshInstance3D = _create_building(item["type"], 1.0)
+		building.position = item["pos"]
+		building.set_meta("building_name", item["name"])
+		buildings.add_child(building)
+		_building_nodes[item["name"]] = building
+
+
+func _place_family_buildings(family: Dictionary) -> void:
+	var main_hall := _create_building(1, 1.2)
+	main_hall.position = Vector3(0, 0, 10)
+	buildings.add_child(main_hall)
+
+	var building_positions: Dictionary = {
+		"alchemy": Vector3(12, 0, 5),
+		"forge": Vector3(-12, 0, 5),
+		"library": Vector3(0, 0, -10),
+		"pagoda": Vector3(15, 0, -5),
+		"residence": Vector3(-15, 0, -5),
+	}
+
+	for building_id in family.get("unlocked_buildings", []):
+		if building_positions.has(building_id):
+			var building_type := _get_building_type(building_id)
+			var building := _create_building(building_type, 1.0)
+			building.position = building_positions[building_id]
+			buildings.add_child(building)
+
+
+func _get_building_type(building_id: String) -> int:
+	match building_id:
+		"alchemy": return 4
+		"forge": return 5
+		"library": return 3
+		"pagoda": return 6
+		"residence": return 8
+		_: return 1
+
+
+func _generate_nature() -> void:
+	for i in range(tree_count):
+		var tree_type := [0, 1, 2][randi() % 3] as int
+		var tree := _create_tree(tree_type, randf_range(0.6, 1.4))
+		tree.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
+		tree.rotate_y(randf() * TAU)
+		if abs(tree.position.x) < 10 and abs(tree.position.z) < 20:
+			tree.position.x += 15 * (1 if tree.position.x > 0 else -1)
+		nature.add_child(tree)
+
+	for i in range(rock_count):
+		var rock_type := [0, 1, 2][randi() % 3] as int
+		var rock := _create_rock(rock_type, randf_range(0.4, 1.2))
+		rock.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
+		rock.rotate_y(randf() * TAU)
+		nature.add_child(rock)
+
+	for i in range(3):
+		var spirit_stone := _create_rock(3, 0.8)
+		spirit_stone.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
+		nature.add_child(spirit_stone)
+
+
+func _spawn_characters() -> void:
+	var family = GameManager.get_player_family()
+	if not family:
+		_create_default_characters()
+		return
+
+	for member_id in family.get("members", []):
+		var character = GameManager.get_character(member_id)
+		if character and character.get("is_alive", false):
+			_spawn_character_node(character)
+
+
+func _create_default_characters() -> void:
+	var default_positions: Array = [
+		Vector3(2, 0, 8),
+		Vector3(-3, 0, 5),
+		Vector3(0, 0, 0),
+	]
+	var types: Array = [1, 0, 2]
+	var colors: Array = [
+		Color(0.6, 0.4, 0.2),
+		Color(0.3, 0.5, 0.7),
+		Color(0.4, 0.6, 0.4),
+	]
+
+	for i in range(3):
+		var char_node := Node3D.new()
+		var mesh := _create_character_mesh(types[i], colors[i])
+		char_node.add_child(mesh)
+		char_node.position = default_positions[i]
+		characters_node.add_child(char_node)
+
+
+func _spawn_character_node(character: Dictionary) -> void:
+	var container := Node3D.new()
+	var mesh := _create_character_mesh(_get_character_type(character), _get_character_color(character))
+	mesh.scale = Vector3.ONE
+	container.add_child(mesh)
+	container.position = Vector3(randf_range(-10, 10), 0, randf_range(-15, 15))
+	characters_node.add_child(container)
+	_character_nodes[character.get("id", "")] = container
+
+
+func _get_character_type(character: Dictionary) -> int:
+	if character.get("age", 0) > 200:
+		return 1
+	if character.get("realm_exp", 0) >= 5:
+		return 6
+	if character.get("role", "") == "alchemist":
+		return 5
+	return 0
+
+
+func _get_character_color(character: Dictionary) -> Color:
+	var color_map: Dictionary = {
+		"fire": Color(0.8, 0.3, 0.2),
+		"water": Color(0.2, 0.4, 0.7),
+		"wood": Color(0.3, 0.6, 0.3),
+		"metal": Color(0.7, 0.7, 0.75),
+		"earth": Color(0.6, 0.5, 0.3),
+	}
+	return color_map.get(character.get("element", ""), Color(0.4, 0.5, 0.6))
+
+
+# ==================== 内联3D生成（消除外部类型依赖） ====================
+
+func _create_building(building_type: int, size: float) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	var array_mesh := ArrayMesh.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	match building_type:
+		0: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(2, 3, 0.5) * size)
+		1: _add_box_mesh(st, Vector3(0, 2.5, 0), Vector3(4, 5, 3) * size)
+		2: _add_box_mesh(st, Vector3(0, 1, 0), Vector3(3, 2, 3) * size)
+		3: _add_box_mesh(st, Vector3(0, 3, 0), Vector3(3, 6, 2) * size)
+		4: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(3, 3, 3) * size)
+		5: _add_box_mesh(st, Vector3(0, 2, 0), Vector3(3, 4, 3) * size)
+		6: _add_box_mesh(st, Vector3(0, 4, 0), Vector3(2, 8, 2) * size)
+		7: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(3, 3, 3) * size)
+		8: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(2, 3, 2) * size)
+		_: _add_box_mesh(st, Vector3(0, 2, 0), Vector3(3, 4, 3) * size)
+
+	st.generate_normals()
+	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.6, 0.5, 0.4)
+	mat.roughness = 0.85
+	array_mesh.surface_set_material(0, mat)
+	mesh_instance.mesh = array_mesh
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	return mesh_instance
+
+
+func _create_tree(tree_type: int, size: float) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	var array_mesh := ArrayMesh.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	match tree_type:
+		0: # 松树
+			_add_cylinder_mesh(st, Vector3(0, 1.0, 0), 0.15 * size, 2.0 * size)
+			_add_cone_mesh(st, Vector3(0, 2.5 * size, 0), 0.8 * size, 1.5 * size)
+		1: # 竹子
+			_add_cylinder_mesh(st, Vector3(0, 1.5, 0), 0.1 * size, 3.0 * size)
+		2: # 柳树
+			_add_cylinder_mesh(st, Vector3(0, 1.0, 0), 0.12 * size, 2.0 * size)
+			_add_sphere_mesh(st, Vector3(0, 2.5 * size, 0), 1.0 * size)
+		_: _add_cone_mesh(st, Vector3(0, 2 * size, 0), 0.7 * size, 2.0 * size)
+
+	st.generate_normals()
+	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.2, 0.5, 0.15)
+	mat.roughness = 0.9
+	array_mesh.surface_set_material(0, mat)
+	mesh_instance.mesh = array_mesh
+	return mesh_instance
+
+
+func _create_rock(rock_type: int, size: float) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	var array_mesh := ArrayMesh.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	match rock_type:
+		0: _add_icosphere_mesh(st, Vector3(0, 0.4 * size, 0), 0.5 * size)
+		1: _add_box_mesh(st, Vector3(0, 0.2 * size, 0), Vector3(0.4, 0.4, 0.3) * size)
+		2: _add_sphere_mesh(st, Vector3(0, 0.3 * size, 0), 0.4 * size)
+		3: # 灵石
+			_add_icosphere_mesh(st, Vector3(0, 0.3 * size, 0), 0.3 * size)
+		_: _add_box_mesh(st, Vector3(0, 0.3 * size, 0), Vector3(0.5, 0.5, 0.4) * size)
+
+	st.generate_normals()
+	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
+	var mat := StandardMaterial3D.new()
+	if rock_type == 3:
+		mat.albedo_color = Color(0.3, 0.8, 0.9)
+		mat.emission = Color(0.1, 0.4, 0.5)
+		mat.emission_energy_multiplier = 2.0
+	else:
+		mat.albedo_color = Color(0.45, 0.42, 0.4)
+	mat.roughness = 0.9
+	array_mesh.surface_set_material(0, mat)
+	mesh_instance.mesh = array_mesh
+	return mesh_instance
+
+
+func _create_plant(plant_type: int) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	var array_mesh := ArrayMesh.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_sphere_mesh(st, Vector3(0, 0.15, 0), 0.15)
+	st.generate_normals()
+	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.9, 0.3, 0.5)
+	mat.roughness = 0.8
+	array_mesh.surface_set_material(0, mat)
+	mesh_instance.mesh = array_mesh
+	return mesh_instance
+
+
+func _create_character_mesh(char_type: int, color: Color) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	var array_mesh := ArrayMesh.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	_add_sphere(st, Vector3(0, 1.6, 0), 0.2, 1)
+	_add_box(st, Vector3(0, 1.2, 0), Vector3(0.35, 0.5, 0.2))
+	_add_box(st, Vector3(-0.1, 0.45, 0), Vector3(0.12, 0.6, 0.15))
+	_add_box(st, Vector3(0.1, 0.45, 0), Vector3(0.12, 0.6, 0.15))
+	_add_box(st, Vector3(-0.28, 1.1, 0), Vector3(0.1, 0.4, 0.1))
+	_add_box(st, Vector3(0.28, 1.1, 0), Vector3(0.1, 0.4, 0.1))
+
+	st.generate_normals()
+	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.roughness = 0.8
+	array_mesh.surface_set_material(0, mat)
+	mesh_instance.mesh = array_mesh
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	return mesh_instance
+
+
+# ==================== 几何辅助 ====================
+
+func _add_box(st: SurfaceTool, center: Vector3, extents: Vector3) -> void:
+	var h := extents * 0.5
+	var verts := PackedVector3Array([
+		center + Vector3(-h.x, -h.y, -h.z), center + Vector3(h.x, -h.y, -h.z),
+		center + Vector3(h.x, -h.y, h.z), center + Vector3(-h.x, -h.y, h.z),
+		center + Vector3(-h.x, h.y, -h.z), center + Vector3(h.x, h.y, -h.z),
+		center + Vector3(h.x, h.y, h.z), center + Vector3(-h.x, h.y, h.z),
+	])
+	var indices := [0,1,2, 0,2,3, 4,6,5, 4,7,6, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,7, 2,7,3, 3,7,4, 3,4,0]
+	for idx in indices:
+		st.add_vertex(verts[idx])
+
+
+func _add_sphere(st: SurfaceTool, center: Vector3, radius: float, subdivisions: int = 1) -> void:
+	var phi := (1.0 + sqrt(5.0)) / 2.0
+	var verts := PackedVector3Array([
+		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),
+		Vector3(0, -1, phi), Vector3(0, 1, phi), Vector3(0, -1, -phi), Vector3(0, 1, -phi),
+		Vector3(phi, 0, -1), Vector3(phi, 0, 1), Vector3(-phi, 0, -1), Vector3(-phi, 0, 1),
+	])
+	for i in range(verts.size()):
+		verts[i] = verts[i].normalized() * radius + center
+	var faces := [0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1]
+	for i in range(0, faces.size(), 3):
+		st.add_vertex(verts[faces[i]])
+		st.add_vertex(verts[faces[i+1]])
+		st.add_vertex(verts[faces[i+2]])
+
+
+func _add_box_mesh(st: SurfaceTool, center: Vector3, size: Vector3) -> void:
+	var h := size * 0.5
+	var verts := PackedVector3Array([
+		center + Vector3(-h.x,-h.y,-h.z), center + Vector3(h.x,-h.y,-h.z),
+		center + Vector3(h.x,-h.y,h.z), center + Vector3(-h.x,-h.y,h.z),
+		center + Vector3(-h.x,h.y,-h.z), center + Vector3(h.x,h.y,-h.z),
+		center + Vector3(h.x,h.y,h.z), center + Vector3(-h.x,h.y,h.z),
+	])
+	var idx := [0,1,2, 0,2,3, 4,6,5, 4,7,6, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,7, 2,7,3, 3,7,4, 3,4,0]
+	for i in idx:
+		st.add_vertex(verts[i])
+
+
+func _add_cylinder_mesh(st: SurfaceTool, center: Vector3, radius: float, height: float) -> void:
+	var sides := 8
+	var half_h := height * 0.5
+	for i in range(sides):
+		var a1 := (float(i) / sides) * TAU
+		var a2 := (float(i + 1) / sides) * TAU
+		var v1 := center + Vector3(cos(a1) * radius, half_h, sin(a1) * radius)
+		var v2 := center + Vector3(cos(a2) * radius, half_h, sin(a2) * radius)
+		var v3 := center + Vector3(cos(a2) * radius, -half_h, sin(a2) * radius)
+		var v4 := center + Vector3(cos(a1) * radius, -half_h, sin(a1) * radius)
+		st.add_vertex(v1); st.add_vertex(v2); st.add_vertex(v3)
+		st.add_vertex(v1); st.add_vertex(v3); st.add_vertex(v4)
+
+
+func _add_cone_mesh(st: SurfaceTool, center: Vector3, radius: float, height: float) -> void:
+	var sides := 8
+	var top := center + Vector3(0, height, 0)
+	for i in range(sides):
+		var a1 := (float(i) / sides) * TAU
+		var a2 := (float(i + 1) / sides) * TAU
+		var v1 := center + Vector3(0, 0, 0)
+		var v2 := center + Vector3(cos(a1) * radius, 0, sin(a1) * radius)
+		var v3 := center + Vector3(cos(a2) * radius, 0, sin(a2) * radius)
+		var v4 := top
+		var v5 := center + Vector3(cos(a1) * radius, 0, sin(a1) * radius)
+		var v6 := center + Vector3(cos(a2) * radius, 0, sin(a2) * radius)
+		st.add_vertex(v1); st.add_vertex(v2); st.add_vertex(v3)
+		st.add_vertex(v4); st.add_vertex(v5); st.add_vertex(v6)
+
+
+func _add_sphere_mesh(st: SurfaceTool, center: Vector3, radius: float) -> void:
+	_add_sphere(st, center, radius, 1)
+
+
+func _add_icosphere_mesh(st: SurfaceTool, center: Vector3, radius: float) -> void:
+	_add_sphere(st, center, radius, 0)
+
+
+# ==================== 相机 ====================
+
+func _setup_camera() -> void:
+	camera.position = Vector3(0, 25, 30)
+	camera.look_at(Vector3(0, 0, 5), Vector3.UP)
+
+
+func get_character_node(character_id: String) -> Node3D:
+	return _character_nodes.get(character_id)
+
+
+func get_building_node(building_name: String) -> MeshInstance3D:
+	return _building_nodes.get(building_name)
+
+
+func update_character_position(character_id: String, pos: Vector3) -> void:
+	var node = get_character_node(character_id)
+	if node:
+		node.position = pos
+
+
+func remove_character_node(character_id: String) -> void:
+	var node = _character_nodes.get(character_id)
+	if node:
+		node.queue_free()
+		_character_nodes.erase(character_id)
+
+
+func show_effect(effect_type: int, position: Vector3, size: float = 1.0, color_key: String = "qi_blue") -> void:
+	var effect := _create_effect_mesh(effect_type, size, color_key)
+	effect.position = position
+	effects.add_child(effect)
+	var tween := create_tween()
+	tween.tween_interval(3.0)
+	tween.tween_callback(effect.queue_free)
+
+
+func _create_effect_mesh(effect_type: int, size: float, color_key: String) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	var array_mesh := ArrayMesh.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_add_sphere(st, Vector3(0, 0, 0), 0.5 * size, 1)
+	st.generate_normals()
+	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
+
+	var color_map: Dictionary = {
+		"qi_blue": Color(0.2, 0.5, 0.9),
+		"fire": Color(0.9, 0.3, 0.1),
+		"wood": Color(0.2, 0.7, 0.3),
+		"gold": Color(0.9, 0.8, 0.2),
+	}
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color_map.get(color_key, Color(0.3, 0.6, 0.9))
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission = mat.albedo_color
+	mat.emission_energy_multiplier = 3.0
+	array_mesh.surface_set_material(0, mat)
+	mesh_instance.mesh = array_mesh
+	return mesh_instance
+
+
+func update_time_of_day(hour: float) -> void:
+	var angle = (hour / 24.0) * 360.0 - 90.0
+	lighting.rotation_degrees.x = angle
+	var intensity := clampf(sin(hour / 24.0 * PI), 0.1, 1.0)
+	lighting.light_energy = intensity
+
+	if hour < 6 or hour > 20:
+		environment.environment.ambient_light_color = Color(0.05, 0.05, 0.15)
+	elif hour < 8 or hour > 18:
+		environment.environment.ambient_light_color = Color(0.8, 0.4, 0.2)
+	else:
+		environment.environment.ambient_light_color = Color(0.6, 0.7, 0.9)

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spirit_armor"
+name = "灵甲"
+type = 2
+description = "以灵矿锻造的护甲，可抵御灵力攻击。"
+quality = 2
+stackable = false
+max_stack = 1
+effects = []
+buy_value = 600
+sell_value = 300
+drop_chance = 0.04
+equip_stats = {"defense": 25, "max_hp": 100}
+equip_slot = "armor"

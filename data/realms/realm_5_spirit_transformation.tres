@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spirit_transformation"
+name = "化神期"
+tier = 5
+description = "元婴化神，与天地共鸣，可操控天地之力。化神期修士已超越凡俗，举手投足间可改天换地。分为初期、中期、后期。"
+required_exp = 30000
+base_breakthrough_rate = 0.2
+max_hp_bonus = 1000
+max_mp_bonus = 600
+attack_bonus = 100
+defense_bonus = 60
+spirit_bonus = 80
+speed_bonus = 40
+lifespan_bonus = 1000
+spirit_bonus_rate = 0.5
+required_resources = {"spirit_stone": 10000, "blood_essence": 20, "spirit_ore": 50}
+skill_unlocks = ["domain", "world_power", "void_control"]
+failure_penalty = {"exp_loss_rate": 0.5, "injury_chance": 0.35, "death_chance": 0.03}
+sub_stages = 3

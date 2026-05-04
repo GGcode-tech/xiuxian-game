@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RandomEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/events/event_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "family_crisis"
+title = "家族危机"
+description = "家族领地突然遭到妖兽袭击！防线告急，需要立刻做出决策。"
+event_type = "family"
+triggers = {"min_family_level": 2, "min_members": 5, "random_chance": 0.01}
+trigger_chance = 0.01
+cooldown_days = 180
+max_occurrences = -1
+choices = [{"text": "全员出击御敌", "description": "动员全部族人迎战妖兽", "requirements": {}, "outcomes": [{"probability": 0.5, "text": "击退了妖兽！但家族也付出了代价。", "effects": [{"type": "add_reputation", "value": 50}, {"type": "damage", "value": 50}]}, {"probability": 0.3, "text": "大获全胜！还缴获了妖兽材料。", "effects": [{"type": "add_reputation", "value": 100}, {"type": "add_item", "id": "blood_essence_stone", "amount": 2}]}, {"probability": 0.2, "text": "惨胜……族人伤亡惨重。", "effects": [{"type": "add_reputation", "value": 20}, {"type": "damage", "value": 200}]}]}, {"text": "固守待援", "description": "坚守不出，等待附近宗门援助", "requirements": {}, "outcomes": [{"probability": 0.7, "text": "成功等到援军，妖兽退去。", "effects": [{"type": "add_reputation", "value": 10}]}, {"probability": 0.3, "text": "援军迟迟不来，领地遭受损失。", "effects": [{"type": "add_reputation", "value": -20}]}]}]
+weight = 1.5
+priority = 8

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nascent_soul"
+name = "元婴期"
+tier = 4
+description = "金丹孕育元婴，神识大增，已可神游太虚。元婴期修士可操控法宝，施展神通，在修仙界已算一方高手。分为初期、中期、后期。"
+required_exp = 8000
+base_breakthrough_rate = 0.3
+max_hp_bonus = 500
+max_mp_bonus = 300
+attack_bonus = 50
+defense_bonus = 30
+spirit_bonus = 40
+speed_bonus = 20
+lifespan_bonus = 500
+spirit_bonus_rate = 0.4
+required_resources = {"spirit_stone": 2000, "blood_essence": 5, "spirit_ore": 10}
+skill_unlocks = ["teleport", "soul_attack", "spatial_seal"]
+failure_penalty = {"exp_loss_rate": 0.4, "injury_chance": 0.25, "death_chance": 0.01}
+sub_stages = 3

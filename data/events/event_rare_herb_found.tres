@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RandomEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/events/event_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rare_herb_found"
+title = "天材地宝"
+description = "外出游历时，你发现了一株千年灵药！四周似乎有灵兽守护的痕迹。"
+event_type = "character"
+triggers = {"min_realm": "core_formation", "random_chance": 0.015}
+trigger_chance = 0.015
+cooldown_days = 200
+max_occurrences = -1
+choices = [{"text": "强行采摘", "description": "不顾守护灵兽，直接采摘灵药", "requirements": {"min_realm": "core_formation"}, "outcomes": [{"probability": 0.4, "text": "成功采到灵药且未惊动灵兽！", "effects": [{"type": "add_item", "id": "ice_lotus", "amount": 3}]}, {"probability": 0.4, "text": "惊动了灵兽！被迫战斗！", "effects": [{"type": "damage", "value": 150}, {"type": "add_item", "id": "ice_lotus", "amount": 1}]}, {"probability": 0.2, "text": "灵兽太强，不得不放弃灵药逃走。", "effects": [{"type": "damage", "value": 200}]}]}, {"text": "智取灵药", "description": "设置诱饵引开灵兽，再悄悄采摘", "requirements": {}, "outcomes": [{"probability": 0.6, "text": "计策成功！安全采到灵药。", "effects": [{"type": "add_item", "id": "fire_spirit_grass", "amount": 5}]}, {"probability": 0.4, "text": "灵兽没有上当，还被它发现了！", "effects": [{"type": "damage", "value": 80}]}]}]
+weight = 1.2
+priority = 4

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "five_elements_art"
+name = "五行归元诀"
+type = 0
+description = "上古五行宗镇派功法，修炼五行灵气，以五行相生之理循环修炼，适合五行灵根齐全者修炼。修炼至大成可操控五行之力。"
+max_level = 10
+exp_per_level = 1000
+cultivation_speed = 1.2
+stat_bonuses_per_level = {"max_hp": 20, "max_mp": 15, "attack": 3, "defense": 2, "spirit": 5}
+element = "five_elements"
+required_spirit_root = {"gold": 0.3, "wood": 0.3, "water": 0.3, "fire": 0.3, "earth": 0.3}
+required_bloodline = ""
+min_realm_tier = 1
+skill_unlock_levels = [3, 5, 7, 10]
+skill_unlock_ids = ["five_elements_shield", "five_elements_sword", "five_elements_domain", "five_elements_fusion"]
+quality = 3
+rarity = 0.05
+can_be_main = true

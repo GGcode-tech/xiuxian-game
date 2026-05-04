@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ice_soul_art"
+name = "冰魄寒光诀"
+type = 0
+description = "玄冰宫传承功法，修炼水属性与冰属性灵气，大成者可冻结万物，凝结绝对零度。"
+max_level = 10
+exp_per_level = 1000
+cultivation_speed = 1.05
+stat_bonuses_per_level = {"max_hp": 12, "max_mp": 22, "attack": 6, "defense": 2, "spirit": 4}
+element = "water"
+required_spirit_root = {"water": 0.5}
+required_bloodline = ""
+min_realm_tier = 1
+skill_unlock_levels = [3, 6, 9]
+skill_unlock_ids = ["ice_shield", "frozen_domain", "absolute_zero"]
+quality = 3
+rarity = 0.06
+can_be_main = true

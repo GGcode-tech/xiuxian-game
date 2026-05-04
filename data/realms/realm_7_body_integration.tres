@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "body_integration"
+name = "合体期"
+tier = 7
+description = "身与道合，天人合一。合体期修士已将自身融入大道，法力无边。分为初期、中期、后期。"
+required_exp = 500000
+base_breakthrough_rate = 0.1
+max_hp_bonus = 5000
+max_mp_bonus = 3000
+attack_bonus = 500
+defense_bonus = 300
+spirit_bonus = 300
+speed_bonus = 100
+lifespan_bonus = 3000
+spirit_bonus_rate = 0.7
+required_resources = {"spirit_stone": 200000, "blood_essence": 100, "spirit_ore": 500}
+skill_unlocks = ['dao_merge', 'reincarnation_escape', 'heavenly_tribulation']
+failure_penalty = {"exp_loss_rate": 0.7, "injury_chance": 0.5, "death_chance": 0.1}
+sub_stages = 3

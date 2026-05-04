@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "healing_pill"
+name = "回春丹"
+type = 1
+description = "基础疗伤丹药，服用后恢复大量生命。"
+quality = 1
+stackable = true
+max_stack = 30
+effects = [{"type": "heal", "value": 200, "duration": 0}]
+buy_value = 30
+sell_value = 15
+drop_chance = 0.2
+equip_stats = {}
+equip_slot = ""

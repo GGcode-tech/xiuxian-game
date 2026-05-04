@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "foundation_pill"
+name = "筑基丹"
+type = 1
+description = "辅助筑基的珍贵丹药，可大幅提高筑基成功率。"
+quality = 3
+stackable = true
+max_stack = 5
+effects = [{"type": "breakthrough_boost", "value": 0.2, "duration": 0}]
+buy_value = 5000
+sell_value = 2500
+drop_chance = 0.02
+equip_stats = {}
+equip_slot = ""

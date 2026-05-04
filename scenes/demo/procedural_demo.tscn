@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqyproc_demo"]
+
+[ext_resource type="Script" path="res://scenes/demo/procedural_demo.gd" id="1_demo"]
+
+[node name="ProceduralDemo" type="Node3D"]
+script = ExtResource("1_demo")

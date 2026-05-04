@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RandomEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/events/event_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spirit_root_awakening"
+title = "灵根觉醒"
+description = "在打坐修炼时，你突然感到体内涌出一股奇异的热流，五行灵气在经脉中奔涌——你的灵根正在觉醒！"
+event_type = "character"
+triggers = {"min_age": 8, "max_age": 16, "random_chance": 0.05}
+trigger_chance = 0.05
+cooldown_days = 0
+max_occurrences = 1
+choices = [{"text": "顺应灵气，全力引导", "description": "不打扰灵气流动，顺其自然引导灵根觉醒", "requirements": {}, "outcomes": [{"probability": 0.7, "text": "灵根顺利觉醒！你的天赋超乎想象，五行灵根齐备！", "effects": [{"type": "add_trait", "id": "five_element_root"}, {"type": "breakthrough_boost", "value": 0.1}]}, {"probability": 0.3, "text": "灵根觉醒了，但只有部分灵根被激活。", "effects": [{"type": "add_trait", "id": "partial_spirit_root"}]}]}, {"text": "压制灵气，稳妥行事", "description": "控制灵气不使其过于剧烈，避免受伤", "requirements": {}, "outcomes": [{"probability": 0.9, "text": "稳稳地觉醒了灵根，虽然没有惊喜但也没有风险。", "effects": [{"type": "add_trait", "id": "stable_root"}]}, {"probability": 0.1, "text": "灵气被压制过度，灵根觉醒不完全。", "effects": [{"type": "add_trait", "id": "weak_root"}]}]}]
+weight = 2.0
+priority = 10

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TechniqueData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/techniques/technique_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "azure_essence_art"
+name = "青元剑诀"
+type = 0
+description = "青云门镇派功法，以木属性灵气为基，剑意入道。修炼至大成可化剑气为实质，一剑破万法。"
+max_level = 10
+exp_per_level = 800
+cultivation_speed = 1.1
+stat_bonuses_per_level = {"max_hp": 15, "max_mp": 20, "attack": 5, "defense": 1, "spirit": 3}
+element = "wood"
+required_spirit_root = {"wood": 0.5}
+required_bloodline = ""
+min_realm_tier = 1
+skill_unlock_levels = [2, 5, 8]
+skill_unlock_ids = ["azure_sword_qi", "azure_sword_domain", "azure_sword_heart"]
+quality = 3
+rarity = 0.08
+can_be_main = true

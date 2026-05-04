@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bqyspirit_stone_mat"]
+
+[resource]
+resource_name = "Spirit Stone"
+albedo_color = Color(0.3, 0.7, 1.0, 0.85)
+roughness = 0.8
+emission_enabled = true
+emission = Color(0.24, 0.5599999999999999, 0.8, 1)
+emission_energy = 0.8
+transparency = 1

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "tribulation"
+name = "渡劫期"
+tier = 9
+description = "引渡天劫，超脱轮回。渡劫期修士需承受天道考验，九九天雷加身，渡过则飞升，失败则形神俱灭。"
+required_exp = 10000000
+base_breakthrough_rate = 0.03
+max_hp_bonus = 20000
+max_mp_bonus = 12000
+attack_bonus = 2000
+defense_bonus = 1200
+spirit_bonus = 1200
+speed_bonus = 500
+lifespan_bonus = 8000
+spirit_bonus_rate = 0.9
+required_resources = {"spirit_stone": 5000000, "blood_essence": 500, "spirit_ore": 3000}
+skill_unlocks = ['heavenly_tribulation_resist', 'dao_heart', 'immortal_body']
+failure_penalty = {"exp_loss_rate": 0.9, "injury_chance": 0.7, "death_chance": 0.3}
+sub_stages = 3

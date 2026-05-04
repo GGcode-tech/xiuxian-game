@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RandomEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/events/event_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ancient_cave_discovery"
+title = "上古洞府"
+description = "在后山修炼时，你不慎踏入一处隐蔽的洞穴。洞中残留着上古修士的痕迹，似乎有宝物存在！"
+event_type = "special"
+triggers = {"min_realm": "foundation", "min_year": 5, "random_chance": 0.02}
+trigger_chance = 0.02
+cooldown_days = 365
+max_occurrences = -1
+choices = [{"text": "深入探索", "description": "冒险进入洞府深处寻找宝物", "requirements": {"min_realm": "foundation"}, "outcomes": [{"probability": 0.4, "text": "发现了一枚上古丹药！", "effects": [{"type": "add_item", "id": "golden_core_pill", "amount": 1}]}, {"probability": 0.3, "text": "触发了洞府禁制，受到了伤害！", "effects": [{"type": "damage", "value": 100}]}, {"probability": 0.2, "text": "发现了一本功法秘籍！", "effects": [{"type": "add_item", "id": "scroll_basic_cultivation", "amount": 1}]}, {"probability": 0.1, "text": "惊动了洞府守卫灵兽！需要战斗！", "effects": [{"type": "trigger_event", "id": "cave_guardian_fight"}]}]}, {"text": "谨慎撤退", "description": "安全第一，先回去找帮手", "requirements": {}, "outcomes": [{"probability": 0.6, "text": "返回后洞府入口已消失了……错失机缘。", "effects": []}, {"probability": 0.4, "text": "再次找到入口， safely 探索了外围！", "effects": [{"type": "add_exp", "value": 500}]}]}]
+weight = 1.0
+priority = 5

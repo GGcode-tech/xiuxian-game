@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RandomEventData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/events/event_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "marriage_proposal"
+title = "联姻之议"
+description = "附近一个修仙家族派人来提亲，希望两家联姻。这是一次扩大势力的机会。"
+event_type = "family"
+triggers = {"min_family_level": 2, "min_year": 10, "random_chance": 0.03}
+trigger_chance = 0.03
+cooldown_days = 365
+max_occurrences = -1
+choices = [{"text": "同意联姻", "description": "接受提亲，与对方家族结盟", "requirements": {}, "outcomes": [{"probability": 1.0, "text": "两家结为姻亲，实力大增。", "effects": [{"type": "add_reputation", "value": 30}]}]}, {"text": "婉言拒绝", "description": "保持独立，不与其他家族结盟", "requirements": {}, "outcomes": [{"probability": 0.7, "text": "对方虽然失望但表示理解。", "effects": []}, {"probability": 0.3, "text": "对方认为被轻视，关系恶化。", "effects": [{"type": "add_reputation", "value": -10}]}]}]
+weight = 1.0
+priority = 3

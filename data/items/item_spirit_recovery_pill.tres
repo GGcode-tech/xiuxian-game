@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/items/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "spirit_recovery_pill"
+name = "归元丹"
+type = 1
+description = "恢复灵力的丹药，服用后恢复全部灵力。"
+quality = 2
+stackable = true
+max_stack = 20
+effects = [{"type": "restore_mp", "value": 9999, "duration": 0}]
+buy_value = 100
+sell_value = 50
+drop_chance = 0.1
+equip_stats = {}
+equip_slot = ""

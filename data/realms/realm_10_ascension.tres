@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RealmData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/realms/realm_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ascension"
+name = "飞升"
+tier = 10
+description = "超脱凡俗，飞升仙界。此为凡俗世界终点，仙界起点。飞升后进入全新修炼体系。"
+required_exp = 99999999
+base_breakthrough_rate = 0.01
+max_hp_bonus = 50000
+max_mp_bonus = 30000
+attack_bonus = 5000
+defense_bonus = 3000
+spirit_bonus = 3000
+speed_bonus = 1000
+lifespan_bonus = 99999
+spirit_bonus_rate = 1.0
+required_resources = {}
+skill_unlocks = ['ascension_gates', 'immortal_power']
+failure_penalty = {"exp_loss_rate": 1.0, "injury_chance": 0.8, "death_chance": 0.5}
+sub_stages = 1
