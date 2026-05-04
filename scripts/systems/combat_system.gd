@@ -49,7 +49,7 @@ func _calculate_turn_order() -> void:
 	all_chars.append_array(enemy_team)
 	
 	all_chars.sort_custom(func(a, b):
-		return a.derived_stats.get("speed", 10) > b.derived_stats.get("speed", 10)
+		return a.get("derived_stats", {}).get("speed", 10) > b.get("derived_stats", {}).get("speed", 10)
 	)
 	
 	turn_order = all_chars
@@ -140,20 +140,20 @@ func execute_action(character, action_type: String, target = null, skill_id: Str
 
 
 func _normal_attack(attacker, defender) -> void:
-	var attack = attacker.derived_stats.get("attack", 10)
-	var defense = defender.derived_stats.get("defense", 5)
+	var attack = attacker.get("derived_stats", {}).get("attack", 10)
+	var defense = defender.get("derived_stats", {}).get("defense", 5)
 	
 	# 伤害计算
 	var damage = maxi(1, attack - defense / 2)
 	
 	# 暴击
-	var crit_rate = GameConstants.base_crit_rate + attacker.derived_stats.get("crit_rate", 0.0)
+	var crit_rate = GameConstants.base_crit_rate + attacker.get("derived_stats", {}).get("crit_rate", 0.0)
 	if randf() < crit_rate:
 		damage = int(damage * GameConstants.base_crit_damage)
 		combat_log.append("💥 %s 暴击！" % attacker.name)
 	
 	# 闪避
-	var dodge = GameConstants.dodge_base + defender.derived_stats.get("dodge", 0.0)
+	var dodge = GameConstants.dodge_base + defender.get("derived_stats", {}).get("dodge", 0.0)
 	if randf() < dodge:
 		damage = 0
 		combat_log.append("💨 %s 闪避了攻击" % defender.name)
@@ -207,8 +207,8 @@ func _use_skill(caster, skill_id: String, target) -> void:
 func _apply_skill_effect(caster, target, skill) -> void:
 	# 伤害效果
 	if skill.damage_multiplier > 0:
-		var base_damage = caster.derived_stats.get("attack", 10) * skill.damage_multiplier
-		var defense = target.derived_stats.get("defense", 5)
+		var base_damage = caster.get("derived_stats", {}).get("attack", 10) * skill.damage_multiplier
+		var defense = target.get("derived_stats", {}).get("defense", 5)
 		var damage = maxi(1, int(base_damage - defense * 0.3))
 		target.take_damage(damage)
 		character_damaged.emit(target, damage)
@@ -216,7 +216,7 @@ func _apply_skill_effect(caster, target, skill) -> void:
 	
 	# 治疗效果
 	if skill.heal_amount > 0:
-		var heal = skill.heal_amount + caster.derived_stats.get("spirit", 10) * 0.5
+		var heal = skill.heal_amount + caster.get("derived_stats", {}).get("spirit", 10) * 0.5
 		target.heal(int(heal))
 		character_healed.emit(target, int(heal))
 		combat_log.append("💚 %s 使用 %s 恢复 %s %d 生命" % [caster.name, skill.name, target.name, int(heal)])
@@ -247,10 +247,10 @@ func _attempt_flee(character) -> void:
 	var avg_enemy_speed = 0.0
 	for enemy in enemy_team:
 		if enemy.is_alive:
-			avg_enemy_speed += enemy.derived_stats.get("speed", 10)
+			avg_enemy_speed += enemy.get("derived_stats", {}).get("speed", 10)
 	avg_enemy_speed /= maxi(1, enemy_team.filter(func(e): return e.is_alive).size())
 	
-	var player_speed = character.derived_stats.get("speed", 10)
+	var player_speed = character.get("derived_stats", {}).get("speed", 10)
 	flee_chance += (player_speed - avg_enemy_speed) * 0.02
 	flee_chance = clamp(flee_chance, 0.05, 0.8)
 	

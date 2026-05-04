@@ -186,9 +186,9 @@ func calculate_member_power(character) -> int:
 		power += realm.tier * 100
 	
 	# 属性实力
-	power += character.derived_stats.get("attack", 10)
-	power += character.derived_stats.get("defense", 5)
-	power += int(character.derived_stats.get("max_hp", 100) * 0.5)
+	power += character.get("derived_stats", {}).get("attack", 10)
+	power += character.get("derived_stats", {}).get("defense", 5)
+	power += int(character.get("derived_stats", {}).get("max_hp", 100) * 0.5)
 	
 	# 装备实力
 	for slot in character.equipment:

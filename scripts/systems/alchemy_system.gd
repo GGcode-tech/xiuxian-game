@@ -132,7 +132,7 @@ func _calculate_success_rate(character, recipe: Dictionary, best: bool) -> float
 		rate += 0.1
 	
 	rate += character.bloodline_purity * 0.05
-	rate += character.derived_stats.get("spirit", 10) * 0.002
+	rate += character.get("derived_stats", {}).get("spirit", 10) * 0.002
 	
 	return clamp(rate, 0.05, 0.95)
 
