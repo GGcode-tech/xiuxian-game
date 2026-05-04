@@ -518,11 +518,10 @@ func _next_turn() -> void:
 	
 	# 找到下一个存活的单位
 	var attempts = 0
-	repeat:
+	while not (_current_actor.get("is_alive", true) == true) and (attempts < _turn_order.size()):
 		_current_turn_index = (_current_turn_index + 1) % _turn_order.size()
 		_current_actor = _turn_order[_current_turn_index]
 		attempts += 1
-	until (_current_actor.get("is_alive", true) == true) or (attempts >= _turn_order.size())
 	
 	if attempts >= _turn_order.size():
 		# 本轮结束，开始下一轮
