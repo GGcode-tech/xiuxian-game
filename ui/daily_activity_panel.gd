@@ -355,9 +355,8 @@ func _on_vitality_reward_clicked(index: int) -> void:
 	if _vitality_rewards_claimed.has(index):
 		return
 	
-	vitality_rewards_claimed.append(index)
-	_vitality_rewards_claimed = _vitality_rewards_claimed
-	vitality_reward_claimed.emit(reward_level["level"])
+	_vitality_rewards_claimed.append(index)
+	_vitality_reward_claimed.emit(reward_level["level"])
 	_update_vitality_display()
 
 func _update_vitality_display() -> void:
