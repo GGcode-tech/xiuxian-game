@@ -18,7 +18,7 @@ func get_item_data():
 	return DataManager.get_item(item_id)
 
 
-func get_name() -> String:
+func get_item_name() -> String:
 	var data = get_item_data()
 	if data:
 		return data.name
@@ -26,7 +26,7 @@ func get_name() -> String:
 
 
 func get_display_name() -> String:
-	var name = get_name()
+	var name = get_item_name()
 	
 	if enhanced > 0:
 		name += " +%d" % enhanced
