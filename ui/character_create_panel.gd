@@ -56,7 +56,10 @@ func _custom_init() -> void:
 	# 创建主容器
 	_main_vbox = VBoxContainer.new()
 	_main_vbox.set_anchors_preset(Control.PRESET_CENTER)
-	_main_vbox.position = Vector2(-300, -300)
+	_main_vbox.offset_left = -300
+	_main_vbox.offset_top = -300
+	_main_vbox.offset_right = 300
+	_main_vbox.offset_bottom = 300
 	_main_vbox.custom_minimum_size = Vector2(600, 500)
 	add_child(_main_vbox)
 	
