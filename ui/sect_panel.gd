@@ -23,6 +23,8 @@ var _sect_skills: Array = []
 
 func _ready() -> void:
 	visible = false
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("13_门派")
 	_custom_init()
 
 func _custom_init() -> void:

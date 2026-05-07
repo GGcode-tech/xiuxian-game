@@ -33,7 +33,6 @@ var current_save_slot: String = ""
 var game_speed: float = 1.0
 var is_paused: bool = false
 var is_game_started: bool = false
-var selected_novel: int = 0
 
 # ==================== 时间系统 ====================
 var game_time: Dictionary = {
@@ -280,7 +279,7 @@ func set_state(new_state: GameState) -> void:
 
 
 func toggle_speed() -> void:
-	var speed_levels = [0.5, 1.0, 2.0, 5.0, 10.0]
+	var speed_levels = [1.0, 1.5, 3.0]
 	var current_idx = 0
 	for i in range(speed_levels.size()):
 		if absf(game_speed - speed_levels[i]) < 0.01:
@@ -289,6 +288,8 @@ func toggle_speed() -> void:
 	var next_idx = (current_idx + 1) % speed_levels.size()
 	game_speed = speed_levels[next_idx]
 	speed_changed.emit(next_idx)
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("speed_%.1fx" % game_speed)
 
 
 func process_tick(delta: float) -> void:

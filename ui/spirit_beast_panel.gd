@@ -21,6 +21,8 @@ var _tab_buttons: HBoxContainer
 
 func _ready() -> void:
 	visible = false
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("14_灵兽")
 	_custom_init()
 
 func _custom_init() -> void:

@@ -14,6 +14,8 @@ var current_family = null
 func setup(family) -> void:
 	current_family = family
 	_update_display()
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("15_家族")
 
 
 func _update_display() -> void:

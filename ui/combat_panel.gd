@@ -48,6 +48,8 @@ var _combat_log_entries: Array = []
 var _round_count: int = 1
 
 func _ready() -> void:
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("09_战斗面板")
 	visible = false
 	_custom_init()
 
@@ -160,7 +162,7 @@ func _build_battle_field() -> void:
 	var turn_order_panel = _build_turn_order_panel()
 	turn_order_panel.name = "TurnOrderPanel"
 
-func _create_unit_card(unit_data: Dictionary, is_player: bool, index: int) -> PanelContainer:
+func _create_unit_card(unit_data: Variant, is_player: bool, index: int) -> PanelContainer:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = Vector2(180, 60)
 	card.set("is_player", is_player)
@@ -361,7 +363,7 @@ func _update_unit_display() -> void:
 			var unit = _enemy_team[i] if i < _enemy_team.size() else null
 			_update_unit_card(enemy_card, unit)
 
-func _update_unit_card(card: PanelContainer, unit: Dictionary) -> void:
+func _update_unit_card(card: PanelContainer, unit: Variant) -> void:
 	if not unit:
 		return
 	
@@ -518,10 +520,12 @@ func _next_turn() -> void:
 	
 	# 找到下一个存活的单位
 	var attempts = 0
-	while not (_current_actor.get("is_alive", true) == true) and (attempts < _turn_order.size()):
+	while true:
 		_current_turn_index = (_current_turn_index + 1) % _turn_order.size()
 		_current_actor = _turn_order[_current_turn_index]
 		attempts += 1
+		if _current_actor.get("is_alive", true) or attempts >= _turn_order.size():
+			break
 	
 	if attempts >= _turn_order.size():
 		# 本轮结束，开始下一轮

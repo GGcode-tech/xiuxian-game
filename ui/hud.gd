@@ -34,6 +34,9 @@ func _ready() -> void:
 		family_btn.pressed.connect(_on_family_button_pressed)
 	if map_btn:
 		map_btn.pressed.connect(_on_map_button_pressed)
+	
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("04_HUD主界面")
 
 
 func update_display() -> void:

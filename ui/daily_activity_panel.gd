@@ -30,6 +30,8 @@ var _selected_activity_id: String = ""
 
 func _ready() -> void:
 	visible = false
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("10_日常活动")
 	_custom_init()
 
 func _custom_init() -> void:
@@ -356,7 +358,8 @@ func _on_vitality_reward_clicked(index: int) -> void:
 		return
 	
 	_vitality_rewards_claimed.append(index)
-	_vitality_reward_claimed.emit(reward_level["level"])
+	_vitality_rewards_claimed = _vitality_rewards_claimed
+	vitality_reward_claimed.emit(reward_level["level"])
 	_update_vitality_display()
 
 func _update_vitality_display() -> void:

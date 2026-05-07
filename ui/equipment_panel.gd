@@ -35,6 +35,8 @@ var _craft_panel: PanelContainer
 
 func _ready() -> void:
 	visible = false
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("12_装备")
 	_custom_init()
 
 func _custom_init() -> void:

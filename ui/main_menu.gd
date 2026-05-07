@@ -234,18 +234,23 @@ func _create_quick_button(icon: String, name: String) -> Button:
 
 func _on_quick_menu_pressed(menu_id: String) -> void:
 	menu_button_pressed.emit(menu_id)
+	ScreenshotSystem.auto_screenshot("menu_%s" % menu_id)
 
 func _on_dungeon_clicked() -> void:
 	menu_button_pressed.emit("dungeon")
+	ScreenshotSystem.auto_screenshot("05_副本")
 
 func _on_sect_clicked() -> void:
 	menu_button_pressed.emit("sect")
+	ScreenshotSystem.auto_screenshot("06_门派")
 
 func _on_spirit_beast_clicked() -> void:
 	menu_button_pressed.emit("spirit_beast")
+	ScreenshotSystem.auto_screenshot("07_灵兽")
 
 func _on_equipment_clicked() -> void:
 	menu_button_pressed.emit("equipment")
+	ScreenshotSystem.auto_screenshot("08_装备")
 
 func update_character_info(character: Dictionary) -> void:
 	_current_character = character

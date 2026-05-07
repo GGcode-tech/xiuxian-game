@@ -24,26 +24,24 @@ DataManager="*res://autoload/data_manager.gd"
 EventManager="*res://autoload/event_manager.gd"
 SaveManager="*res://autoload/save_manager.gd"
 AudioManager="*res://autoload/audio_manager.gd"
-# System singletons — load before GameManager
-CharacterSystem="*res://scripts/systems/character_system.gd"
 FamilySystem="*res://scripts/systems/family_system.gd"
 MapData="*res://scripts/systems/map_data.gd"
 ResourceManager="*res://scripts/procedural/resource_manager.gd"
 NovelDB="*res://data/novel_database.gd"
-# New MMORPG systems
-SectSystem="*res://scripts/systems/sect_system.gd"
+#NewMMORPGsystemsSectSystem="*res://scripts/systems/sect_system.gd"
 SpiritBeastSystem="*res://scripts/systems/spirit_beast_system.gd"
 EquipmentSystem="*res://scripts/systems/equipment_system.gd"
 DungeonSystem="*res://scripts/systems/dungeon_system.gd"
 DailyActivitySystem="*res://scripts/systems/daily_activity_system.gd"
+NPCSystem="*res://scripts/systems/npc_system.gd"
+ScreenshotSystem="*res://autoload/screenshot_system.gd"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/size/resizable=true
-window/size/windowed=true
 window/stretch/mode="canvas_items"
+window/size/windowed=true
 
 [editor_plugins]
 
@@ -51,5 +49,4 @@ enabled=PackedStringArray()
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
 anti_aliasing/quality/msaa_3d=2

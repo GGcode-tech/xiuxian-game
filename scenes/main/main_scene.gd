@@ -95,12 +95,13 @@ func _show_start_menu() -> void:
 		_start_menu.start_game_requested.connect(_on_start_game_requested)
 		ui_layer.add_child(_start_menu)
 	_start_menu.show()
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("01_开始菜单")
 
 
 # ==================== 角色创建流程 ====================
 
-func _on_start_game_requested(novel_index: int) -> void:
-	GameManager.selected_novel = novel_index
+func _on_start_game_requested() -> void:
 	_start_menu.hide()
 	_show_character_create()
 
@@ -112,6 +113,8 @@ func _show_character_create() -> void:
 		_character_create.creation_cancelled.connect(_on_creation_cancelled)
 		ui_layer.add_child(_character_create)
 	_character_create.show()
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("02_角色创建")
 
 
 func _on_character_created(char_data: Dictionary) -> void:
@@ -122,6 +125,8 @@ func _on_character_created(char_data: Dictionary) -> void:
 	_character_create.hide()
 	GameManager.is_game_started = true
 	GameManager.set_state(GameManager.GameState.PLAYING)
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("03_角色创建完成")
 
 
 func _on_creation_cancelled() -> void:
@@ -141,28 +146,21 @@ func _apply_new_character(data: Dictionary) -> void:
 
 
 func _create_player_dict(data: Dictionary) -> Dictionary:
-	var realm_id = "realm_lianqi"
-	var realm_map = {
-		"炼气": "realm_lianqi", "筑基": "realm_zhuoji", "结丹": "realm_jiandan",
-		"元婴": "realm_yuanying", "化神": "realm_huashen"
-	}
-	realm_id = realm_map.get(data.get("realm_name", "炼气"), "realm_lianqi")
-
-	var stats = data.get("base_stats", {})
+	var stats = _calculate_stats(data.get("attributes", {}))
 	var ch: Dictionary = {
 		"id": "player_%d" % Time.get_ticks_msec(),
 		"name": data.get("name", "修仙者"),
-		"gender": data.get("gender", 0),
+		"gender": 0,
 		"age": 18,
 		"family_id": "family_player",
 		"generation": 1,
 		"parent_ids": [],
 		"spouse_id": "",
 		"children_ids": [],
-		"spirit_root": data.get("spirit_root", {"gold": 0.2, "wood": 0.2, "water": 0.2, "fire": 0.2, "earth": 0.2}),
+		"spirit_root": {"gold": 0.2, "wood": 0.2, "water": 0.2, "fire": 0.2, "earth": 0.2},
 		"bloodline": "",
 		"bloodline_purity": 0.0,
-		"realm_id": realm_id,
+		"realm_id": "realm_lianqi",
 		"realm_exp": 0,
 		"base_stats": stats,
 		"hp": stats.get("max_hp", 100),
@@ -170,11 +168,10 @@ func _create_player_dict(data: Dictionary) -> Dictionary:
 		"is_alive": true,
 		"techniques": [],
 		"items": [],
-		"element": data.get("element", "wood"),
+		"element": "wood",
 		"role": "cultivator",
-		"sect_id": data.get("sect_id", ""),
+		"sect_id": data.get("sect", ""),
 		"sect_name": data.get("sect_name", "无"),
-		"novel_source": data.get("novel_source", "凡人修仙传"),
 		"spirit_beasts": [],
 		"equipment": {},
 		"resources": {
@@ -190,6 +187,25 @@ func _create_player_dict(data: Dictionary) -> Dictionary:
 	return ch
 
 
+func _calculate_stats(attributes: Dictionary) -> Dictionary:
+	var base_hp = 100
+	var base_mp = 50
+	var base_attack = 10
+	var base_defense = 5
+	var base_speed = 10
+	var base_spirit = 10
+	
+	return {
+		"max_hp": base_hp + attributes.get("constitution", 0) * 10,
+		"max_mp": base_mp + attributes.get("spirit", 0) * 5,
+		"attack": base_attack + attributes.get("strength", 0) * 3,
+		"defense": base_defense + attributes.get("constitution", 0) * 2,
+		"speed": base_speed + attributes.get("agility", 0) * 2,
+		"spirit": base_spirit + attributes.get("spirit", 0) * 3,
+		"luck": attributes.get("luck", 0),
+	}
+
+
 # ==================== 主游戏界面 ====================
 
 func _show_main_menu() -> void:
@@ -203,13 +219,16 @@ func _show_main_menu() -> void:
 		_hud.family_panel_requested.connect(_on_family_panel_requested)
 		ui_layer.add_child(_hud)
 	_hud.show()
-
+	
 	# 主菜单面板
 	if not _main_menu:
 		_main_menu = MAIN_MENU_SCENE.instantiate()
 		_main_menu.menu_button_pressed.connect(_on_menu_button_pressed)
 		ui_layer.add_child(_main_menu)
-
+	
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("04_主界面")
+	
 	# 更新主菜单角色信息
 	var player = _get_player_character()
 	if _main_menu.has_method("update_character_info"):

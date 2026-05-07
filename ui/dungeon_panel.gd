@@ -24,6 +24,8 @@ const DIFFICULTY_NAMES = {"simple": "简单", "normal": "普通", "hard": "困�
 
 func _ready() -> void:
 	visible = false
+	# 自动截图
+	ScreenshotSystem.auto_screenshot("11_副本")
 	_custom_init()
 
 func _custom_init() -> void:
