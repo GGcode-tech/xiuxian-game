@@ -38,13 +38,13 @@ theme_override_constants/separation = 16
 [node name="TitleLabel" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "修仙家族模拟器"
+text = "测试的小修仙世界"
 horizontal_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Mortal Family Cultivation Simulator"
+text = "Little Test Cultivation World"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="VBox"]

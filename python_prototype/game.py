@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-修仙家族模拟器 - Python 终端原型
+测试的小修仙世界 - Python 终端原型
 核心游戏循环验证
 
 基于 Godot 4.x 项目的核心逻辑移植
@@ -429,7 +429,7 @@ class GameUI:
     def menu_main(self):
         """主菜单"""
         self.clear_screen()
-        self.print_header("修仙家族模拟器 v0.1")
+        self.print_header("测试的小修仙世界 v0.1")
         print("  基于 Godot 4.x 项目核心逻辑的 Python 原型验证")
         print()
         print("  [1] 🚀 开始新游戏")
@@ -471,7 +471,7 @@ class GameUI:
         """游戏主界面"""
         while self.running and self.game.is_started:
             self.clear_screen()
-            self.print_header("修仙家族模拟器")
+            self.print_header("测试的小修仙世界")
             self.print_status_bar()
             
             # 显示角色列表

@@ -192,7 +192,7 @@ if __name__ == "__main__":
     scene_files = [f for f in scene_files if os.path.exists(f)]
     if len(scene_files) >= 4:
         create_scene_image(scene_files, f"{base}/preview_scene.png", 
-                          "修仙家族模拟器 - 场景预览")
+                          "测试的小修仙世界 - 场景预览")
     
     # Summary
     print(f"\n✅ 预览图生成完成!")

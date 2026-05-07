@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="修仙家族模拟器"
-config/description="一个3D修仙家族模拟经营游戏"
+config/name="测试的小修仙世界"
+config/description="一个3D修仙世界模拟经营游戏"
 config/version="0.1.0"
 run/main_scene="res://scenes/main/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")

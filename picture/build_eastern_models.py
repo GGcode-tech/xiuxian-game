@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""修仙家族模拟器 - 东方建筑3D模型生成器 (OBJ格式)"""
+"""测试的小修仙世界 - 东方建筑3D模型生成器 (OBJ格式)"""
 
 import math
 import os

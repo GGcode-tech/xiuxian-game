@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0",
-    "description": "修仙家族模拟器 - 12部经典修仙小说设定数据库",
+    "description": "测试的小修仙世界 - 12部经典修仙小说设定数据库",
     "novels_count": 12,
     "data_source": [
       "凡人修仙传",
