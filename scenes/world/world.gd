@@ -142,14 +142,18 @@ func _generate_nature() -> void:
 
 func _spawn_characters() -> void:
 	var family = GameManager.get_player_family()
-	if not family:
+	print("[World] _spawn_characters: family=%s" % str(family))
+	if family.is_empty():
 		_create_default_characters()
 		return
 
 	for member_id in family.get("members", []):
 		var character = GameManager.get_character(member_id)
-		if character and character.get("is_alive", false):
+		print("[World] spawning member %s: %s" % [member_id, character.get("name", "?")])
+		if character and not character.is_empty() and character.get("is_alive", false):
 			_spawn_character_node(character)
+		else:
+			print("[World] SKIP: character empty or dead")
 
 
 func _create_default_characters() -> void:
@@ -176,11 +180,21 @@ func _create_default_characters() -> void:
 func _spawn_character_node(character: Dictionary) -> void:
 	var container := Node3D.new()
 	var mesh := _create_character_mesh(_get_character_type(character), _get_character_color(character))
-	mesh.scale = Vector3.ONE
+	mesh.scale = Vector3(2.0, 2.0, 2.0)  # 放大2倍
 	container.add_child(mesh)
-	container.position = Vector3(randf_range(-10, 10), 0, randf_range(-15, 15))
+	# 名字标签（3D文字）
+	var label3d = Label3D.new()
+	label3d.text = character.get("name", "?")
+	label3d.font_size = 48
+	label3d.position = Vector3(0, 4.5, 0)  # 头顶上方
+	label3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label3d.modulate = Color(1, 1, 0.8)
+	container.add_child(label3d)
+	# 放在靠近摄像机的位置
+	container.position = Vector3(randf_range(-5, 5), 0, randf_range(15, 25))
 	characters_node.add_child(container)
 	_character_nodes[character.get("id", "")] = container
+	print("[World] ✅ spawned character '%s' at %s" % [character.get("name", "?"), container.position])
 
 
 func _get_character_type(character: Dictionary) -> int:

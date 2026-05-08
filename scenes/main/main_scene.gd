@@ -93,6 +93,8 @@ func _show_start_menu() -> void:
 	if not _start_menu:
 		_start_menu = START_MENU_SCENE.instantiate()
 		_start_menu.start_game_requested.connect(_on_start_game_requested)
+		_start_menu.load_game_requested.connect(_on_load_game_requested)
+		_start_menu.settings_requested.connect(_on_settings_requested)
 		ui_layer.add_child(_start_menu)
 	_start_menu.show()
 	# 自动截图
@@ -106,11 +108,22 @@ func _on_start_game_requested() -> void:
 	_show_character_create()
 
 
+func _on_load_game_requested() -> void:
+	# 尝试加载快速存档
+	if SaveManager.has_method("load_game"):
+		SaveManager.load_game("quick")
+
+
+func _on_settings_requested() -> void:
+	# 暂时跳转到暂停菜单（设置功能）
+	GameManager.set_state(GameManager.GameState.PAUSED)
+
+
 func _show_character_create() -> void:
 	if not _character_create:
 		_character_create = CHARACTER_CREATE_SCENE.instantiate()
 		_character_create.character_created.connect(_on_character_created)
-		_character_create.creation_cancelled.connect(_on_creation_cancelled)
+		_character_create.back_to_menu_requested.connect(_on_creation_cancelled)
 		ui_layer.add_child(_character_create)
 	_character_create.show()
 	# 自动截图
@@ -124,6 +137,8 @@ func _on_character_created(char_data: Dictionary) -> void:
 	# 关闭创建界面 → 跳转主界面
 	_character_create.hide()
 	GameManager.is_game_started = true
+	# 初始化3D世界
+	world.initialize()
 	GameManager.set_state(GameManager.GameState.PLAYING)
 	# 自动截图
 	ScreenshotSystem.auto_screenshot("03_角色创建完成")
@@ -143,6 +158,17 @@ func _apply_new_character(data: Dictionary) -> void:
 	var ch = _create_player_dict(data)
 	GameManager.add_character(ch)
 	GameManager.player_family_id = ch["family_id"]
+	# 创建家族（world需要通过get_player_family获取成员列表）
+	var family = {
+		"id": ch["family_id"],
+		"name": data.get("name", "修仙者") + "家族",
+		"founder_id": ch["id"],
+		"founded_year": 1,
+		"level": 1,
+		"members": [ch["id"]],
+		"unlocked_buildings": [],
+	}
+	GameManager.add_family(family)
 
 
 func _create_player_dict(data: Dictionary) -> Dictionary:
@@ -217,6 +243,7 @@ func _show_main_menu() -> void:
 		_hud = HUD_SCENE.instantiate()
 		_hud.character_selected.connect(_on_character_selected)
 		_hud.family_panel_requested.connect(_on_family_panel_requested)
+		_hud.map_panel_requested.connect(_on_map_panel_requested)
 		ui_layer.add_child(_hud)
 	_hud.show()
 	
@@ -280,6 +307,7 @@ func _show_sect_panel() -> void:
 	_hide_all_overlay_panels()
 	if not _sect_panel:
 		_sect_panel = SECT_PANEL_SCENE.instantiate()
+		_sect_panel.sect_panel_closed.connect(_on_sect_panel_closed)
 		ui_layer.add_child(_sect_panel)
 	_sect_panel.show()
 
@@ -288,6 +316,7 @@ func _show_spirit_beast_panel() -> void:
 	_hide_all_overlay_panels()
 	if not _spirit_beast_panel:
 		_spirit_beast_panel = SPIRIT_BEAST_SCENE.instantiate()
+		_spirit_beast_panel.spirit_beast_panel_closed.connect(_on_spirit_beast_panel_closed)
 		ui_layer.add_child(_spirit_beast_panel)
 	_spirit_beast_panel.show()
 
@@ -296,6 +325,7 @@ func _show_equipment_panel() -> void:
 	_hide_all_overlay_panels()
 	if not _equipment_panel:
 		_equipment_panel = EQUIPMENT_SCENE.instantiate()
+		_equipment_panel.equipment_panel_closed.connect(_on_equipment_panel_closed)
 		ui_layer.add_child(_equipment_panel)
 	_equipment_panel.show()
 
@@ -304,6 +334,7 @@ func _show_dungeon_panel() -> void:
 	_hide_all_overlay_panels()
 	if not _dungeon_panel:
 		_dungeon_panel = DUNGEON_SCENE.instantiate()
+		_dungeon_panel.dungeon_panel_closed.connect(_on_dungeon_panel_closed)
 		ui_layer.add_child(_dungeon_panel)
 	_dungeon_panel.show()
 
@@ -312,6 +343,7 @@ func _show_daily_panel() -> void:
 	_hide_all_overlay_panels()
 	if not _daily_panel:
 		_daily_panel = DAILY_ACTIVITY_SCENE.instantiate()
+		_daily_panel.daily_activity_panel_closed.connect(_on_daily_panel_closed)
 		ui_layer.add_child(_daily_panel)
 	_daily_panel.show()
 
@@ -320,15 +352,19 @@ func _show_combat_panel() -> void:
 	_hide_all_overlay_panels()
 	if not _combat_panel:
 		_combat_panel = COMBAT_SCENE.instantiate()
+		_combat_panel.combat_panel_closed.connect(_on_combat_panel_closed)
 		ui_layer.add_child(_combat_panel)
 	_combat_panel.show()
 
 
 func _show_character_panel() -> void:
 	var player = _get_player_character()
-	if _character_panel:
+	if not _character_panel:
+		_character_panel = CHARACTER_PANEL_SCENE.instantiate()
+		ui_layer.add_child(_character_panel)
+	if player:
 		_character_panel.setup(player)
-		_character_panel.show()
+	_character_panel.show()
 
 
 func _show_inventory() -> void:
@@ -349,6 +385,50 @@ func _hide_all_overlay_panels() -> void:
 	if _combat_panel:      _combat_panel.hide()
 	if _character_panel:   _character_panel.hide()
 	if _family_panel:       _family_panel.hide()
+
+
+# ==================== 面板关闭回调 ====================
+
+func _on_sect_panel_closed() -> void:
+	if _sect_panel:
+		_sect_panel.hide()
+	if _main_menu:
+		_main_menu.show()
+
+
+func _on_spirit_beast_panel_closed() -> void:
+	if _spirit_beast_panel:
+		_spirit_beast_panel.hide()
+	if _main_menu:
+		_main_menu.show()
+
+
+func _on_equipment_panel_closed() -> void:
+	if _equipment_panel:
+		_equipment_panel.hide()
+	if _main_menu:
+		_main_menu.show()
+
+
+func _on_dungeon_panel_closed() -> void:
+	if _dungeon_panel:
+		_dungeon_panel.hide()
+	if _main_menu:
+		_main_menu.show()
+
+
+func _on_daily_panel_closed() -> void:
+	if _daily_panel:
+		_daily_panel.hide()
+	if _main_menu:
+		_main_menu.show()
+
+
+func _on_combat_panel_closed() -> void:
+	if _combat_panel:
+		_combat_panel.hide()
+	if _main_menu:
+		_main_menu.show()
 
 
 # ==================== 原有面板（保留兼容）====================
@@ -375,9 +455,15 @@ func _on_character_selected(character) -> void:
 
 func _on_family_panel_requested() -> void:
 	var family = GameManager.get_player_family()
-	if _family_panel and family:
+	if _family_panel and not family.is_empty():
 		_family_panel.setup(family)
 		_family_panel.show()
+
+
+func _on_map_panel_requested() -> void:
+	# TODO: 地图面板（暂未实现）
+	if _notification and _notification.has_method("show_notification"):
+		_notification.show_notification("地图功能开发中...", "info")
 
 
 # ==================== 工具方法 ====================

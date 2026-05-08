@@ -26,25 +26,27 @@ func _update_display() -> void:
 	
 	var c = current_character
 	
-	# 基础信息
-	name_label.text = c.name
-	var realm = DataManager.get_realm(c.realm_id)
-	realm_label.text = realm.name if realm else c.realm_id
+	# 基础信息（字典安全访问）
+	name_label.text = c.get("name", "未知")
+	var realm_id = c.get("realm_id", "")
+	var realm = DataManager.get_realm(realm_id)
+	realm_label.text = realm.name if realm else realm_id
 	
 	# 血条
-	hp_bar.max_value = c.derived_stats.get("max_hp", 100)
-	hp_bar.value = c.hp
-	hp_bar.get_node("Label").text = "%d/%d" % [c.hp, hp_bar.max_value]
+	var base_stats = c.get("base_stats", {})
+	hp_bar.max_value = base_stats.get("max_hp", 100)
+	hp_bar.value = c.get("hp", 0)
+	hp_bar.get_node("Label").text = "%d/%d" % [hp_bar.value, hp_bar.max_value]
 	
 	# 蓝条
-	mp_bar.max_value = c.derived_stats.get("max_mp", 50)
-	mp_bar.value = c.mp
-	mp_bar.get_node("Label").text = "%d/%d" % [c.mp, mp_bar.max_value]
+	mp_bar.max_value = base_stats.get("max_mp", 50)
+	mp_bar.value = c.get("mp", 0)
+	mp_bar.get_node("Label").text = "%d/%d" % [mp_bar.value, mp_bar.max_value]
 	
 	# 经验条
 	if realm:
-		exp_bar.max_value = realm.required_exp
-		exp_bar.value = c.realm_exp
+		exp_bar.max_value = realm.required_exp if "required_exp" in realm else 100
+		exp_bar.value = c.get("realm_exp", 0)
 	
 	# 属性
 	_update_stats()
@@ -63,12 +65,15 @@ func _update_stats() -> void:
 	if not current_character:
 		return
 	
+	var c = current_character
+	var base_stats = c.get("base_stats", {})
+	
 	var stats = [
-		["攻击", current_character.derived_stats.get("attack", 0)],
-		["防御", current_character.derived_stats.get("defense", 0)],
-		["灵力", current_character.derived_stats.get("spirit", 0)],
-		["速度", current_character.derived_stats.get("speed", 0)],
-		["寿命", "%d/%d" % [current_character.age, current_character.lifespan]],
+		["攻击", base_stats.get("attack", 0)],
+		["防御", base_stats.get("defense", 0)],
+		["灵力", base_stats.get("spirit", 0)],
+		["速度", base_stats.get("speed", 0)],
+		["年龄", c.get("age", 0)],
 	]
 	
 	for stat in stats:
@@ -84,11 +89,12 @@ func _update_techniques() -> void:
 	if not current_character:
 		return
 	
-	for tech_id in current_character.techniques:
+	var techniques = current_character.get("techniques", [])
+	for tech_id in techniques:
 		var tech_data = DataManager.get_technique(tech_id)
 		if tech_data:
 			var label = Label.new()
-			label.text = "%s Lv.%d" % [tech_data.name, current_character.techniques[tech_id].level]
+			label.text = "%s" % tech_data.name if "name" in tech_data else tech_id
 			techniques_container.add_child(label)
 
 
@@ -99,44 +105,25 @@ func _update_inventory() -> void:
 	if not current_character:
 		return
 	
-	for item in current_character.inventory:
+	var items = current_character.get("items", [])
+	for item_id in items:
 		var button = Button.new()
-		button.text = item.get_display_name()
-		button.tooltip_text = item.get_item_data().description if item.get_item_data() else ""
+		button.text = item_id
 		inventory_container.add_child(button)
 
 
 func _on_breakthrough_pressed() -> void:
-	if not current_character:
-		return
-	
-	var result = current_character.attempt_breakthrough()
-	if result.success:
-		_update_display()
-		# 播放突破特效
-		_play_breakthrough_effect()
-	else:
-		_show_breakthrough_failed(result)
-
-
-func _play_breakthrough_effect() -> void:
-	# TODO: 突破特效动画
-	pass
-
-
-func _show_breakthrough_failed(result: Dictionary) -> void:
-	# TODO: 显示失败信息
+	# TODO: 突破功能（需要GameManager支持）
 	pass
 
 
 func _on_cultivate_pressed() -> void:
-	if current_character:
-		current_character.process_daily()
-		_update_display()
+	# TODO: 修炼功能
+	pass
 
 
 func _process(_delta: float) -> void:
 	if current_character and visible:
 		# 实时更新血蓝条
-		hp_bar.value = current_character.hp
-		mp_bar.value = current_character.mp
+		hp_bar.value = current_character.get("hp", 0)
+		mp_bar.value = current_character.get("mp", 0)

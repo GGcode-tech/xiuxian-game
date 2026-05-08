@@ -538,6 +538,9 @@ func _next_turn() -> void:
 	# 如果是敌方回合，AI自动行动
 	if not _is_current_actor_player():
 		_execute_enemy_turn()
+	# 如果是玩家回合且自动战斗开启，自动执行
+	elif _is_auto_battle:
+		_auto_execute_player_turn()
 
 func _reset_defense_flags() -> void:
 	for unit in _turn_order:
@@ -574,9 +577,25 @@ func _on_auto_battle_toggle() -> void:
 	var auto_btn = _main_container.get_node_or_null("TopBar/AutoButton")
 	if auto_btn:
 		auto_btn.text = "🤖 自动战斗 [%s]" % ("ON" if _is_auto_battle else "OFF")
+	# 如果开启自动战斗且当前是玩家回合，立即执行
+	if _is_auto_battle and _combat_state == CombatState.WAITING and _is_current_actor_player():
+		_auto_execute_player_turn()
+
+
+func _auto_execute_player_turn() -> void:
+	if not _is_auto_battle:
+		return
+	if _combat_state != CombatState.WAITING:
+		return
+	if not _is_current_actor_player():
+		return
+	# 自动使用普通攻击
+	_on_normal_attack()
+
 
 func _on_speed_changed(speed: int) -> void:
 	_combat_speed = speed
+	_add_combat_log("⚡ 战斗速度: %dx" % speed)
 
 func _on_escape_clicked() -> void:
 	_add_combat_log("🏃 成功逃跑!")

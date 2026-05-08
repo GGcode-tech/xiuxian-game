@@ -1,34 +1,19 @@
-## 角色创建面板 - 统一修仙世界
-## 步骤：名字→门派→属性点分配→确认
+## 角色创建面板 - 绝对定位版
 extends Control
 
 signal character_created(character_data: Dictionary)
 signal back_to_menu_requested()
 
-# 创建数据
 var _character_name: String = ""
 var _selected_sect: String = ""
 var _selected_sect_name: String = ""
-var _attribute_points: Dictionary = {
-	"strength": 0,    # 力量
-	"spirit": 0,      # 灵力
-	"constitution": 0, # 体质
-	"agility": 0,     # 敏捷
-	"luck": 0        # 运气
-}
+var _attribute_points: Dictionary = {"strength": 0, "spirit": 0, "constitution": 0, "agility": 0, "luck": 0}
 var _remaining_points: int = 10
 
-# UI组件
-var _main_vbox: VBoxContainer
-var _step_indicator: Label
-var _content_container: Control
-var _button_container: HBoxContainer
-
-# 当前步骤: 0=名字输入, 1=门派选择, 2=属性分配, 3=确认
+var _name_input: LineEdit = null
 var _current_step: int = 0
 const TOTAL_STEPS: int = 3
 
-# 统一门派数据（整合所有小说势力）
 var _sects: Array = [
 	{"id": "sect_qingyun", "name": "青云门", "desc": "正道领袖，剑道至尊", "type": "正道"},
 	{"id": "sect_hepia", "name": "合欢派", "desc": "诡秘邪道，魅惑众生", "type": "邪道"},
@@ -44,273 +29,298 @@ var _sects: Array = [
 
 func _ready() -> void:
 	visible = false
-	_custom_init()
-
-func _custom_init() -> void:
-	# 创建背景
-	var bg = ColorRect.new()
-	bg.color = Color(0.1, 0.1, 0.15, 0.95)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	
-	# 创建主容器
-	_main_vbox = VBoxContainer.new()
-	_main_vbox.set_anchors_preset(Control.PRESET_CENTER)
-	_main_vbox.offset_left = -300
-	_main_vbox.offset_top = -300
-	_main_vbox.offset_right = 300
-	_main_vbox.offset_bottom = 300
-	_main_vbox.custom_minimum_size = Vector2(600, 500)
-	add_child(_main_vbox)
-	
 	_show_step(0)
+
+func _clear_ui() -> void:
+	for child in get_children():
+		if child.name != "Background":  # 保留背景
+			child.queue_free()
+
+func _make_bg() -> ColorRect:
+	var bg = ColorRect.new()
+	bg.name = "Background"
+	bg.color = Color(0.04, 0.04, 0.08, 1.0)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	return bg
+
+func _center_label(text: String, y: float, size: int = 20, color: Color = Color.WHITE) -> Label:
+	var lbl = Label.new()
+	lbl.text = text
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", size)
+	if color != Color.WHITE:
+		lbl.add_theme_color_override("font_color", color)
+	lbl.set_anchors_preset(Control.PRESET_CENTER)
+	lbl.offset_left = -300
+	lbl.offset_right = 300
+	lbl.offset_top = int(y) - 15
+	lbl.offset_bottom = int(y) + 15
+	return lbl
+
+func _center_button(text: String, y: float, w: int = 120) -> Button:
+	var btn = Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(w, 42)
+	btn.set_anchors_preset(Control.PRESET_CENTER)
+	btn.offset_left = -w / 2
+	btn.offset_right = w / 2
+	btn.offset_top = int(y) - 21
+	btn.offset_bottom = int(y) + 21
+	return btn
 
 func _show_step(step: int) -> void:
 	_current_step = step
-	_clear_content()
-	
-	_step_indicator = Label.new()
-	_step_indicator.text = "步骤 %d/%d" % [step + 1, TOTAL_STEPS + 1]
-	_step_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_main_vbox.add_child(_step_indicator)
-	
-	var spacer1 = Control.new()
-	spacer1.custom_minimum_size.y = 20
-	_main_vbox.add_child(spacer1)
-	
-	_content_container = Control.new()
-	_main_vbox.add_child(_content_container)
-	
-	var spacer2 = Control.new()
-	spacer2.custom_minimum_size.y = 20
-	_main_vbox.add_child(spacer2)
-	
-	_button_container = HBoxContainer.new()
-	_button_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	_main_vbox.add_child(_button_container)
-	
-	match step:
-		0: _show_name_input()
-		1: _show_sect_selection()
-		2: _show_attribute分配()
-		3: _show_confirmation()
-	
-	_add_navigation_buttons()
-	
-	# 自动截图
-	var step_names = ["名字输入", "门派选择", "属性分配", "确认创建"]
-	ScreenshotSystem.auto_screenshot("create_%s" % step_names[step])
-
-func _clear_content() -> void:
-	for child in _main_vbox.get_children():
+	# 清除所有非背景子节点
+	for child in get_children():
 		child.queue_free()
 
-func _show_name_input() -> void:
-	var title = Label.new()
-	title.text = "输入角色名称"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
-	_content_container.add_child(title)
-	
-	var name_input = LineEdit.new()
-	name_input.custom_minimum_size = Vector2(300, 50)
-	name_input.placeholder_text = "请输入角色名称"
-	name_input.text_submitted.connect(_on_name_submitted)
-	_content_container.add_child(name_input)
-	
-	# 聚焦并等待
-	await get_tree().create_timer(0.1).timeout
-	name_input.grab_focus()
+	# 背景
+	add_child(_make_bg())
 
-func _on_name_submitted(text: String) -> void:
-	if text.strip_edges() != "":
-		_character_name = text.strip_edges()
-		_show_step(1)
+	match step:
+		0: _step_name()
+		1: _step_sect()
+		2: _step_attrs()
+		3: _step_confirm()
 
-func _show_sect_selection() -> void:
-	var title = Label.new()
-	title.text = "选择门派"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
-	_content_container.add_child(title)
-	
-	var scroll = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(500, 280)
+	ScreenshotSystem.auto_screenshot("create_step%d" % step)
+
+# ==================== 步骤1: 输入名字 ====================
+func _step_name() -> void:
+	# 步骤标签
+	add_child(_center_label("— 步骤 1/4 —", -160, 16, Color(0.5, 0.6, 0.8)))
+	# 标题
+	add_child(_center_label("输入角色名称", -110, 30))
+
+	# ★★★ 输入框 - 绝对定位 ★★★
+	_name_input = LineEdit.new()
+	_name_input.set_anchors_preset(Control.PRESET_CENTER)
+	_name_input.offset_left = -200
+	_name_input.offset_right = 200
+	_name_input.offset_top = -50
+	_name_input.offset_bottom = 10
+	_name_input.placeholder_text = "请输入角色名称..."
+	_name_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_input.add_theme_font_size_override("font_size", 22)
+	# 显式样式
+	var s = StyleBoxFlat.new()
+	s.bg_color = Color(0.15, 0.15, 0.25, 1.0)
+	s.border_color = Color(0.4, 0.5, 0.9, 1.0)
+	s.set_border_width_all(2)
+	s.set_corner_radius_all(8)
+	s.content_margin_left = 12
+	s.content_margin_right = 12
+	s.content_margin_top = 10
+	s.content_margin_bottom = 10
+	_name_input.add_theme_stylebox_override("normal", s)
+	var sf = s.duplicate()
+	sf.border_color = Color(0.6, 0.8, 1.0, 1.0)
+	_name_input.add_theme_stylebox_override("focus", sf)
+	_name_input.text_submitted.connect(func(_t): _on_next())
+	add_child(_name_input)
+
+	# 提示
+	add_child(_center_label("输入名称后点击「下一步」或按回车", 40, 13, Color(0.4, 0.4, 0.5)))
+
+	# 按钮
+	var next_btn = _center_button("下一步", 110)
+	next_btn.pressed.connect(_on_next)
+	add_child(next_btn)
+
+	var cancel_btn = _center_button("取消", 110, 100)
+	cancel_btn.set_anchors_preset(Control.PRESET_CENTER)
+	cancel_btn.offset_left = 60
+	cancel_btn.offset_right = 160
+	cancel_btn.offset_top = 89
+	cancel_btn.offset_bottom = 131
+	cancel_btn.pressed.connect(_on_cancel)
+	add_child(cancel_btn)
+
+	call_deferred("_focus_input")
+
+func _focus_input() -> void:
+	if _name_input and is_instance_valid(_name_input):
+		_name_input.grab_focus()
+
+# ==================== 步骤2: 选择门派 ====================
+func _step_sect() -> void:
+	add_child(_center_label("— 步骤 2/4 —", -180, 16, Color(0.5, 0.6, 0.8)))
+	add_child(_center_label("选择门派", -140, 30))
+
+	# 门派列表用VBox
 	var vbox = VBoxContainer.new()
-	scroll.add_child(vbox)
-	_content_container.add_child(scroll)
-	
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.offset_left = -280
+	vbox.offset_right = 280
+	vbox.offset_top = -100
+	vbox.offset_bottom = 120
+	vbox.add_theme_constant_override("separation", 6)
+	add_child(vbox)
+
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var list = VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 5)
+	scroll.add_child(list)
+	vbox.add_child(scroll)
+
 	for sect in _sects:
 		var panel = PanelContainer.new()
+		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var ps = StyleBoxFlat.new()
+		ps.bg_color = Color(0.12, 0.12, 0.2, 1)
+		ps.set_corner_radius_all(6)
+		ps.content_margin_left = 10; ps.content_margin_right = 10
+		ps.content_margin_top = 6; ps.content_margin_bottom = 6
+		panel.add_theme_stylebox_override("panel", ps)
 		var hbox = HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 10)
 		panel.add_child(hbox)
-		
 		var info = Label.new()
-		info.text = "%s [%s]\n%s" % [sect.get("name", ""), sect.get("type", ""), sect.get("desc", "")]
-		info.custom_minimum_size.x = 350
+		info.text = "%s [%s] — %s" % [sect.name, sect.type, sect.desc]
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(info)
-		
-		var select_btn = Button.new()
-		select_btn.text = "选择"
-		select_btn.pressed.connect(_on_sect_selected.bind(sect.get("id", ""), sect.get("name", "")))
-		hbox.add_child(select_btn)
-		
-		vbox.add_child(panel)
+		var b = Button.new()
+		b.text = "选择"
+		b.custom_minimum_size = Vector2(70, 30)
+		b.pressed.connect(func(): _on_sect(sect.id, sect.name))
+		hbox.add_child(b)
+		list.add_child(panel)
 
-func _on_sect_selected(sect_id: String, sect_name: String) -> void:
-	_selected_sect = sect_id
-	_selected_sect_name = sect_name
+	var back = _center_button("上一步", 155)
+	back.pressed.connect(func(): _show_step(0))
+	add_child(back)
+
+# ==================== 步骤3: 分配属性 ====================
+func _step_attrs() -> void:
+	add_child(_center_label("— 步骤 3/4 —", -180, 16, Color(0.5, 0.6, 0.8)))
+	var title = _center_label("分配属性点（剩余: %d）" % _remaining_points, -140, 24)
+	title.name = "AttrTitle"
+	add_child(title)
+
+	var attrs = [
+		{"k": "strength", "n": "力量", "d": "物理攻击"},
+		{"k": "spirit", "n": "灵力", "d": "法术攻击"},
+		{"k": "constitution", "n": "体质", "d": "生命防御"},
+		{"k": "agility", "n": "敏捷", "d": "速度闪避"},
+		{"k": "luck", "n": "运气", "d": "暴击掉落"},
+	]
+	var y_start = -90
+	for i in range(attrs.size()):
+		var a = attrs[i]
+		var y = y_start + i * 45
+		var row = HBoxContainer.new()
+		row.set_anchors_preset(Control.PRESET_CENTER)
+		row.offset_left = -220
+		row.offset_right = 220
+		row.offset_top = int(y) - 18
+		row.offset_bottom = int(y) + 18
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.add_theme_constant_override("separation", 10)
+		add_child(row)
+		var lbl = Label.new()
+		lbl.text = "%s（%s）" % [a.n, a.d]
+		lbl.custom_minimum_size = Vector2(180, 0)
+		row.add_child(lbl)
+		var val = Label.new()
+		val.text = str(_attribute_points[a.k])
+		val.custom_minimum_size = Vector2(40, 0)
+		val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		val.add_theme_font_size_override("font_size", 20)
+		row.add_child(val)
+		var mn = Button.new(); mn.text = " − "; mn.custom_minimum_size = Vector2(45, 35)
+		mn.pressed.connect(func(): _chg(a.k, val, -1))
+		row.add_child(mn)
+		var pl = Button.new(); pl.text = " + "; pl.custom_minimum_size = Vector2(45, 35)
+		pl.pressed.connect(func(): _chg(a.k, val, 1))
+		row.add_child(pl)
+
+	var back = _center_button("上一步", 155)
+	back.pressed.connect(func(): _show_step(1))
+	add_child(back)
+	var next = _center_button("下一步", 155)
+	next.set_anchors_preset(Control.PRESET_CENTER)
+	next.offset_left = 60; next.offset_right = 180
+	next.offset_top = 134; next.offset_bottom = 176
+	next.pressed.connect(_on_next)
+	add_child(next)
+
+func _chg(k: String, lbl: Label, d: int) -> void:
+	if d > 0 and _remaining_points <= 0: return
+	if d < 0 and _attribute_points[k] <= 0: return
+	_attribute_points[k] += d
+	_remaining_points -= d
+	lbl.text = str(_attribute_points[k])
+	var t = get_node_or_null("AttrTitle")
+	if t: t.text = "分配属性点（剩余: %d）" % _remaining_points
+
+# ==================== 步骤4: 确认 ====================
+func _step_confirm() -> void:
+	add_child(_center_label("— 步骤 4/4 —", -160, 16, Color(0.5, 0.6, 0.8)))
+	add_child(_center_label("确认角色信息", -120, 30))
+	var info = Label.new()
+	info.text = "名字: %s\n门派: %s\n\n力量: %d  灵力: %d  体质: %d\n敏捷: %d  运气: %d" % [
+		_character_name, _selected_sect_name,
+		_attribute_points.get("strength", 0), _attribute_points.get("spirit", 0),
+		_attribute_points.get("constitution", 0), _attribute_points.get("agility", 0),
+		_attribute_points.get("luck", 0)]
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 18)
+	info.set_anchors_preset(Control.PRESET_CENTER)
+	info.offset_left = -200; info.offset_right = 200
+	info.offset_top = -60; info.offset_bottom = 60
+	add_child(info)
+
+	var create_btn = _center_button("✓ 创建角色", 120)
+	create_btn.pressed.connect(_do_create)
+	add_child(create_btn)
+	var back = _center_button("上一步", 120)
+	back.set_anchors_preset(Control.PRESET_CENTER)
+	back.offset_left = -180; back.offset_right = -60
+	back.offset_top = 99; back.offset_bottom = 141
+	back.pressed.connect(func(): _show_step(2))
+	add_child(back)
+
+# ==================== 通用 ====================
+func _on_sect(id: String, sname: String) -> void:
+	_selected_sect = id
+	_selected_sect_name = sname
 	_show_step(2)
 
-func _show_attribute分配() -> void:
-	var title = Label.new()
-	title.text = "分配属性点 (剩余: %d)" % _remaining_points
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
-	_content_container.add_child(title)
-	
-	var vbox = VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(400, 250)
-	_content_container.add_child(vbox)
-	
-	var attributes = [
-		{"key": "strength", "name": "力量", "desc": "影响物理攻击"},
-		{"key": "spirit", "name": "灵力", "desc": "影响法术攻击"},
-		{"key": "constitution", "name": "体质", "desc": "影响生命值和防御"},
-		{"key": "agility", "name": "敏捷", "desc": "影响速度和闪避"},
-		{"key": "luck", "name": "运气", "desc": "影响暴击和掉落"}
-	]
-	
-	for attr in attributes:
-		var hbox = HBoxContainer.new()
-		vbox.add_child(hbox)
-		
-		var name_label = Label.new()
-		name_label.text = "%s (%s)" % [attr["name"], attr["desc"]]
-		name_label.custom_minimum_size.x = 200
-		hbox.add_child(name_label)
-		
-		var value_label = Label.new()
-		value_label.text = str(_attribute_points[attr["key"]])
-		value_label.custom_minimum_size.x = 50
-		hbox.add_child(value_label)
-		
-		var minus_btn = Button.new()
-		minus_btn.text = "-"
-		minus_btn.pressed.connect(_on_attr_minus.bind(attr["key"], value_label))
-		hbox.add_child(minus_btn)
-		
-		var plus_btn = Button.new()
-		plus_btn.text = "+"
-		plus_btn.pressed.connect(_on_attr_plus.bind(attr["key"], value_label))
-		hbox.add_child(plus_btn)
-
-func _on_attr_minus(key: String, label: Label) -> void:
-	if _attribute_points[key] > 0:
-		_attribute_points[key] -= 1
-		_remaining_points += 1
-		label.text = str(_attribute_points[key])
-		_update_attribute_title()
-
-func _on_attr_plus(key: String, label: Label) -> void:
-	if _remaining_points > 0:
-		_attribute_points[key] += 1
-		_remaining_points -= 1
-		label.text = str(_attribute_points[key])
-		_update_attribute_title()
-
-func _update_attribute_title() -> void:
-	var title = _content_container.get_child(0)
-	if title:
-		title.text = "分配属性点 (剩余: %d)" % _remaining_points
-
-func _show_confirmation() -> void:
-	var title = Label.new()
-	title.text = "确认角色信息"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
-	_content_container.add_child(title)
-	
-	var info = Label.new()
-	info.text = """名字: %s
-门派: %s
-
-属性点分配:
-  力量: %d
-  灵力: %d
-  体质: %d
-  敏捷: %d
-  运气: %d""" % [
-		_character_name,
-		_selected_sect_name,
-		_attribute_points["strength"],
-		_attribute_points["spirit"],
-		_attribute_points["constitution"],
-		_attribute_points["agility"],
-		_attribute_points["luck"]
-	]
-	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_content_container.add_child(info)
-
-func _add_navigation_buttons() -> void:
-	var back_btn = Button.new()
-	back_btn.text = "上一步"
-	back_btn.pressed.connect(_on_back_pressed)
-	_button_container.add_child(back_btn)
-	
-	var next_btn = Button.new()
-	next_btn.text = "下一步" if _current_step < TOTAL_STEPS else "创建角色"
-	next_btn.pressed.connect(_on_next_pressed)
-	_button_container.add_child(next_btn)
-	
-	var cancel_btn = Button.new()
-	cancel_btn.text = "取消"
-	cancel_btn.pressed.connect(_on_cancel_pressed)
-	_button_container.add_child(cancel_btn)
-
-func _on_back_pressed() -> void:
-	if _current_step > 0:
-		_show_step(_current_step - 1)
-	else:
-		back_to_menu_requested.emit()
-
-func _on_next_pressed() -> void:
+func _on_next() -> void:
 	match _current_step:
-		0: 
-			if _character_name != "":
-				_show_step(1)
+		0:
+			if _name_input and _name_input.text.strip_edges() != "":
+				_character_name = _name_input.text.strip_edges()
+			if _character_name == "": return
+			_show_step(1)
 		1:
-			if _selected_sect != "":
-				_show_step(2)
+			if _selected_sect == "": return
+			_show_step(2)
 		2:
-			if _remaining_points == 0:
-				_show_step(3)
-		3: _create_character()
+			if _remaining_points > 0: return
+			_show_step(3)
+		3:
+			_do_create()
 
-func _on_cancel_pressed() -> void:
+func _on_cancel() -> void:
 	visible = false
 	back_to_menu_requested.emit()
 
-func _create_character() -> void:
-	var character_data = {
-		"name": _character_name,
-		"sect": _selected_sect,
-		"sect_name": _selected_sect_name,
-		"attributes": _attribute_points.duplicate(),
-		"level": 1,
-		"exp": 0
-	}
-	character_created.emit(character_data)
+func _do_create() -> void:
+	character_created.emit({
+		"name": _character_name, "sect": _selected_sect, "sect_name": _selected_sect_name,
+		"attributes": _attribute_points.duplicate(), "level": 1, "exp": 0
+	})
 	visible = false
 
 func show_panel() -> void:
-	# 重置状态
-	_current_step = 0
 	_character_name = ""
 	_selected_sect = ""
 	_selected_sect_name = ""
 	_attribute_points = {"strength": 0, "spirit": 0, "constitution": 0, "agility": 0, "luck": 0}
 	_remaining_points = 10
-	_show_step(0)
-	_add_navigation_buttons()
+	_name_input = null
 	visible = true
+	_show_step(0)

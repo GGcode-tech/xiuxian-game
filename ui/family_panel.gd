@@ -22,8 +22,8 @@ func _update_display() -> void:
 	if not current_family:
 		return
 	
-	family_name_label.text = current_family.name
-	level_label.text = "等级: %d" % current_family.level
+	family_name_label.text = current_family.get("name", "未知家族")
+	level_label.text = "等级: %d" % current_family.get("level", 1)
 	
 	_update_members()
 	_update_resources()
@@ -37,12 +37,16 @@ func _update_members() -> void:
 	if not current_family:
 		return
 	
-	for member_id in current_family.members:
+	var members = current_family.get("members", [])
+	for member_id in members:
 		var character = GameManager.get_character(member_id)
-		if character and character.is_alive:
-			var realm = DataManager.get_realm(character.realm_id)
-			var realm_name = realm.name if realm else character.realm_id
-			var text = "%s [%s] %d岁" % [character.name, realm_name, character.age]
+		if character and not character.is_empty() and character.get("is_alive", false):
+			var realm_id = character.get("realm_id", "")
+			var realm = DataManager.get_realm(realm_id)
+			var realm_name = realm.name if realm else realm_id
+			var char_name = character.get("name", "未知")
+			var age = character.get("age", 0)
+			var text = "%s [%s] %d岁" % [char_name, realm_name, age]
 			member_list.add_item(text)
 
 
@@ -53,22 +57,36 @@ func _update_resources() -> void:
 	if not current_family:
 		return
 	
+	# 从玩家角色获取资源
+	var player = _get_player_character()
+	if player.is_empty():
+		return
+	
+	var resources = player.get("resources", {})
 	var resource_names = {
 		"spirit_stone": "灵石",
-		"spirit_grass": "灵草",
-		"spirit_ore": "灵矿",
-		"blood_essence": "精血",
-		"contribution": "贡献"
+		"essence": "精华",
+		"spirit_jade": "灵玉",
+		"stamina": "体力",
+		"energy": "精力"
 	}
 	
-	for resource_id in current_family.resources:
+	for resource_id in resources:
 		var name_label = Label.new()
 		name_label.text = resource_names.get(resource_id, resource_id)
 		resource_grid.add_child(name_label)
 		
 		var value_label = Label.new()
-		value_label.text = str(current_family.resources[resource_id])
+		value_label.text = str(resources[resource_id])
 		resource_grid.add_child(value_label)
+
+
+func _get_player_character() -> Dictionary:
+	for cid in GameManager.all_characters:
+		var c = GameManager.all_characters[cid]
+		if c.get("generation", 0) == 1 and c.get("role", "") == "cultivator":
+			return c
+	return {}
 
 
 func _update_buildings() -> void:
@@ -77,8 +95,12 @@ func _update_buildings() -> void:
 	if not current_family:
 		return
 	
-	for building_id in current_family.unlocked_buildings:
+	var buildings = current_family.get("unlocked_buildings", [])
+	for building_id in buildings:
 		building_list.add_item(building_id)
+	
+	if buildings.is_empty():
+		building_list.add_item("暂无建筑")
 
 
 func _update_territories() -> void:
@@ -87,21 +109,21 @@ func _update_territories() -> void:
 	if not current_family:
 		return
 	
-	for territory_id in current_family.territories:
-		var territory_data: Dictionary = MapData.territories_data.get(territory_id, {})
-		if not territory_data.is_empty():
-			territory_list.add_item(territory_data.get("name", ""))
+	# 家族数据中没有 territories 字段，显示提示
+	territory_list.add_item("暂无领地")
 
 
 func _on_member_selected(index: int) -> void:
 	if not current_family:
 		return
 	
-	var member_id = current_family.members[index]
-	var character = GameManager.get_character(member_id)
-	if character:
-		# 打开角色详情面板
-		EventManager.ui_request_character_detail.emit(character)
+	var members = current_family.get("members", [])
+	if index < members.size():
+		var member_id = members[index]
+		var character = GameManager.get_character(member_id)
+		if character and not character.is_empty():
+			# 打开角色详情面板
+			EventManager.ui_request_character_detail.emit(character)
 
 
 func _on_recruit_pressed() -> void:

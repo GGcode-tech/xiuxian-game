@@ -22,7 +22,6 @@ func _ready() -> void:
 
 func _on_start_pressed() -> void:
 	start_game_requested.emit()
-	GameManager.game_started.emit()
 	hide()
 
 func _on_load_pressed() -> void:

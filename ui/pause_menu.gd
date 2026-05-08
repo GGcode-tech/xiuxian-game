@@ -29,8 +29,11 @@ func _on_load() -> void:
 	hide()
 
 func _on_settings() -> void:
-	# TODO: 设置面板
-	pass
+	# 设置面板暂未实现，显示提示
+	var notification = get_node_or_null("/root/Main/UILayer/NotificationSystem")
+	if notification and notification.has_method("show_notification"):
+		notification.show_notification("设置功能开发中...", "info")
+	hide()
 
 func _on_quit_to_menu() -> void:
 	GameManager.set_state(GameManager.GameState.MAIN_MENU)

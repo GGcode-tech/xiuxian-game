@@ -70,15 +70,20 @@ func _update_date_display() -> void:
 
 func _update_family_overview() -> void:
 	var family = GameManager.get_player_family()
-	if not family:
+	if family.is_empty():
 		family_name_label.text = "家族: ?"
 		member_count_label.text = "族人: 0"
 		spirit_stone_label.text = "灵石: 0"
 		return
 	
-	family_name_label.text = family.name
-	member_count_label.text = "族人: %d" % family.get_member_count()
-	spirit_stone_label.text = "灵石: %d" % family.get_resource("spirit_stone")
+	family_name_label.text = family.get("name", "未知")
+	var members = family.get("members", [])
+	member_count_label.text = "族人: %d" % members.size()
+	
+	# 从玩家角色获取灵石
+	var player = _get_player_character_from_hud()
+	var spirit_stone = player.get("resources", {}).get("spirit_stone", 0) if player else 0
+	spirit_stone_label.text = "灵石: %d" % spirit_stone
 
 
 func _update_character_sidebar() -> void:
@@ -86,18 +91,29 @@ func _update_character_sidebar() -> void:
 		child.queue_free()
 	
 	var family = GameManager.get_player_family()
-	if not family:
+	if family.is_empty():
 		return
 	
-	for member_id in family.members:
+	var members = family.get("members", [])
+	for member_id in members:
 		var character = GameManager.get_character(member_id)
-		if character and character.is_alive:
+		if character and not character.is_empty() and character.get("is_alive", false):
 			var button = Button.new()
-			var realm = DataManager.get_realm(character.realm_id)
-			button.text = "%s [%s]" % [character.name, realm.name if realm else "?"]
+			var realm_id = character.get("realm_id", "")
+			var realm = DataManager.get_realm(realm_id)
+			var char_name = character.get("name", "未知")
+			button.text = "%s [%s]" % [char_name, realm.name if realm else "?"]
 			button.custom_minimum_size = Vector2(150, 30)
 			button.pressed.connect(_on_character_button_pressed.bind(character))
 			character_sidebar.add_child(button)
+
+
+func _get_player_character_from_hud() -> Dictionary:
+	for cid in GameManager.all_characters:
+		var c = GameManager.all_characters[cid]
+		if c.get("generation", 0) == 1 and c.get("role", "") == "cultivator":
+			return c
+	return {}
 
 
 func _on_time_elapsed(day_data: Dictionary) -> void:
