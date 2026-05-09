@@ -1,5 +1,5 @@
 ## 世界节点 - 管理3D世界渲染和交互
-## 使用程序化生成器创建建筑、角色、自然物
+## 使用Kenney GLB模型替换程序化几何体
 extends Node3D
 
 # 3D场景节点
@@ -21,6 +21,13 @@ var _building_nodes: Dictionary = {}
 @export var tree_count: int = 50
 @export var rock_count: int = 20
 
+# Kenney模型路径常量
+const KENNEY_BUILDINGS = "res://assets/models/kenney_buildings/"
+const KENNEY_NATURE = "res://assets/models/kenney_nature/"
+
+# 模型缓存
+var _model_cache: Dictionary = {}
+
 
 func initialize() -> void:
 	_generate_terrain()
@@ -29,6 +36,78 @@ func initialize() -> void:
 	_spawn_characters()
 	_setup_camera()
 
+
+# ==================== GLB模型加载 ====================
+
+func _load_glb_model(path: String) -> Node3D:
+	"""加载GLB模型，带缓存"""
+	if _model_cache.has(path):
+		var cached_scene = _model_cache[path]
+		if cached_scene:
+			return cached_scene.instantiate()
+	
+	if not ResourceLoader.exists(path):
+		push_warning("[World] GLB模型不存在: %s" % path)
+		return null
+	
+	var gltf_doc = GLTFDocument.new()
+	var gltf_state = GLTFState.new()
+	var error = gltf_doc.append_from_file(path, gltf_state)
+	if error != OK:
+		push_warning("[World] 加载GLB失败: %s (错误码: %d)" % [path, error])
+		return null
+	
+	var scene = gltf_doc.generate_scene(gltf_state)
+	if scene:
+		_model_cache[path] = scene
+		return scene.instantiate()
+	return null
+
+
+func _get_building_model(building_type: int) -> Node3D:
+	"""根据建筑类型返回对应的GLB模型"""
+	var model_map: Dictionary = {
+		0: KENNEY_BUILDINGS + "gate.glb",           # 山门
+		1: KENNEY_BUILDINGS + "tower-square.glb",    # 主殿
+		2: KENNEY_BUILDINGS + "tower-square.glb",    # 祭坛
+		3: KENNEY_BUILDINGS + "tower-hexagon.glb",   # 藏经阁
+		4: KENNEY_BUILDINGS + "tower-square.glb",    # 炼丹房
+		5: KENNEY_BUILDINGS + "tower-square.glb",    # 炼器房
+		6: KENNEY_BUILDINGS + "tower-square-roof.glb", # 修炼塔
+		7: KENNEY_BUILDINGS + "bridge-straight.glb", # 观景亭
+		8: KENNEY_BUILDINGS + "wall.glb",            # 居室
+	}
+	
+	var path = model_map.get(building_type, KENNEY_BUILDINGS + "tower-square.glb")
+	return _load_glb_model(path)
+
+
+func _get_tree_model(tree_type: int) -> Node3D:
+	"""根据树木类型返回对应的GLB模型"""
+	var model_map: Dictionary = {
+		0: KENNEY_NATURE + "tree_pineDefaultA.glb",  # 松树
+		1: KENNEY_NATURE + "tree_default.glb",       # 竹子/普通树
+		2: KENNEY_NATURE + "tree_oak.glb",           # 柳树/橡树
+	}
+	
+	var path = model_map.get(tree_type, KENNEY_NATURE + "tree_default.glb")
+	return _load_glb_model(path)
+
+
+func _get_rock_model(rock_type: int) -> Node3D:
+	"""根据岩石类型返回对应的GLB模型"""
+	var model_map: Dictionary = {
+		0: KENNEY_NATURE + "rock_largeA.glb",        # 大岩石
+		1: KENNEY_NATURE + "rock_smallA.glb",        # 小岩石
+		2: KENNEY_NATURE + "rock_tallA.glb",         # 高岩石
+		3: KENNEY_NATURE + "stone_largeA.glb",       # 灵石
+	}
+	
+	var path = model_map.get(rock_type, KENNEY_NATURE + "rock_smallA.glb")
+	return _load_glb_model(path)
+
+
+# ==================== 地形生成 ====================
 
 func _generate_terrain() -> void:
 	var ground := CSGBox3D.new()
@@ -56,6 +135,8 @@ func _generate_terrain() -> void:
 		nature.add_child(lotus)
 
 
+# ==================== 建筑放置 ====================
+
 func _place_buildings() -> void:
 	var family = GameManager.get_player_family()
 	if not family:
@@ -79,17 +160,28 @@ func _create_default_buildings() -> void:
 	]
 
 	for item in layout:
-		var building: MeshInstance3D = _create_building(item["type"], 1.0)
-		building.position = item["pos"]
-		building.set_meta("building_name", item["name"])
-		buildings.add_child(building)
-		_building_nodes[item["name"]] = building
+		var building_node: Node3D = _get_building_model(item["type"])
+		if building_node:
+			building_node.position = item["pos"]
+			building_node.scale = Vector3(3.0, 3.0, 3.0)  # 放大3倍
+			building_node.set_meta("building_name", item["name"])
+			buildings.add_child(building_node)
+			_building_nodes[item["name"]] = building_node
+		else:
+			# 回退到程序化几何体
+			var building: MeshInstance3D = _create_building_fallback(item["type"], 1.0)
+			building.position = item["pos"]
+			building.set_meta("building_name", item["name"])
+			buildings.add_child(building)
+			_building_nodes[item["name"]] = building
 
 
 func _place_family_buildings(family: Dictionary) -> void:
-	var main_hall := _create_building(1, 1.2)
-	main_hall.position = Vector3(0, 0, 10)
-	buildings.add_child(main_hall)
+	var main_hall := _get_building_model(1)
+	if main_hall:
+		main_hall.position = Vector3(0, 0, 10)
+		main_hall.scale = Vector3(3.5, 3.5, 3.5)
+		buildings.add_child(main_hall)
 
 	var building_positions: Dictionary = {
 		"alchemy": Vector3(12, 0, 5),
@@ -102,9 +194,11 @@ func _place_family_buildings(family: Dictionary) -> void:
 	for building_id in family.get("unlocked_buildings", []):
 		if building_positions.has(building_id):
 			var building_type := _get_building_type(building_id)
-			var building := _create_building(building_type, 1.0)
-			building.position = building_positions[building_id]
-			buildings.add_child(building)
+			var building_node := _get_building_model(building_type)
+			if building_node:
+				building_node.position = building_positions[building_id]
+				building_node.scale = Vector3(3.0, 3.0, 3.0)
+				buildings.add_child(building_node)
 
 
 func _get_building_type(building_id: String) -> int:
@@ -117,28 +211,56 @@ func _get_building_type(building_id: String) -> int:
 		_: return 1
 
 
+# ==================== 自然物生成 ====================
+
 func _generate_nature() -> void:
 	for i in range(tree_count):
 		var tree_type := [0, 1, 2][randi() % 3] as int
-		var tree := _create_tree(tree_type, randf_range(0.6, 1.4))
-		tree.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
-		tree.rotate_y(randf() * TAU)
-		if abs(tree.position.x) < 10 and abs(tree.position.z) < 20:
-			tree.position.x += 15 * (1 if tree.position.x > 0 else -1)
-		nature.add_child(tree)
+		var tree_node := _get_tree_model(tree_type)
+		if tree_node:
+			tree_node.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
+			tree_node.rotate_y(randf() * TAU)
+			tree_node.scale = Vector3(2.0, 2.0, 2.0)  # 放大2倍
+			if abs(tree_node.position.x) < 10 and abs(tree_node.position.z) < 20:
+				tree_node.position.x += 15 * (1 if tree_node.position.x > 0 else -1)
+			nature.add_child(tree_node)
+		else:
+			# 回退到程序化几何体
+			var tree := _create_tree_fallback(tree_type, randf_range(0.6, 1.4))
+			tree.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
+			tree.rotate_y(randf() * TAU)
+			if abs(tree.position.x) < 10 and abs(tree.position.z) < 20:
+				tree.position.x += 15 * (1 if tree.position.x > 0 else -1)
+			nature.add_child(tree)
 
 	for i in range(rock_count):
 		var rock_type := [0, 1, 2][randi() % 3] as int
-		var rock := _create_rock(rock_type, randf_range(0.4, 1.2))
-		rock.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
-		rock.rotate_y(randf() * TAU)
-		nature.add_child(rock)
+		var rock_node := _get_rock_model(rock_type)
+		if rock_node:
+			rock_node.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
+			rock_node.rotate_y(randf() * TAU)
+			rock_node.scale = Vector3(1.5, 1.5, 1.5)  # 放大1.5倍
+			nature.add_child(rock_node)
+		else:
+			# 回退到程序化几何体
+			var rock := _create_rock_fallback(rock_type, randf_range(0.4, 1.2))
+			rock.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
+			rock.rotate_y(randf() * TAU)
+			nature.add_child(rock)
 
 	for i in range(3):
-		var spirit_stone := _create_rock(3, 0.8)
-		spirit_stone.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
-		nature.add_child(spirit_stone)
+		var spirit_stone := _get_rock_model(3)
+		if spirit_stone:
+			spirit_stone.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
+			spirit_stone.scale = Vector3(2.0, 2.0, 2.0)
+			nature.add_child(spirit_stone)
+		else:
+			var spirit_stone_fallback := _create_rock_fallback(3, 0.8)
+			spirit_stone_fallback.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
+			nature.add_child(spirit_stone_fallback)
 
+
+# ==================== 角色生成 ====================
 
 func _spawn_characters() -> void:
 	var family = GameManager.get_player_family()
@@ -218,9 +340,9 @@ func _get_character_color(character: Dictionary) -> Color:
 	return color_map.get(character.get("element", ""), Color(0.4, 0.5, 0.6))
 
 
-# ==================== 内联3D生成（消除外部类型依赖） ====================
+# ==================== 回退程序化生成（当GLB加载失败时） ====================
 
-func _create_building(building_type: int, size: float) -> MeshInstance3D:
+func _create_building_fallback(building_type: int, size: float) -> MeshInstance3D:
 	var mesh_instance := MeshInstance3D.new()
 	var array_mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
@@ -249,7 +371,7 @@ func _create_building(building_type: int, size: float) -> MeshInstance3D:
 	return mesh_instance
 
 
-func _create_tree(tree_type: int, size: float) -> MeshInstance3D:
+func _create_tree_fallback(tree_type: int, size: float) -> MeshInstance3D:
 	var mesh_instance := MeshInstance3D.new()
 	var array_mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
@@ -276,7 +398,7 @@ func _create_tree(tree_type: int, size: float) -> MeshInstance3D:
 	return mesh_instance
 
 
-func _create_rock(rock_type: int, size: float) -> MeshInstance3D:
+func _create_rock_fallback(rock_type: int, size: float) -> MeshInstance3D:
 	var mesh_instance := MeshInstance3D.new()
 	var array_mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
@@ -438,7 +560,7 @@ func get_character_node(character_id: String) -> Node3D:
 	return _character_nodes.get(character_id)
 
 
-func get_building_node(building_name: String) -> MeshInstance3D:
+func get_building_node(building_name: String) -> Node3D:
 	return _building_nodes.get(building_name)
 
 
@@ -498,6 +620,6 @@ func update_time_of_day(hour: float) -> void:
 	if hour < 6 or hour > 20:
 		environment.environment.ambient_light_color = Color(0.05, 0.05, 0.15)
 	elif hour < 8 or hour > 18:
-		environment.environment.ambient_light_color = Color(0.8, 0.4, 0.2)
+		environment.environment.ambient_light_color = Color(0.15, 0.12, 0.1)
 	else:
-		environment.environment.ambient_light_color = Color(0.6, 0.7, 0.9)
+		environment.environment.ambient_light_color = Color(0.3, 0.3, 0.35)
