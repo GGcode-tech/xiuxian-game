@@ -36,18 +36,20 @@ func _ready() -> void:
 	_custom_init()
 
 func _custom_init() -> void:
-	# 背景
+	# 背景 - 设置 mouse_filter=2 避免拦截鼠标穿透到3D场景
 	var bg = ColorRect.new()
 	bg.color = Color(0.05, 0.05, 0.1, 0.9)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 	
 	# 主容器 - 使用GridContainer实现布局
 	var main_grid = GridContainer.new()
 	main_grid.columns = 3
 	main_grid.set_anchors_preset(Control.PRESET_FULL_RECT)
-	main_grid.add_theme_constant_override("column_min_width", 200)
-	main_grid.add_theme_constant_override("row_min_height", 60)
+	main_grid.add_theme_constant_override("column_min_width", 180)
+	main_grid.add_theme_constant_override("row_min_height", 40)
+	main_grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(main_grid)
 	
 	_build_top_bar(main_grid)
@@ -58,8 +60,10 @@ func _custom_init() -> void:
 func _build_top_bar(parent: GridContainer) -> void:
 	# 左侧角色信息面板
 	var char_panel = PanelContainer.new()
-	char_panel.custom_minimum_size = Vector2(250, 100)
+	char_panel.custom_minimum_size = Vector2(220, 80)
+	char_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var vbox = VBoxContainer.new()
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	char_panel.add_child(vbox)
 	
 	_char_name_label = Label.new()
@@ -79,7 +83,7 @@ func _build_top_bar(parent: GridContainer) -> void:
 	_char_hp_bar = ProgressBar.new()
 	_char_hp_bar.max_value = 100
 	_char_hp_bar.value = 100
-	_char_hp_bar.custom_minimum_size = Vector2(200, 20)
+	_char_hp_bar.custom_minimum_size = Vector2(160, 14)
 	_char_hp_bar.show_percentage = false
 	hp_hbox.add_child(Label.new())
 	hp_hbox.add_child(_char_hp_bar)
@@ -89,7 +93,7 @@ func _build_top_bar(parent: GridContainer) -> void:
 	_char_mp_bar = ProgressBar.new()
 	_char_mp_bar.max_value = 100
 	_char_mp_bar.value = 50
-	_char_mp_bar.custom_minimum_size = Vector2(200, 20)
+	_char_mp_bar.custom_minimum_size = Vector2(160, 14)
 	_char_mp_bar.show_percentage = false
 	mp_hbox.add_child(Label.new())
 	mp_hbox.add_child(_char_mp_bar)
@@ -103,8 +107,10 @@ func _build_top_bar(parent: GridContainer) -> void:
 func _build_center_area(parent: GridContainer) -> void:
 	# 中央公告区域
 	var center_panel = PanelContainer.new()
-	center_panel.custom_minimum_size = Vector2(400, 200)
+	center_panel.custom_minimum_size = Vector2(400, 120)
+	center_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var vbox = VBoxContainer.new()
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center_panel.add_child(vbox)
 	
 	var title = Label.new()
@@ -121,6 +127,7 @@ func _build_center_area(parent: GridContainer) -> void:
 	# 活动按钮区域
 	var activity_hbox = HBoxContainer.new()
 	activity_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	activity_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	var dungeon_btn = _create_menu_button("副本", Callable(self, "_on_dungeon_clicked"))
 	var sect_btn = _create_menu_button("门派", Callable(self, "_on_sect_clicked"))
@@ -138,8 +145,10 @@ func _build_center_area(parent: GridContainer) -> void:
 func _build_right_panel(parent: GridContainer) -> void:
 	# 右侧资源面板
 	var resource_panel = PanelContainer.new()
-	resource_panel.custom_minimum_size = Vector2(180, 150)
+	resource_panel.custom_minimum_size = Vector2(160, 120)
+	resource_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var vbox = VBoxContainer.new()
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resource_panel.add_child(vbox)
 	
 	var res_title = Label.new()
@@ -174,8 +183,10 @@ func _build_right_panel(parent: GridContainer) -> void:
 func _build_bottom_bar(parent: GridContainer) -> void:
 	# 底部快捷栏
 	var bottom_panel = PanelContainer.new()
-	bottom_panel.custom_minimum_size = Vector2(800, 80)
+	bottom_panel.custom_minimum_size = Vector2(700, 60)
+	bottom_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var hbox = HBoxContainer.new()
+	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom_panel.add_child(hbox)
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	
@@ -203,18 +214,19 @@ func _build_bottom_bar(parent: GridContainer) -> void:
 
 func _create_spacer() -> Control:
 	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(50, 50)
+	spacer.custom_minimum_size = Vector2(30, 30)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return spacer
 
 func _create_menu_button(text: String, callback: Callable) -> Button:
 	var btn = Button.new()
 	btn.text = text
-	btn.custom_minimum_size = Vector2(80, 40)
+	btn.custom_minimum_size = Vector2(70, 32)
 	return btn
 
 func _create_quick_button(icon: String, name: String) -> Button:
 	var btn = Button.new()
-	btn.custom_minimum_size = Vector2(80, 60)
+	btn.custom_minimum_size = Vector2(70, 45)
 	
 	var vbox = VBoxContainer.new()
 	btn.add_child(vbox)
@@ -227,7 +239,7 @@ func _create_quick_button(icon: String, name: String) -> Button:
 	var name_label = Label.new()
 	name_label.text = name
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 12)
+	name_label.add_theme_font_size_override("font_size", 11)
 	vbox.add_child(name_label)
 	
 	return btn

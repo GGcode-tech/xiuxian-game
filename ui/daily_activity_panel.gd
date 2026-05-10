@@ -55,7 +55,7 @@ func _custom_init() -> void:
 
 func _build_header() -> void:
 	var header = HBoxContainer.new()
-	header.custom_minimum_size.y = 60
+	header.custom_minimum_size.y = 45
 	
 	var title = Label.new()
 	title.text = "📅 日常活动"
@@ -83,12 +83,12 @@ func _build_header() -> void:
 
 func _build_main_content() -> void:
 	var hbox = HBoxContainer.new()
-	hbox.custom_minimum_size.y = 350
+	hbox.custom_minimum_size.y = 280
 	_main_container.add_child(hbox)
 	
 	# 左侧：活动列表
 	var left_panel = VBoxContainer.new()
-	left_panel.custom_minimum_size = Vector2(400, 350)
+	left_panel.custom_minimum_size = Vector2(400, 280)
 	hbox.add_child(left_panel)
 	
 	var list_title = Label.new()
@@ -97,7 +97,7 @@ func _build_main_content() -> void:
 	left_panel.add_child(list_title)
 	
 	_activity_list_container = ScrollContainer.new()
-	_activity_list_container.custom_minimum_size = Vector2(400, 320)
+	_activity_list_container.custom_minimum_size = Vector2(400, 250)
 	var list_vbox = VBoxContainer.new()
 	_activity_list_container.add_child(list_vbox)
 	left_panel.add_child(_activity_list_container)
@@ -108,7 +108,7 @@ func _build_main_content() -> void:
 
 func _build_activity_detail_panel() -> PanelContainer:
 	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(350, 350)
+	panel.custom_minimum_size = Vector2(350, 280)
 	var vbox = VBoxContainer.new()
 	panel.add_child(vbox)
 	
@@ -146,7 +146,7 @@ func _build_activity_detail_panel() -> PanelContainer:
 	
 	var start_btn = Button.new()
 	start_btn.text = "🎮 参与活动"
-	start_btn.custom_minimum_size = Vector2(200, 60)
+	start_btn.custom_minimum_size = Vector2(160, 40)
 	start_btn.pressed.connect(_on_start_activity)
 	start_btn.name = "StartButton"
 	vbox.add_child(start_btn)
@@ -155,7 +155,7 @@ func _build_activity_detail_panel() -> PanelContainer:
 
 func _build_vitality_section() -> void:
 	var vitality_panel = PanelContainer.new()
-	vitality_panel.custom_minimum_size.y = 120
+	vitality_panel.custom_minimum_size.y = 90
 	_main_container.add_child(vitality_panel)
 	
 	var vbox = VBoxContainer.new()
@@ -185,7 +185,7 @@ func _build_vitality_section() -> void:
 	for i in range(VITALITY_REWARDS.size()):
 		var reward_level = VITALITY_REWARDS[i]
 		var reward_btn = Button.new()
-		reward_btn.custom_minimum_size = Vector2(60, 40)
+		reward_btn.custom_minimum_size = Vector2(50, 32)
 		reward_btn.text = "%d" % reward_level["level"]
 		reward_btn.pressed.connect(_on_vitality_reward_clicked.bind(i))
 		reward_btn.name = "VitalityBtn_%d" % i
@@ -195,12 +195,12 @@ func _build_vitality_section() -> void:
 
 func _build_footer() -> void:
 	var footer = HBoxContainer.new()
-	footer.custom_minimum_size.y = 60
+	footer.custom_minimum_size.y = 45
 	footer.alignment = BoxContainer.ALIGNMENT_CENTER
 	
 	var refresh_btn = Button.new()
 	refresh_btn.text = "🔄 刷新活动"
-	refresh_btn.custom_minimum_size = Vector2(150, 50)
+	refresh_btn.custom_minimum_size = Vector2(130, 38)
 	refresh_btn.pressed.connect(_on_refresh_clicked)
 	footer.add_child(refresh_btn)
 	
@@ -283,7 +283,7 @@ func _update_activity_list() -> void:
 
 func _create_activity_card(activity: Dictionary) -> PanelContainer:
 	var card = PanelContainer.new()
-	card.custom_minimum_size = Vector2(380, 70)
+	card.custom_minimum_size = Vector2(380, 55)
 	
 	var hbox = HBoxContainer.new()
 	card.add_child(hbox)

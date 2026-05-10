@@ -16,59 +16,62 @@ script = ExtResource("1")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 40.0
+offset_bottom = 32.0
 grow_horizontal = 2
 theme_override_constants/separation = 16
+mouse_filter = 2
 
 [node name="DateLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 14
 text = "第1年 正月 1日"
 
 [node name="SeasonLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 14
 text = "🌸 春"
 
 [node name="SpeedLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 14
 text = "速度: 1x"
 
 [node name="FamilyNameLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 14
 text = "家族: ?"
 
 [node name="MemberCountLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 14
 text = "族人: 0"
 
 [node name="SpiritStoneLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 14
 text = "灵石: 0"
 
 [node name="SideBar" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 180.0
-offset_top = 44.0
-offset_bottom = -60.0
+offset_right = 160.0
+offset_top = 36.0
+offset_bottom = -48.0
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="CharacterList" type="VBoxContainer" parent="SideBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
+mouse_filter = 2
 
 [node name="BottomBar" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -76,38 +79,40 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -56.0
-offset_left = 184.0
+offset_top = -45.0
+offset_left = 164.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 8
+mouse_filter = 2
 
 [node name="ActionBar" type="HBoxContainer" parent="BottomBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
+mouse_filter = 2
 
 [node name="FamilyButton" type="Button" parent="BottomBar/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(80, 40)
+custom_minimum_size = Vector2(70, 32)
 text = "家族"
 
 [node name="MapButton" type="Button" parent="BottomBar/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(80, 40)
+custom_minimum_size = Vector2(70, 32)
 text = "地图"
 
 [node name="CultivateButton" type="Button" parent="BottomBar/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(80, 40)
+custom_minimum_size = Vector2(70, 32)
 text = "修炼"
 
 [node name="AlchemyButton" type="Button" parent="BottomBar/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(80, 40)
+custom_minimum_size = Vector2(70, 32)
 text = "炼丹"
 
 [node name="ExploreButton" type="Button" parent="BottomBar/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(80, 40)
+custom_minimum_size = Vector2(70, 32)
 text = "探索"

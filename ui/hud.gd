@@ -103,7 +103,7 @@ func _update_character_sidebar() -> void:
 			var realm = DataManager.get_realm(realm_id)
 			var char_name = character.get("name", "未知")
 			button.text = "%s [%s]" % [char_name, realm.name if realm else "?"]
-			button.custom_minimum_size = Vector2(150, 30)
+			button.custom_minimum_size = Vector2(140, 26)
 			button.pressed.connect(_on_character_button_pressed.bind(character))
 			character_sidebar.add_child(button)
 

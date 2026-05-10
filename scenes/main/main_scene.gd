@@ -503,3 +503,30 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("quick_load"):
 		SaveManager.load_game("quick")
+	
+	# 左键点击地面移动角色
+	if current_state == GameManager.GameState.PLAYING and not GameManager.is_paused:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			# 检查是否点击在UI上
+			if _get_control_at_point(event.position):
+				return
+			world.move_player_from_screen(event.position)
+		
+		# 滚轮缩放相机
+		if event is InputEventMouseButton:
+			match event.button_index:
+				MOUSE_BUTTON_WHEEL_UP:
+					world._zoom_camera(-world._camera_zoom_speed)
+				MOUSE_BUTTON_WHEEL_DOWN:
+					world._zoom_camera(world._camera_zoom_speed)
+
+
+func _get_control_at_point(point: Vector2) -> Control:
+	"""检查指定屏幕坐标下是否有Control节点（使用Viewport内置检测）"""
+	# 使用根视口的gui_get_hovered_control
+	var viewport = get_viewport()
+	if viewport:
+		var hovered = viewport.gui_get_hovered_control()
+		if hovered and hovered.visible:
+			return hovered
+	return null

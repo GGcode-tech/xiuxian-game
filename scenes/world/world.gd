@@ -39,8 +39,19 @@ func initialize() -> void:
 
 # ==================== GLB模型加载 ====================
 
+# 相机控制参数
+var _camera_zoom_speed: float = 5.0
+var _camera_min_height: float = 5.0
+var _camera_max_height: float = 60.0
+
+# 玩家角色节点引用
+var _player_node: Node3D = null
+var _move_target: Vector3 = Vector3.ZERO
+var _is_moving: bool = false
+var _move_speed: float = 8.0
+
 func _load_glb_model(path: String) -> Node3D:
-	"""加载GLB模型，带缓存"""
+	"""加载GLB模型，带缓存（load()返回PackedScene，可安全instantiate）"""
 	if _model_cache.has(path):
 		var cached_scene = _model_cache[path]
 		if cached_scene:
@@ -50,17 +61,12 @@ func _load_glb_model(path: String) -> Node3D:
 		push_warning("[World] GLB模型不存在: %s" % path)
 		return null
 	
-	var gltf_doc = GLTFDocument.new()
-	var gltf_state = GLTFState.new()
-	var error = gltf_doc.append_from_file(path, gltf_state)
-	if error != OK:
-		push_warning("[World] 加载GLB失败: %s (错误码: %d)" % [path, error])
-		return null
-	
-	var scene = gltf_doc.generate_scene(gltf_state)
-	if scene:
+	var scene = load(path)
+	if scene is PackedScene:
 		_model_cache[path] = scene
 		return scene.instantiate()
+	
+	push_warning("[World] GLB加载后不是PackedScene: %s" % path)
 	return null
 
 
@@ -276,6 +282,9 @@ func _spawn_characters() -> void:
 			_spawn_character_node(character)
 		else:
 			print("[World] SKIP: character empty or dead")
+	
+	if _player_node == null:
+		push_warning("[World] ⚠️ _player_node 未设置！请检查角色数据")
 
 
 func _create_default_characters() -> void:
@@ -297,6 +306,9 @@ func _create_default_characters() -> void:
 		char_node.add_child(mesh)
 		char_node.position = default_positions[i]
 		characters_node.add_child(char_node)
+		# 第一个角色设为玩家
+		if i == 0 and _player_node == null:
+			_player_node = char_node
 
 
 func _spawn_character_node(character: Dictionary) -> void:
@@ -316,6 +328,9 @@ func _spawn_character_node(character: Dictionary) -> void:
 	container.position = Vector3(randf_range(-5, 5), 0, randf_range(15, 25))
 	characters_node.add_child(container)
 	_character_nodes[character.get("id", "")] = container
+	# 如果是玩家角色（第一代修炼者），设置引用
+	if character.get("generation", 0) == 1 and character.get("role", "") == "cultivator":
+		_player_node = container
 	print("[World] ✅ spawned character '%s' at %s" % [character.get("name", "?"), container.position])
 
 
@@ -551,9 +566,102 @@ func _add_icosphere_mesh(st: SurfaceTool, center: Vector3, radius: float) -> voi
 
 # ==================== 相机 ====================
 
+# 相机跟随参数
+var _camera_offset: Vector3 = Vector3(0, 25, 25)  # 相机相对玩家的偏移
+var _camera_look_ahead: float = 5.0  # 相机看向玩家前方距离
+var _camera_smoothing: float = 5.0  # 相机跟随平滑速度
+
 func _setup_camera() -> void:
-	camera.position = Vector3(0, 25, 30)
-	camera.look_at(Vector3(0, 0, 5), Vector3.UP)
+	# 初始相机位置：跟随玩家
+	if _player_node:
+		camera.position = _player_node.position + _camera_offset
+		camera.look_at(_player_node.position + Vector3(0, 0, _camera_look_ahead), Vector3.UP)
+	else:
+		camera.position = Vector3(0, 25, 30)
+		camera.look_at(Vector3(0, 0, 5), Vector3.UP)
+
+
+# ==================== 输入控制 ====================
+
+func _unhandled_input(event: InputEvent) -> void:
+	# 滚轮缩放（移到 _input 由 main_scene 处理）
+	pass
+
+
+func _process(delta: float) -> void:
+	# 平滑移动角色到目标位置
+	if _is_moving and _player_node:
+		var current = _player_node.position
+		var direction = _move_target - current
+		direction.y = 0  # 保持在地面高度
+		var distance = direction.length()
+		if distance < 0.3:
+			_player_node.position.x = _move_target.x
+			_player_node.position.z = _move_target.z
+			_is_moving = false
+		else:
+			# 角色朝向移动方向
+			_player_node.look_at(Vector3(_move_target.x, _player_node.position.y, _move_target.z), Vector3.UP)
+			var step = _move_speed * delta
+			_player_node.position += direction.normalized() * step
+	
+	# 相机跟随玩家（人物始终在画面中心）
+	if _player_node and camera:
+		var target_cam_pos = _player_node.position + _camera_offset
+		camera.position = camera.position.lerp(target_cam_pos, _camera_smoothing * delta)
+		camera.look_at(_player_node.position + Vector3(0, 0, _camera_look_ahead), Vector3.UP)
+
+
+func _raycast_ground(screen_pos: Vector2) -> Vector3:
+	"""从屏幕坐标射线检测地面(y=0)交点"""
+	if not camera:
+		return Vector3.INF
+	
+	var ray_origin = camera.project_ray_origin(screen_pos)
+	var ray_dir = camera.project_ray_normal(screen_pos)
+	
+	# 计算与 y=0 平面的交点
+	if abs(ray_dir.y) < 0.001:
+		return Vector3.INF
+	
+	var t = -ray_origin.y / ray_dir.y
+	if t < 0:
+		return Vector3.INF
+	
+	var hit_pos = ray_origin + ray_dir * t
+	# 限制在地图范围内
+	hit_pos.x = clampf(hit_pos.x, -terrain_size * 0.45, terrain_size * 0.45)
+	hit_pos.z = clampf(hit_pos.z, -terrain_size * 0.45, terrain_size * 0.45)
+	hit_pos.y = 0
+	return hit_pos
+
+
+func _move_player_to(target_pos: Vector3) -> void:
+	"""移动玩家角色到指定位置"""
+	_move_target = target_pos
+	_is_moving = true
+	# 显示移动目标指示（可选）
+
+
+func move_player_from_screen(screen_pos: Vector2) -> bool:
+	"""从屏幕坐标移动玩家（供外部调用）"""
+	if not _player_node:
+		return false
+	var target_pos = _raycast_ground(screen_pos)
+	if target_pos != Vector3.INF:
+		_move_player_to(target_pos)
+		return true
+	return false
+
+
+func _zoom_camera(amount: float) -> void:
+	if not camera:
+		return
+	var new_y = _camera_offset.y + amount
+	new_y = clampf(new_y, _camera_min_height, _camera_max_height)
+	_camera_offset.y = new_y
+	# 同步调整前后偏移，保持视角一致
+	_camera_offset.z = new_y  # z偏移 = y偏移，保持约45度俯角
 
 
 func get_character_node(character_id: String) -> Node3D:
