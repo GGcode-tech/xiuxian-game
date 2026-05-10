@@ -382,26 +382,43 @@ func _start_wave_combat(enemies: Array[Dictionary]) -> void:
 	# CombatSystem.start_combat(player_team, enemy_team)
 
 
-func _create_enemy_character(enemy: Dictionary) -> Character:
-	# 创建敌方角色（简化实现）
-	var ch = Character.new()
-	ch.id = "enemy_%s_%d" % [enemy.get("id", "unknown"), randi()]
-	ch.name = enemy.get("name", "敌人")
-	ch.level = enemy.get("level", 1)
-	ch.base_stats = {
-		"max_hp": enemy.get("level", 1) * 50,
-		"attack": enemy.get("level", 1) * 5,
-		"defense": enemy.get("level", 1) * 3,
-		"spirit": enemy.get("level", 1) * 3,
-		"speed": enemy.get("level", 1) * 3,
-		"luck": 0
+func _create_enemy_character(enemy: Dictionary) -> Dictionary:
+	# 创建敌方角色（Dictionary格式，与主游戏一致）
+	var level = enemy.get("level", 1)
+	var ch := {
+		"id": "enemy_%s_%d" % [enemy.get("id", "unknown"), randi()],
+		"name": enemy.get("name", "敌人"),
+		"level": level,
+		"family_id": "",
+		"realm_id": "mortal",
+		"realm_exp": 0,
+		"is_alive": true,
+		"base_stats": {
+			"max_hp": level * 50,
+			"attack": level * 5,
+			"defense": level * 3,
+			"spirit": level * 3,
+			"speed": level * 3,
+			"luck": 0
+		},
+		"derived_stats": {
+			"max_hp": level * 50,
+			"attack": level * 5,
+			"defense": level * 3,
+			"spirit": level * 3,
+			"speed": level * 3,
+			"luck": 0
+		},
+		"hp": level * 50,
+		"mp": level * 3 * 5,
+		"status_effects": [],
+		"cooldowns": {},
+		"techniques": [],
+		"items": [],
 	}
-	ch.hp = ch.base_stats.max_hp
-	ch.mp = ch.base_stats.spirit * 5
-	ch.is_alive = true
 	return ch
-
-
+	
+	
 ## 波次完成
 func on_wave_completed() -> void:
 	var wave_reward = _calculate_wave_reward(current_wave)
@@ -481,22 +498,24 @@ func _calculate_dungeon_rewards(time_taken: int) -> Dictionary:
 func _give_wave_reward(reward: Dictionary) -> void:
 	var player = _get_current_player()
 	if player:
-		player.add_exp(reward.get("exp", 0))
+		player["realm_exp"] = player.get("realm_exp", 0) + reward.get("exp", 0)
 		if reward.get("spirit_stones", 0) > 0:
 			var lingshi_item = _create_lingshi_item(reward.get("spirit_stones", 0))
-			player.add_item(lingshi_item)
+			if not player.has("items"):
+				player["items"] = []
+			player["items"].append(lingshi_item)
 
 
 func _give_rewards(rewards: Dictionary) -> void:
 	var player = _get_current_player()
 	if player:
-		player.add_exp(rewards.get("exp", 0))
-		
+		player["realm_exp"] = player.get("realm_exp", 0) + rewards.get("exp", 0)
 		var stones = rewards.get("spirit_stones", 0)
 		if stones > 0:
 			var lingshi = _create_lingshi_item(stones)
-			player.add_item(lingshi)
-		
+			if not player.has("items"):
+				player["items"] = []
+			player["items"].append(lingshi)
 		var items = rewards.get("items", [])
 		for item_id in items:
 			var item = _create_item(item_id)
@@ -562,7 +581,7 @@ func add_stamina_potion(amount: int) -> void:
 
 
 ## 工具函数
-func _get_current_player() -> Character:
+func _get_current_player() -> Variant:
 	var family = GameManager.get_player_family()
 	if family.is_empty():
 		return null

@@ -45,11 +45,11 @@ func _add_notification(title: String, message: String, type: String = "info") ->
 	
 	# 自动消失
 	var tween = create_tween()
-	tween.tween_interval(DataManager.constants.notification_duration if DataManager.constants else 5.0)
+	tween.tween_interval(DataManager.constants.get("notification_duration", 5.0))
 	tween.tween_callback(_remove_notification.bind(notif_control))
 	
 	# 限制数量
-	while _active_notifications.size() > (DataManager.constants.max_notifications if DataManager.constants else 50):
+	while _active_notifications.size() > DataManager.constants.get("max_notifications", 50):
 		var oldest = _active_notifications.pop_front()
 		if oldest:
 			oldest.queue_free()

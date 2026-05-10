@@ -107,15 +107,15 @@ func process_daily() -> void:
 
 
 func _process_cultivation() -> void:
-	var base_exp = DataManager.constants.base_cultivation_exp
+	var base_exp = DataManager.constants.get("base_cultivation_exp", 10)
 	var realm = DataManager.get_realm(realm_id)
-	if realm:
-		base_exp += realm.spirit_bonus * 0.5
+	if not realm.is_empty():
+		base_exp += realm.get("spirit_bonus", 0) * 0.5
 	
 	# 主功法加成
 	var main_tech = DataManager.get_technique(main_technique_id)
-	if main_tech:
-		base_exp = int(base_exp * main_tech.cultivation_speed)
+	if not main_tech.is_empty():
+		base_exp = int(base_exp * main_tech.get("cultivation_speed", 1.0))
 	
 	# 灵根加成
 	var spirit_bonus = 0.0
@@ -131,7 +131,11 @@ func _process_cultivation() -> void:
 	
 	# 功法经验增加
 	for tech_id in techniques:
-		techniques[tech_id].exp += base_exp
+		var tech_info = techniques[tech_id]
+		if tech_info is Dictionary:
+			tech_info["exp"] = tech_info.get("exp", 0) + base_exp
+		else:
+			techniques[tech_id] = {"level": 1, "exp": base_exp}
 		_check_technique_level_up(tech_id)
 
 
@@ -183,34 +187,42 @@ func _check_technique_level_up(tech_id: String) -> void:
 		return
 	
 	var tech_data = DataManager.get_technique(tech_id)
-	if not tech_data:
+	if tech_data.is_empty():
 		return
 	
 	var tech_info = techniques[tech_id]
-	if tech_info.level >= tech_data.max_level:
+	var tech_level = tech_info.get("level", 1) if tech_info is Dictionary else 1
+	var tech_exp = tech_info.get("exp", 0) if tech_info is Dictionary else 0
+	var max_level = tech_data.get("max_level", 10)
+	if tech_level >= max_level:
 		return
 	
-	if tech_info.exp >= tech_data.exp_per_level:
-		tech_info.exp -= tech_data.exp_per_level
-		tech_info.level += 1
+	var exp_per_level = tech_data.get("exp_per_level", 1000)
+	if tech_exp >= exp_per_level:
+		var new_exp = tech_exp - exp_per_level
+		var new_level = tech_level + 1
+		if tech_info is Dictionary:
+			tech_info["exp"] = new_exp
+			tech_info["level"] = new_level
 		
 		# 触发技能解锁
-		_check_skill_unlock(tech_id, tech_info.level)
+		_check_skill_unlock(tech_id, new_level)
 		
 		EventManager.add_notification(
 			"功法突破",
-			"%s 的 %s 突破至第%d层" % [name, tech_data.name, tech_info.level],
+			"%s 的 %s 突破至第%d层" % [name, tech_data.get("name", ""), new_level],
 			"success"
 		)
 
 
 func _check_skill_unlock(tech_id: String, level: int) -> void:
 	var tech_data = DataManager.get_technique(tech_id)
-	if not tech_data:
+	if tech_data.is_empty():
 		return
 	
-	for i in range(tech_data.skill_unlock_levels.size()):
-		if level >= tech_data.skill_unlock_levels[i]:
+	var unlock_levels = tech_data.get("skill_unlock_levels", [])
+	for i in range(unlock_levels.size()):
+		if level >= unlock_levels[i]:
 			# 解锁技能逻辑
 			pass
 
@@ -220,32 +232,33 @@ func _check_skill_unlock(tech_id: String, level: int) -> void:
 func attempt_breakthrough() -> Dictionary:
 	var next_realm = DataManager.get_next_realm(realm_id)
 	
-	if next_realm == null:
+	if next_realm.is_empty():
 		return {"success": false, "reason": "已达最高境界"}
 	
 	# 检查经验是否足够
-	if realm_exp < next_realm.required_exp:
+	if realm_exp < next_realm.get("required_exp", 0):
 		return {"success": false, "reason": "修炼经验不足"}
 	
 	# 检查资源
-	for resource_id in next_realm.required_resources:
-		var required = next_realm.required_resources[resource_id]
+	var required_resources = next_realm.get("required_resources", {})
+	for resource_id in required_resources:
+		var required = required_resources[resource_id]
 		if not _check_resource(resource_id, required):
 			return {"success": false, "reason": "资源不足: %s" % resource_id}
 	
 	# 计算成功率
-	var success_rate = next_realm.base_breakthrough_rate
+	var success_rate = next_realm.get("base_breakthrough_rate", 0.1)
 	success_rate += bloodline_purity * 0.1
 	success_rate += _get_spirit_root_bonus_for_realm(next_realm)
 	success_rate += breakthrough_boost
 	success_rate = clamp(success_rate, 
-		DataManager.constants.min_breakthrough_rate,
-		DataManager.constants.max_breakthrough_rate
+		DataManager.constants.get("min_breakthrough_rate", 0.01),
+		DataManager.constants.get("max_breakthrough_rate", 0.95)
 	)
 	
 	# 消耗资源
-	for resource_id in next_realm.required_resources:
-		_consume_resource(resource_id, next_realm.required_resources[resource_id])
+	for resource_id in required_resources:
+		_consume_resource(resource_id, required_resources[resource_id])
 	
 	# 消耗经验
 	realm_exp = 0
@@ -258,7 +271,7 @@ func attempt_breakthrough() -> Dictionary:
 		GameManager.realm_breakthrough.emit(self, next_realm)
 		EventManager.add_notification(
 			"突破成功",
-			"%s 成功突破至 %s！" % [name, next_realm.name],
+			"%s 成功突破至 %s！" % [name, next_realm.get("name", "")],
 			"success"
 		)
 		
@@ -277,16 +290,16 @@ func _get_spirit_root_bonus_for_realm(realm) -> float:
 
 
 func _apply_realm(realm) -> void:
-	realm_id = realm.id
+	realm_id = realm.get("id", realm_id)
 	
 	# 应用属性加成
-	base_stats.max_hp += realm.max_hp_bonus
-	base_stats.max_mp += realm.max_mp_bonus
-	base_stats.attack += realm.attack_bonus
-	base_stats.defense += realm.defense_bonus
-	base_stats.spirit += realm.spirit_bonus
-	base_stats.speed += realm.speed_bonus
-	lifespan += realm.lifespan_bonus
+	base_stats["max_hp"] = base_stats.get("max_hp", 100) + realm.get("max_hp_bonus", 0)
+	base_stats["max_mp"] = base_stats.get("max_mp", 50) + realm.get("max_mp_bonus", 0)
+	base_stats["attack"] = base_stats.get("attack", 10) + realm.get("attack_bonus", 0)
+	base_stats["defense"] = base_stats.get("defense", 5) + realm.get("defense_bonus", 0)
+	base_stats["spirit"] = base_stats.get("spirit", 10) + realm.get("spirit_bonus", 0)
+	base_stats["speed"] = base_stats.get("speed", 10) + realm.get("speed_bonus", 0)
+	lifespan += realm.get("lifespan_bonus", 0)
 	
 	# 恢复满状态
 	hp = base_stats.max_hp
@@ -298,13 +311,13 @@ func _apply_realm(realm) -> void:
 ## 获取境界层级（从realm_id推算）
 func get_realm_tier() -> int:
 	var realm = DataManager.get_realm(realm_id)
-	if realm:
+	if not realm.is_empty():
 		return realm.get("tier", 1)
 	return 1
 
 
 func _apply_breakthrough_failure(realm) -> void:
-	var penalty = realm.failure_penalty
+	var penalty = realm.get("failure_penalty", {})
 	
 	# 经验损失
 	var exp_loss_rate = penalty.get("exp_loss_rate", 0.3)
@@ -353,8 +366,11 @@ func die(reason: String) -> void:
 	
 	# 通知家族
 	var family = GameManager.get_family(family_id)
-	if family:
-		family.on_member_death(self)
+	if not family.is_empty():
+		# 家族是Dictionary，移除已死亡成员
+		var members: Array = family.get("members", [])
+		members.erase(id)
+		family["members"] = members
 	
 	GameManager.character_died.emit(self)
 	EventManager.add_notification(
@@ -372,45 +388,52 @@ func recalculate_stats() -> void:
 	# 装备加成
 	for slot in equipment:
 		var equipped = equipment[slot]
-		if equipped:
-			var item_data = equipped.get_item_data()
-			if item_data:
-				for stat in item_data.equip_stats:
-					derived_stats[stat] += item_data.equip_stats[stat]
+		if equipped and equipped is Dictionary:
+			var item_data = equipped.get("effect", {})
+			if not item_data.is_empty():
+				for stat in item_data:
+					derived_stats[stat] = derived_stats.get(stat, 0) + item_data[stat]
 	
 	# 功法加成
 	for tech_id in techniques:
 		var tech_data = DataManager.get_technique(tech_id)
-		if tech_data:
-			var level = techniques[tech_id].level
-			var bonuses = tech_data.get_stat_bonus_at_level(level)
+		if not tech_data.is_empty():
+			var tech_info = techniques[tech_id]
+			var level = tech_info.get("level", 1) if tech_info is Dictionary else 1
+			var bonuses = tech_data.get("effect", {})
 			for stat in bonuses:
-				derived_stats[stat] += bonuses[stat]
+				derived_stats[stat] = derived_stats.get(stat, 0) + bonuses[stat]
 	
 	# 血脉加成
 	if bloodline_purity > 0:
-		derived_stats.attack += int(base_stats.attack * bloodline_purity * 0.2)
-		derived_stats.defense += int(base_stats.defense * bloodline_purity * 0.2)
+		derived_stats["attack"] = derived_stats.get("attack", 0) + int(base_stats.get("attack", 0) * bloodline_purity * 0.2)
+		derived_stats["defense"] = derived_stats.get("defense", 0) + int(base_stats.get("defense", 0) * bloodline_purity * 0.2)
 
 
 # ==================== 物品相关 ====================
 
 func add_item(item) -> bool:
 	# 检查是否可堆叠
-	var item_data = item.get_item_data()
-	if item_data and item_data.stackable:
-		# 查找同类物品
-		for inv_item in inventory:
-			if inv_item.item_id == item.item_id and inv_item.count < item_data.max_stack:
-				var can_add = item_data.max_stack - inv_item.count
-				var to_add = mini(can_add, item.count)
-				inv_item.count += to_add
-				item.count -= to_add
-				if item.count <= 0:
-					return true
+	if item is Dictionary:
+		var item_id = item.get("id", item.get("item_id", ""))
+		var count = item.get("count", 1)
+		# 简化版：直接添加到inventory数组
+		inventory.append(item)
+		return true
+	else:
+		var item_data = item.get_item_data() if item.has_method("get_item_data") else null
+		if item_data and item_data.get("stackable", false):
+			for inv_item in inventory:
+				if inv_item.get("item_id", "") == item.get("item_id", "") and inv_item.get("count", 0) < item_data.get("max_stack", 99):
+					var can_add = item_data.get("max_stack", 99) - inv_item.get("count", 0)
+					var to_add = mini(can_add, item.get("count", 1))
+					inv_item["count"] = inv_item.get("count", 0) + to_add
+					item["count"] = item.get("count", 1) - to_add
+					if item.get("count", 1) <= 0:
+						return true
 	
 	# 添加到背包
-	if inventory.size() < DataManager.constants.max_inventory_slots:
+	if inventory.size() < DataManager.constants.get("max_inventory_slots", 50):
 		inventory.append(item)
 		return true
 	
@@ -431,7 +454,9 @@ func remove_item(item_id: String, amount: int = 1) -> bool:
 
 func has_item(item_id: String, amount: int = 1) -> bool:
 	for inv_item in inventory:
-		if inv_item.item_id == item_id and inv_item.count >= amount:
+		var iid = inv_item.get("item_id", inv_item.get("id", "")) if inv_item is Dictionary else inv_item.get("item_id", "")
+		var cnt = inv_item.get("count", 1) if inv_item is Dictionary else 1
+		if iid == item_id and cnt >= amount:
 			return true
 	return false
 
@@ -439,8 +464,10 @@ func has_item(item_id: String, amount: int = 1) -> bool:
 func get_item_count(item_id: String) -> int:
 	var count = 0
 	for inv_item in inventory:
-		if inv_item.item_id == item_id:
-			count += inv_item.count
+		var iid = inv_item.get("item_id", inv_item.get("id", "")) if inv_item is Dictionary else ""
+		var cnt = inv_item.get("count", 1) if inv_item is Dictionary else 1
+		if iid == item_id:
+			count += cnt
 	return count
 
 
@@ -448,19 +475,26 @@ func get_item_count(item_id: String) -> int:
 
 func learn_technique(tech_id: String) -> bool:
 	var tech_data = DataManager.get_technique(tech_id)
-	if not tech_data:
+	if tech_data.is_empty():
 		return false
 	
 	if has_technique(tech_id):
 		return false
 	
-	if not tech_data.can_learn(self):
-		return false
+	# 检查境界需求（简化版）
+	var required_realm = tech_data.get("required_realm", "")
+	if required_realm != "" and realm_id != required_realm:
+		# 检查当前境界是否足够
+		var current = DataManager.get_realm(realm_id)
+		var required = DataManager.get_realm(required_realm)
+		if not current.is_empty() and not required.is_empty():
+			if current.get("order", 0) < required.get("order", 0):
+				return false
 	
 	techniques[tech_id] = {"level": 1, "exp": 0}
 	
 	# 如果没有主功法，设为主功法
-	if main_technique_id == "" and tech_data.type == TechniqueData.TechniqueType.CULTIVATION:
+	if main_technique_id == "" and tech_data.get("type", "") == "cultivation":
 		main_technique_id = tech_id
 	
 	recalculate_stats()
@@ -473,7 +507,8 @@ func has_technique(tech_id: String) -> bool:
 
 func get_technique_level(tech_id: String) -> int:
 	if techniques.has(tech_id):
-		return techniques[tech_id].level
+		var info = techniques[tech_id]
+		return info.get("level", 1) if info is Dictionary else 1
 	return 0
 
 

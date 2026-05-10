@@ -19,14 +19,14 @@ func show_game_over(reason: String = "家族族人全部陨落") -> void:
 
 func _generate_stats() -> void:
 	var family = GameManager.get_player_family()
-	if not family:
+	if family.is_empty():
 		stats_label.text = "存续年数: ? | 历代族人: ?"
 		return
 	
 	var txt = ""
 	txt += "[b]存续年数[/b]: %d 年\n" % GameManager.game_time.year
-	txt += "[b]历代族人[/b]: %d 人\n" % family.get_member_count()
-	txt += "[b]最终等级[/b]: Lv.%d" % family.level
+	txt += "[b]历代族人[/b]: %d 人\n" % family.get("members", []).size()
+	txt += "[b]最终等级[/b]: Lv.%d" % family.get("level", 1)
 	stats_label.text = txt
 
 func _on_restart() -> void:
