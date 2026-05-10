@@ -377,7 +377,7 @@ func _show_sect_panel() -> void:
 		_sect_panel.sect_panel_closed.connect(_on_sect_panel_closed)
 		_sect_panel.sect_leave_requested.connect(_on_sect_leave_requested)
 		ui_layer.add_child(_sect_panel)
-	_sect_panel.set_system(sect_system)
+	_sect_panel.setup_system(sect_system)
 	_sect_panel.show()
 
 
@@ -387,7 +387,7 @@ func _show_spirit_beast_panel() -> void:
 		_spirit_beast_panel = SPIRIT_BEAST_SCENE.instantiate()
 		_spirit_beast_panel.spirit_beast_panel_closed.connect(_on_spirit_beast_panel_closed)
 		ui_layer.add_child(_spirit_beast_panel)
-	_spirit_beast_panel.set_system(spirit_beast_system)
+	_spirit_beast_panel.setup_system(spirit_beast_system)
 	_spirit_beast_panel.show()
 
 
@@ -397,7 +397,7 @@ func _show_equipment_panel() -> void:
 		_equipment_panel = EQUIPMENT_SCENE.instantiate()
 		_equipment_panel.equipment_panel_closed.connect(_on_equipment_panel_closed)
 		ui_layer.add_child(_equipment_panel)
-	_equipment_panel.set_system(equipment_system)
+	_equipment_panel.setup_system(equipment_system)
 	_equipment_panel.show()
 
 
@@ -408,7 +408,7 @@ func _show_dungeon_panel() -> void:
 		_dungeon_panel.dungeon_panel_closed.connect(_on_dungeon_panel_closed)
 		_dungeon_panel.dungeon_started.connect(_on_dungeon_started)
 		ui_layer.add_child(_dungeon_panel)
-	_dungeon_panel.set_system(dungeon_system)
+	_dungeon_panel.setup_system(dungeon_system)
 	_dungeon_panel.show()
 
 
@@ -418,7 +418,7 @@ func _show_daily_panel() -> void:
 		_daily_panel = DAILY_ACTIVITY_SCENE.instantiate()
 		_daily_panel.daily_activity_panel_closed.connect(_on_daily_panel_closed)
 		ui_layer.add_child(_daily_panel)
-	_daily_panel.set_system(daily_activity_system)
+	_daily_panel.setup_system(daily_activity_system)
 	_daily_panel.show()
 
 
@@ -429,7 +429,7 @@ func _show_combat_panel() -> void:
 		_combat_panel.combat_panel_closed.connect(_on_combat_panel_closed)
 		_combat_panel.combat_ended.connect(_on_combat_ended)
 		ui_layer.add_child(_combat_panel)
-	_combat_panel.set_system(combat_system)
+	_combat_panel.setup_system(combat_system)
 	_combat_panel.show()
 
 
