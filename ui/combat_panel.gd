@@ -1,4 +1,4 @@
-## 战斗面板 - 5v5回合制战场
+## 战斗面板 - 5v5回合制战场（接入CombatSystem真实战斗数据）
 ## 行动条/技能选择/目标选择/战斗日志
 extends Control
 
@@ -33,6 +33,9 @@ var _selected_skill: Dictionary = {}
 # 战斗配置
 var _is_auto_battle: bool = false
 var _combat_speed: int = 1  # 1, 2, 3
+
+# 系统引用
+var _combat_system: Node = null
 
 # UI组件
 var _main_container: VBoxContainer
@@ -289,31 +292,150 @@ func _build_combat_log() -> void:
 	_combat_log.scroll_following = true
 	log_container.add_child(_combat_log)
 
-func _load_sample_combat() -> void:
-	_player_team = [
-		{"id": "p1", "name": "主角", "hp": 500, "max_hp": 500, "attack": 80, "defense": 30, "speed": 50, "is_alive": true},
-		{"id": "p2", "name": "小青", "hp": 300, "max_hp": 300, "attack": 40, "defense": 20, "speed": 60, "is_alive": true},
-		{"id": "p3", "name": "阿石", "hp": 400, "max_hp": 400, "attack": 50, "defense": 40, "speed": 40, "is_alive": true},
-		{"id": "p4", "name": "小红", "hp": 250, "max_hp": 250, "attack": 60, "defense": 15, "speed": 70, "is_alive": true},
-		{"id": "p5", "name": "老张", "hp": 350, "max_hp": 350, "attack": 45, "defense": 35, "speed": 35, "is_alive": true}
-	]
+# ==================== 真实数据接入 ====================
+
+func setup_system(sys: Node) -> void:
+	_combat_system = sys
+
+## 从角色字典中提取战斗所需属性（兼容Character格式）
+func _extract_combat_stats(char: Dictionary) -> Dictionary:
+	var base_stats = char.get("base_stats", {})
+	var derived_stats = char.get("derived_stats", {})
+	var max_hp = derived_stats.get("max_hp", base_stats.get("max_hp", 100))
+	var attack = derived_stats.get("attack", base_stats.get("attack", 10))
+	var defense = derived_stats.get("defense", base_stats.get("defense", 5))
+	var speed = derived_stats.get("speed", base_stats.get("speed", 10))
+	var spirit = derived_stats.get("spirit", base_stats.get("spirit", 10))
 	
-	_enemy_team = [
-		{"id": "e1", "name": "山贼头目", "hp": 600, "max_hp": 600, "attack": 70, "defense": 25, "speed": 45, "is_alive": true},
-		{"id": "e2", "name": "山贼甲", "hp": 200, "max_hp": 200, "attack": 30, "defense": 15, "speed": 40, "is_alive": true},
-		{"id": "e3", "name": "山贼乙", "hp": 200, "max_hp": 200, "attack": 30, "defense": 15, "speed": 40, "is_alive": true},
-		{"id": "e4", "name": "山贼丙", "hp": 200, "max_hp": 200, "attack": 30, "defense": 15, "speed": 40, "is_alive": true},
-		{"id": "e5", "name": "山贼丁", "hp": 200, "max_hp": 200, "attack": 30, "defense": 15, "speed": 40, "is_alive": true}
-	]
+	return {
+		"id": char.get("id", "unknown"),
+		"name": char.get("name", "未知"),
+		"hp": char.get("hp", max_hp),
+		"max_hp": max_hp,
+		"mp": char.get("mp", spirit * 5),
+		"max_mp": spirit * 5,
+		"attack": attack,
+		"defense": defense,
+		"speed": speed,
+		"spirit": spirit,
+		"is_alive": char.get("is_alive", true),
+		"is_defending": false,
+		"techniques": char.get("techniques", []),
+		"_source": char,  # 保留原始引用
+	}
+
+## 从敌人配置构建战斗单位
+func _create_combat_unit(enemy_config: Dictionary) -> Dictionary:
+	var level = enemy_config.get("level", 1)
+	var count = enemy_config.get("count", 1)
+	var units: Array = []
+	for i in range(count):
+		units.append({
+			"id": "enemy_%s_%d_%d" % [enemy_config.get("id", "e"), randi(), i],
+			"name": enemy_config.get("name", "敌人"),
+			"hp": level * 50,
+			"max_hp": level * 50,
+			"mp": level * 15,
+			"max_mp": level * 15,
+			"attack": level * 5,
+			"defense": level * 3,
+			"speed": level * 3,
+			"spirit": level * 3,
+			"is_alive": true,
+			"is_defending": false,
+		})
+	return units[0] if units.size() == 1 else units
+
+## 构建战斗单位列表（从敌人配置数组）
+func _build_enemy_team_from_config(wave_enemies: Array) -> Array:
+	var team: Array = []
+	for enemy_config in wave_enemies:
+		var unit = _create_combat_unit(enemy_config)
+		if unit is Array:
+			team.append_array(unit)
+		else:
+			team.append(unit)
+	return team
+
+## 构建玩家队伍（从GameManager角色数据）
+func _build_player_team() -> Array:
+	var team: Array = []
+	# 从GameManager获取玩家角色
+	for cid in GameManager.all_characters:
+		var c = GameManager.all_characters[cid]
+		if c.get("is_alive", true):
+			team.append(_extract_combat_stats(c))
+			if team.size() >= 5:
+				break
+	# 如果没有角色，创建默认角色
+	if team.is_empty():
+		team.append({
+			"id": "player_default",
+			"name": "修仙者",
+			"hp": 100, "max_hp": 100,
+			"mp": 50, "max_mp": 50,
+			"attack": 10, "defense": 5,
+			"speed": 10, "spirit": 10,
+			"is_alive": true, "is_defending": false,
+		})
+	return team
+
+## 从角色技能列表构建可用技能
+func _build_available_skills(char: Dictionary) -> Array:
+	var skills: Array = []
+	var techniques = char.get("techniques", [])
+	for tech in techniques:
+		if tech is String:
+			var skill_data = DataManager.get_technique(tech)
+			if skill_data and not skill_data.is_empty():
+				skills.append({
+					"id": tech,
+					"name": skill_data.get("name", tech),
+					"mp_cost": skill_data.get("mp_cost", 10),
+					"damage": skill_data.get("damage", 0),
+					"target_type": skill_data.get("target_type", "single"),
+				})
+		elif tech is Dictionary:
+			skills.append({
+				"id": tech.get("id", ""),
+				"name": tech.get("name", "技能"),
+				"mp_cost": tech.get("mp_cost", 10),
+				"damage": tech.get("damage", 0),
+				"target_type": tech.get("target_type", "single"),
+			})
+	return skills
+
+# ==================== 战斗开始/显示 ====================
+
+func start_combat(player_team: Array, enemy_team: Array) -> void:
+	_player_team = player_team
+	_enemy_team = enemy_team
+	_round_count = 1
+	_combat_log_entries.clear()
+	_combat_log.clear()
 	
-	_available_skills = [
-		{"id": "skill_1", "name": "基础剑法", "mp_cost": 0, "damage": 50, "target_type": "single"},
-		{"id": "skill_2", "name": "御剑术", "mp_cost": 20, "damage": 80, "target_type": "single"},
-		{"id": "skill_3", "name": "群体治疗", "mp_cost": 30, "heal": 100, "target_type": "ally_all"},
-		{"id": "skill_4", "name": "天剑降世", "mp_cost": 50, "damage": 150, "target_type": "enemy_all"}
-	]
-	
+	_update_unit_display()
 	_update_turn_order()
+	_update_round_label()
+	
+	_combat_state = CombatState.WAITING
+	_add_combat_log("⚔️ 战斗开始!")
+	visible = true
+
+func start_combat_from_enemies(wave_enemies: Array) -> void:
+	"""从敌人配置开始战斗（由副本系统调用）"""
+	var player_team = _build_player_team()
+	var enemy_team = _build_enemy_team_from_config(wave_enemies)
+	start_combat(player_team, enemy_team)
+
+func show_panel() -> void:
+	# 不自动加载样本数据，需要通过start_combat()传入数据
+	visible = true
+
+func hide_panel() -> void:
+	visible = false
+
+# ==================== 回合逻辑 ====================
 
 func _update_turn_order() -> void:
 	# 按速度排序
@@ -329,7 +451,7 @@ func _update_turn_order() -> void:
 
 func _update_turn_indicator() -> void:
 	var actor_name = _current_actor.get("name", "无人")
-	var is_player = _current_actor.get("id", "").begins_with("p")
+	var is_player = _current_actor.get("id", "").begins_with("player")
 	_turn_indicator.text = "当前行动: %s [%s]" % [actor_name, "我方" if is_player else "敌方"]
 
 func _update_turn_order_panel() -> void:
@@ -344,7 +466,7 @@ func _update_turn_order_panel() -> void:
 		if not unit.get("is_alive", true):
 			continue
 		var indicator = Label.new()
-		var is_player = unit.get("id", "").begins_with("p")
+		var is_player = unit.get("id", "").begins_with("player")
 		indicator.text = "👤" if is_player else "👹"
 		indicator.add_theme_font_size_override("font_size", 20)
 		turn_panel.add_child(indicator)
@@ -392,6 +514,16 @@ func _show_skill_panel() -> void:
 	for child in hbox.get_children():
 		child.queue_free()
 	
+	# 从当前角色获取可用技能
+	var current_source = _current_actor.get("_source", {})
+	_available_skills = _build_available_skills(current_source)
+	
+	# 如果没有技能列表，使用默认基础技能
+	if _available_skills.is_empty():
+		_available_skills = [
+			{"id": "basic_attack", "name": "基础剑法", "mp_cost": 0, "damage": 50, "target_type": "single"},
+		]
+	
 	for skill in _available_skills:
 		var skill_btn = Button.new()
 		skill_btn.custom_minimum_size = Vector2(120, 80)
@@ -427,11 +559,13 @@ func _highlight_targets(target_type: String) -> void:
 	pass
 
 func _is_current_actor_player() -> bool:
-	return _current_actor.get("id", "").begins_with("p")
+	return _current_actor.get("id", "").begins_with("player")
 
 func _add_combat_log(text: String) -> void:
 	_combat_log_entries.append(text)
 	_combat_log.append_text("[%s]\n" % text)
+
+# ==================== 玩家操作 ====================
 
 func _on_normal_attack() -> void:
 	if _combat_state != CombatState.WAITING:
@@ -439,8 +573,12 @@ func _on_normal_attack() -> void:
 	if not _is_current_actor_player():
 		return
 	
-	# 自动选择第一个敌方目标
-	var target = _enemy_team[0] if _enemy_team.size() > 0 else null
+	# 自动选择第一个存活的敌方目标
+	var target = null
+	for e in _enemy_team:
+		if e.get("is_alive", true):
+			target = e
+			break
 	if target:
 		_execute_attack(_current_actor, target, 1.0)
 		_next_turn()
@@ -493,6 +631,8 @@ func _on_skill_target_selected(target: Dictionary) -> void:
 	_execute_skill(_current_actor, target, _selected_skill)
 	_next_turn()
 
+# ==================== 战斗计算 ====================
+
 func _execute_attack(attacker: Dictionary, target: Dictionary, damage_mult: float) -> void:
 	var base_damage = attacker.get("attack", 10)
 	var defense = target.get("defense", 0)
@@ -509,9 +649,28 @@ func _execute_attack(attacker: Dictionary, target: Dictionary, damage_mult: floa
 
 func _execute_skill(caster: Dictionary, target: Dictionary, skill: Dictionary) -> void:
 	var skill_name = skill.get("name", "技能")
-	_add_combat_log("%s 使用了 %s" % [caster.get("name", ""), skill_name])
+	var mp_cost = skill.get("mp_cost", 0)
 	
-	skill_used.emit(skill.get("id", ""), target.get("id", ""))
+	# 检查MP
+	if mp_cost > 0:
+		var current_mp = caster.get("mp", 0)
+		if current_mp < mp_cost:
+			_add_combat_log("%s 灵力不足！" % caster.get("name", ""))
+			return
+		caster["mp"] = current_mp - mp_cost
+	
+	# 计算伤害
+	var base_damage = skill.get("damage", 0)
+	if base_damage > 0:
+		var defense = target.get("defense", 0)
+		var damage = max(int(base_damage - defense * 0.3), 1)
+		target["hp"] = max(target["hp"] - damage, 0)
+		if target["hp"] <= 0:
+			target["is_alive"] = false
+		_add_combat_log("%s 使用 %s 对 %s 造成 %d 伤害" % [caster.get("name", ""), skill_name, target.get("name", ""), damage])
+	else:
+		_add_combat_log("%s 使用了 %s" % [caster.get("name", ""), skill_name])
+	
 	_update_unit_display()
 	_check_combat_end()
 
@@ -552,7 +711,7 @@ func _execute_enemy_turn() -> void:
 	if alive_targets.size() > 0:
 		var target = alive_targets[randi() % alive_targets.size()]
 		_execute_attack(_current_actor, target, 1.0)
-	_next_turn()
+		_next_turn()
 
 func _check_combat_end() -> void:
 	var player_alive = _player_team.any(func(u): return u.get("is_alive", true))
@@ -561,10 +720,16 @@ func _check_combat_end() -> void:
 	if not player_alive:
 		_combat_state = CombatState.GAME_OVER
 		_add_combat_log("💀 战斗失败...")
+		# 通知战斗系统
+		if _combat_system and _combat_system.has_method("_end_combat"):
+			_combat_system._end_combat(0)  # PLAYER_LOSE
 		combat_ended.emit(false)
 	elif not enemy_alive:
 		_combat_state = CombatState.GAME_OVER
 		_add_combat_log("🏆 战斗胜利!")
+		# 通知战斗系统
+		if _combat_system and _combat_system.has_method("_end_combat"):
+			_combat_system._end_combat(1)  # PLAYER_WIN
 		combat_ended.emit(true)
 
 func _update_round_label() -> void:
@@ -605,27 +770,3 @@ func _on_escape_clicked() -> void:
 func _on_close_clicked() -> void:
 	visible = false
 	combat_panel_closed.emit()
-
-func start_combat(player_team: Array, enemy_team: Array) -> void:
-	_player_team = player_team
-	_enemy_team = enemy_team
-	_round_count = 1
-	_combat_log_entries.clear()
-	_combat_log.clear()
-	
-	_update_unit_display()
-	_update_turn_order()
-	_update_round_label()
-	
-	_combat_state = CombatState.WAITING
-	_add_combat_log("⚔️ 战斗开始!")
-	visible = true
-
-func show_panel() -> void:
-	if _player_team.is_empty():
-		_load_sample_combat()
-		_update_unit_display()
-	visible = true
-
-func hide_panel() -> void:
-	visible = false

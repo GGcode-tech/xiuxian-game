@@ -1,4 +1,5 @@
-## 日常活动面板 - 活动列表/奖励/活跃度
+## 日常活动面板 - 活动列表/奖励/活跃度（接入DailyActivitySystem真实数据）
+
 extends Control
 
 signal daily_activity_panel_closed()
@@ -12,13 +13,16 @@ var _activity_rewards: Dictionary = {}
 var _current_vitality: int = 0
 var _vitality_rewards_claimed: Array = []
 
+# 系统引用
+var _daily_activity_system: Node = null
+
 # 活跃度奖励等级
 var VITALITY_REWARDS = [
-	{"level": 10, "rewards": [{"type": "spirit_stone", "count": 50}], "claimed": false},
-	{"level": 30, "rewards": [{"type": "spirit_stone", "count": 100}], "claimed": false},
-	{"level": 50, "rewards": [{"type": "spirit_jade", "count": 10}], "claimed": false},
-	{"level": 80, "rewards": [{"type": "spirit_stone", "count": 200}], "claimed": false},
-	{"level": 100, "rewards": [{"type": "rare_item", "count": 1}], "claimed": false}
+	{"level": 30, "rewards": [{"type": "spirit_stone", "count": 50}], "claimed": false},
+	{"level": 60, "rewards": [{"type": "spirit_stone", "count": 100}], "claimed": false},
+	{"level": 100, "rewards": [{"type": "spirit_jade", "count": 10}], "claimed": false},
+	{"level": 150, "rewards": [{"type": "spirit_stone", "count": 200}], "claimed": false},
+	{"level": 200, "rewards": [{"type": "rare_item", "count": 1}], "claimed": false}
 ]
 
 # UI组件
@@ -51,7 +55,6 @@ func _custom_init() -> void:
 	_build_main_content()
 	_build_vitality_section()
 	_build_footer()
-	_load_sample_data()
 
 func _build_header() -> void:
 	var header = HBoxContainer.new()
@@ -167,13 +170,13 @@ func _build_vitality_section() -> void:
 	vbox.add_child(title)
 	
 	_vitality_progress = ProgressBar.new()
-	_vitality_progress.max_value = 100
+	_vitality_progress.max_value = 200
 	_vitality_progress.value = 0
 	_vitality_progress.show_percentage = false
 	vbox.add_child(_vitality_progress)
 	
 	var vitality_label = Label.new()
-	vitality_label.text = "0 / 100"
+	vitality_label.text = "0 / 200"
 	vitality_label.name = "VitalityLabel"
 	vitality_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(vitality_label)
@@ -206,76 +209,79 @@ func _build_footer() -> void:
 	
 	_main_container.add_child(footer)
 
-func _load_sample_data() -> void:
-	_daily_activities = [
-		{
-			"id": "activity_daily_1",
-			"name": "日常委托",
-			"icon": "📋",
-			"description": "完成一次日常委托任务，获得经验和灵石奖励",
-			"requirements": "无",
-			"rewards": {"spirit_stone": 30, "exp": 50, "vitality": 10},
-			"daily_count": 3,
-			"current_count": 1
-		},
-		{
-			"id": "activity_daily_2",
-			"name": "宗门任务",
-			"icon": "🏛️",
-			"description": "完成宗门发布的任务，获得贡献度和灵石",
-			"requirements": "已加入宗门",
-			"rewards": {"contribution": 20, "spirit_stone": 50, "vitality": 15},
-			"daily_count": 5,
-			"current_count": 0
-		},
-		{
-			"id": "activity_daily_3",
-			"name": "灵兽狩猎",
-			"icon": "🐉",
-			"description": "狩猎野外灵兽，有机会获得灵兽蛋",
-			"requirements": "拥有一只灵兽",
-			"rewards": {"spirit_stone": 100, "beast_egg": 1, "vitality": 20},
-			"daily_count": 3,
-			"current_count": 2
-		},
-		{
-			"id": "activity_daily_4",
-			"name": "答题活动",
-			"icon": "📝",
-			"description": "回答修仙知识问题，答对获得奖励",
-			"requirements": "无",
-			"rewards": {"spirit_stone": 20, "exp": 100, "vitality": 5},
-			"daily_count": 10,
-			"current_count": 5
-		},
-		{
-			"id": "activity_daily_5",
-			"name": "护送任务",
-			"icon": "🚗",
-			"description": "护送商队到达目的地，获得丰厚奖励",
-			"requirements": "境界达到筑基期",
-			"rewards": {"spirit_stone": 200, "exp": 300, "vitality": 25},
-			"daily_count": 2,
-			"current_count": 0
-		},
-		{
-			"id": "activity_daily_6",
-			"name": "竞技场",
-			"icon": "⚔️",
-			"description": "与其他玩家进行PVP对战",
-			"requirements": "境界达到炼气期",
-			"rewards": {"spirit_stone": 150, "honor": 50, "vitality": 20},
-			"daily_count": 5,
-			"current_count": 3
-		}
-	]
+# ==================== 真实数据加载 ====================
+
+func setup_system(sys: Node) -> void:
+	_daily_activity_system = sys
+
+func _load_real_data() -> void:
+	if not _daily_activity_system:
+		return
+	
+	_daily_activities = []
+	
+	# 从DailyActivitySystem获取活动数据
+	var activities_data = _daily_activity_system.get("activities_data")
+	if activities_data:
+		for activity_id in activities_data:
+			var ad = activities_data[activity_id]
+			
+			# 获取今日参与记录
+			var instance = null
+			if _daily_activity_system.has_method("get_activity_instance"):
+				instance = _daily_activity_system.get_activity_instance(activity_id)
+			
+			var today_count = instance.get("today_count", 0) if instance else 0
+			var max_count = ad.get("max_daily_count", 1)
+			
+			_daily_activities.append({
+				"id": activity_id,
+				"name": ad.get("name", "未知活动"),
+				"icon": _get_activity_icon(ad.get("activity_type", 0)),
+				"description": ad.get("description", ""),
+				"requirements": "等级要求: %d" % ad.get("level_requirement", 1),
+				"rewards": ad.get("rewards", {}),
+				"daily_count": max_count,
+				"current_count": today_count,
+				"stamina_cost": ad.get("stamina_cost", 0),
+				"difficulty": ad.get("difficulty", 1),
+			})
+	
+	# 获取活跃度
+	var daily_vitality = _daily_activity_system.get("daily_vitality")
+	if daily_vitality != null:
+		_current_vitality = daily_vitality
+	
+	# 获取已领取的奖励
+	var claimed = _daily_activity_system.get("claimed_daily_rewards")
+	if claimed:
+		_vitality_rewards_claimed = claimed.duplicate()
 	
 	_update_activity_list()
+	_update_vitality_display()
+
+func _get_activity_icon(activity_type: int) -> String:
+	match activity_type:
+		0: return "🏛️"  # SECT_QUEST
+		1: return "🐉"  # SPIRIT_ISLAND
+		2: return "⚔️"  # ARENA
+		3: return "📝"  # EXAM
+		4: return "🚗"  # ESCORT
+		5: return "🧘"  # PRACTICE
+		6: return "💰"  # TREASURE
+		_: return "📋"
 
 func _update_activity_list() -> void:
 	var list_vbox = _activity_list_container.get_child(0)
 	for child in list_vbox.get_children():
 		child.queue_free()
+	
+	if _daily_activities.is_empty():
+		var empty = Label.new()
+		empty.text = "暂无活动"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		list_vbox.add_child(empty)
+		return
 	
 	for activity in _daily_activities:
 		var activity_card = _create_activity_card(activity)
@@ -303,11 +309,10 @@ func _create_activity_card(activity: Dictionary) -> PanelContainer:
 	name_label.add_theme_font_size_override("font_size", 16)
 	info_vbox.add_child(name_label)
 	
+	var remaining = activity.get("daily_count", 0) - activity.get("current_count", 0)
 	var count_label = Label.new()
-	count_label.text = "剩余次数: %d/%d" % [
-		activity.get("daily_count", 0) - activity.get("current_count", 0),
-		activity.get("daily_count", 0)
-	]
+	count_label.text = "剩余次数: %d/%d" % [remaining, activity.get("daily_count", 0)]
+	count_label.add_theme_color_override("font_color", Color.GREEN if remaining > 0 else Color.GRAY)
 	info_vbox.add_child(count_label)
 	
 	hbox.add_child(info_vbox)
@@ -328,15 +333,14 @@ func _on_activity_selected(activity: Dictionary) -> void:
 	vbox.get_node("Requirements").text = activity.get("requirements", "-")
 	
 	var rewards = activity.get("rewards", {})
-	var reward_text = "灵石: %d\n经验: %d\n活跃度: %d" % [
-		rewards.get("spirit_stone", 0),
-		rewards.get("exp", 0),
-		rewards.get("vitality", 0)
+	var reward_text = "灵石: %d\n经验: %d" % [
+		rewards.get("spirit_stones", rewards.get("spirit_stone", 0)),
+		rewards.get("exp", 0)
 	]
 	if rewards.has("contribution"):
 		reward_text += "\n贡献度: %d" % rewards.get("contribution", 0)
-	if rewards.has("beast_egg"):
-		reward_text += "\n灵兽蛋: %s" % rewards.get("beast_egg", "-")
+	if rewards.has("arena_points"):
+		reward_text += "\n竞技积分: %d" % rewards.get("arena_points", 0)
 	vbox.get_node("Rewards").text = reward_text
 	
 	_selected_activity_id = activity.get("id", "")
@@ -345,7 +349,20 @@ func _on_start_activity() -> void:
 	var activity_id = _selected_activity_id
 	if activity_id == "":
 		return
-	activity_started.emit(activity_id)
+	
+	# 调用日常活动系统开始活动
+	if _daily_activity_system and _daily_activity_system.has_method("start_activity"):
+		var result = _daily_activity_system.start_activity(activity_id)
+		if result.get("success", false):
+			# 活动成功开始，完成活动
+			if _daily_activity_system.has_method("complete_activity"):
+				_daily_activity_system.complete_activity(activity_id, true, 1.0)
+			_load_real_data()
+			activity_started.emit(activity_id)
+		else:
+			push_warning("活动开始失败: %s" % str(result.get("reason", "未知错误")))
+	else:
+		activity_started.emit(activity_id)
 
 func _on_vitality_reward_clicked(index: int) -> void:
 	if index >= VITALITY_REWARDS.size():
@@ -358,35 +375,48 @@ func _on_vitality_reward_clicked(index: int) -> void:
 		return
 	
 	_vitality_rewards_claimed.append(index)
-	_vitality_rewards_claimed = _vitality_rewards_claimed
+	
+	# 调用系统领取奖励
+	if _daily_activity_system and _daily_activity_system.has_method("claim_vitality_reward"):
+		_daily_activity_system.claim_vitality_reward(index)
+	
 	vitality_reward_claimed.emit(reward_level["level"])
 	_update_vitality_display()
 
 func _update_vitality_display() -> void:
-	var date_label = _main_container.get_child(0).get_node("DateLabel")
-	date_label.text = "今日活跃度: %d/100" % _current_vitality
+	var header = _main_container.get_child(0)
+	var date_label = header.get_node_or_null("DateLabel")
+	if date_label:
+		date_label.text = "今日活跃度: %d/200" % _current_vitality
 	
 	_vitality_progress.value = _current_vitality
 	
-	var vbox = _main_container.get_child(2).get_child(0)
-	var vitality_label = vbox.get_node("VitalityLabel")
-	vitality_label.text = "%d / 100" % _current_vitality
-	
-	# 更新奖励按钮状态
-	for i in range(VITALITY_REWARDS.size()):
-		var reward_level = VITALITY_REWARDS[i]
-		var reward_btn = vbox.get_node("VitalityBtn_%d" % i)
-		if _vitality_rewards_claimed.has(i):
-			reward_btn.text = "✓%d" % reward_level["level"]
-			reward_btn.disabled = true
-		elif _current_vitality >= reward_level["level"]:
-			reward_btn.text = "领%d" % reward_level["level"]
-		else:
-			reward_btn.text = "%d" % reward_level["level"]
-			reward_btn.disabled = true
+	# 找到活力面板中的vbox（第3个子节点）
+	if _main_container.get_child_count() > 2:
+		var vitality_container = _main_container.get_child(2)
+		var vbox = vitality_container.get_child(0) if vitality_container.get_child_count() > 0 else null
+		if vbox:
+			var vitality_label = vbox.get_node_or_null("VitalityLabel")
+			if vitality_label:
+				vitality_label.text = "%d / 200" % _current_vitality
+			
+			# 更新奖励按钮状态
+			for i in range(VITALITY_REWARDS.size()):
+				var reward_level = VITALITY_REWARDS[i]
+				var reward_btn = vbox.get_node_or_null("VitalityBtn_%d" % i)
+				if reward_btn:
+					if _vitality_rewards_claimed.has(i):
+						reward_btn.text = "✓%d" % reward_level["level"]
+						reward_btn.disabled = true
+					elif _current_vitality >= reward_level["level"]:
+						reward_btn.text = "领%d" % reward_level["level"]
+						reward_btn.disabled = false
+					else:
+						reward_btn.text = "%d" % reward_level["level"]
+						reward_btn.disabled = true
 
 func add_vitality(amount: int) -> void:
-	_current_vitality = min(_current_vitality + amount, 100)
+	_current_vitality = min(_current_vitality + amount, 200)
 	_update_vitality_display()
 
 func _on_close_clicked() -> void:
@@ -394,15 +424,15 @@ func _on_close_clicked() -> void:
 	daily_activity_panel_closed.emit()
 
 func _on_refresh_clicked() -> void:
-	# 刷新活动列表...
-	pass
+	# 刷新活动列表
+	_load_real_data()
 
 func setup_activities(activities: Array) -> void:
 	_daily_activities = activities
 	_update_activity_list()
 
 func show_panel() -> void:
-	_update_vitality_display()
+	_load_real_data()
 	visible = true
 
 func hide_panel() -> void:

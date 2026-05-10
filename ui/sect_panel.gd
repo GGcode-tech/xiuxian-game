@@ -1,4 +1,4 @@
-## 门派面板 - 门派信息/技能/贡献/商店
+## 门派面板 - 门派信息/技能/贡献/商店（接入SectSystem真实数据）
 extends Control
 
 signal sect_panel_closed()
@@ -10,6 +10,9 @@ var _current_sect: Dictionary = {}
 var _member_contribution: int = 0
 var _member_rank: String = "普通成员"
 
+# 系统引用
+var _sect_system: Node = null
+
 # UI组件
 var _main_container: VBoxContainer
 var _info_panel: PanelContainer
@@ -17,6 +20,7 @@ var _skills_panel: PanelContainer
 var _contribution_panel: PanelContainer
 var _shop_button: Button
 var _leave_button: Button
+var _join_button: Button
 
 # 门派技能列表
 var _sect_skills: Array = []
@@ -43,7 +47,6 @@ func _custom_init() -> void:
 	_build_header()
 	_build_content_area()
 	_build_footer()
-	_build_sample_sect_data()
 
 func _build_header() -> void:
 	var header = HBoxContainer.new()
@@ -82,30 +85,44 @@ func _build_content_area() -> void:
 	_info_panel.add_child(info_vbox)
 	
 	var sect_name_label = Label.new()
-	sect_name_label.text = "门派名称"
+	sect_name_label.text = "未加入门派"
 	sect_name_label.add_theme_font_size_override("font_size", 24)
+	sect_name_label.name = "SectNameLabel"
 	info_vbox.add_child(sect_name_label)
 	
 	var sect_novel_label = Label.new()
 	sect_novel_label.text = "所属: -"
+	sect_novel_label.name = "SectNovelLabel"
 	info_vbox.add_child(sect_novel_label)
 	
 	var sect_desc = Label.new()
-	sect_desc.text = "门派描述"
+	sect_desc.text = "加入一个门派以获得门派技能和属性加成"
 	sect_desc.autowrap_mode = TextServer.AUTOWRAP_WORD
+	sect_desc.name = "SectDescLabel"
 	info_vbox.add_child(sect_desc)
 	
 	var sect_feature = Label.new()
 	sect_feature.text = "门派特色: -"
+	sect_feature.name = "SectFeatureLabel"
 	info_vbox.add_child(sect_feature)
 	
 	var member_count = Label.new()
-	member_count.text = "成员数量: -"
+	member_count.text = "门派等级: -"
+	member_count.name = "MemberCountLabel"
 	info_vbox.add_child(member_count)
 	
-	var sect_level = Label.new()
-	sect_level.text = "门派等级: -"
-	info_vbox.add_child(sect_level)
+	# 加入门派列表区域
+	var join_title = Label.new()
+	join_title.text = "--- 可加入门派 ---"
+	join_title.name = "JoinTitle"
+	info_vbox.add_child(join_title)
+	
+	var join_scroll = ScrollContainer.new()
+	join_scroll.custom_minimum_size = Vector2(280, 150)
+	join_scroll.name = "JoinScroll"
+	var join_vbox = VBoxContainer.new()
+	join_scroll.add_child(join_vbox)
+	info_vbox.add_child(join_scroll)
 	
 	hbox.add_child(_info_panel)
 	
@@ -150,16 +167,19 @@ func _build_content_area() -> void:
 	
 	var contrib_progress = ProgressBar.new()
 	contrib_progress.max_value = 10000
-	contrib_progress.value = 2500
+	contrib_progress.value = 0
 	contrib_progress.show_percentage = false
+	contrib_progress.name = "ContribProgress"
 	contrib_vbox.add_child(contrib_progress)
 	
 	var contrib_label = Label.new()
-	contrib_label.text = "2500 / 10000"
+	contrib_label.text = "0 / 10000"
+	contrib_label.name = "ContribLabel"
 	contrib_vbox.add_child(contrib_label)
 	
 	var rank_label = Label.new()
-	rank_label.text = "当前职位: 普通成员"
+	rank_label.text = "当前职位: 普通弟子"
+	rank_label.name = "RankLabel"
 	contrib_vbox.add_child(rank_label)
 	
 	var contribute_btn = Button.new()
@@ -182,6 +202,13 @@ func _build_footer() -> void:
 	footer.custom_minimum_size.y = 60
 	footer.alignment = BoxContainer.ALIGNMENT_CENTER
 	
+	# 加入门派按钮（当没有门派时显示）
+	_join_button = Button.new()
+	_join_button.text = "🏛️ 加入门派"
+	_join_button.custom_minimum_size = Vector2(150, 50)
+	_join_button.pressed.connect(_on_join_clicked)
+	footer.add_child(_join_button)
+	
 	_shop_button = Button.new()
 	_shop_button.text = "🏪 门派商店"
 	_shop_button.custom_minimum_size = Vector2(150, 50)
@@ -200,19 +227,130 @@ func _build_footer() -> void:
 	
 	_main_container.add_child(footer)
 
-func _build_sample_sect_data() -> void:
-	_sect_skills = [
-		{"name": "基础剑法", "level": 1, "desc": "门派入门剑法", "unlocked": true},
-		{"name": "御剑术", "level": 3, "desc": "御剑飞行攻敌", "unlocked": true},
-		{"name": "剑意决", "level": 5, "desc": "凝聚剑意", "unlocked": false},
-		{"name": "万剑归宗", "level": 10, "desc": "剑道至高奥义", "unlocked": false}
-	]
+# ==================== 真实数据加载 ====================
+
+func setup_system(sys: Node) -> void:
+	_sect_system = sys
+
+func _load_real_data() -> void:
+	if not _sect_system:
+		return
+	
+	# 检查玩家是否已加入门派
+	var player_sect_id = _sect_system.player_sect_id if _sect_system else ""
+	
+	if player_sect_id != "" and _sect_system.has_method("get_sect"):
+		# 已加入门派，显示门派信息
+		var sect_data = _sect_system.get_sect(player_sect_id)
+		if sect_data:
+			_current_sect = {
+				"id": sect_data.id,
+				"name": sect_data.name,
+				"novel": sect_data.novel_source,
+				"description": sect_data.description,
+				"feature": str(sect_data.bonus_stats),
+				"skills": sect_data.skills,
+				"partners": sect_data.partners,
+				"level": 1,
+				"member_count": 0,
+			}
+			_sect_skills = []
+			for skill_id in sect_data.skills:
+				_sect_skills.append({
+					"id": skill_id,
+					"name": skill_id,
+					"level": 1,
+					"desc": "门派技能",
+					"unlocked": false,
+				})
+		
+		# 获取贡献度信息
+		var contrib = _sect_system.get("player_contribution")
+		if contrib:
+			_member_contribution = contrib.get("total_contribution", 0)
+			_member_rank = _sect_system.get_contribution_rank_name() if _sect_system.has_method("get_contribution_rank_name") else "普通弟子"
+		
+		_update_skills_display()
+		_update_contribution_display()
+		_show_member_mode()
+	else:
+		# 未加入门派，显示可加入列表
+		_show_join_mode()
+
+func _show_member_mode() -> void:
+	"""显示已加入门派的模式"""
+	_join_button.visible = false
+	_leave_button.visible = true
+	_shop_button.visible = true
+	
+	# 更新门派信息面板
+	var info_vbox = _info_panel.get_child(0)
+	info_vbox.get_node("SectNameLabel").text = _current_sect.get("name", "未知门派")
+	info_vbox.get_node("SectNovelLabel").text = "所属: %s" % _current_sect.get("novel", "未知")
+	info_vbox.get_node("SectDescLabel").text = _current_sect.get("description", "无描述")
+	info_vbox.get_node("SectFeatureLabel").text = "门派特色: %s" % _current_sect.get("feature", "无")
+	info_vbox.get_node("MemberCountLabel").text = "门派等级: %d 级" % _current_sect.get("level", 1)
+	info_vbox.get_node("JoinTitle").visible = false
+	info_vbox.get_node("JoinScroll").visible = false
+
+func _show_join_mode() -> void:
+	"""显示可加入门派的模式"""
+	_join_button.visible = true
+	_leave_button.visible = false
+	_shop_button.visible = false
+	
+	# 更新门派信息面板
+	var info_vbox = _info_panel.get_child(0)
+	info_vbox.get_node("SectNameLabel").text = "选择门派加入"
+	info_vbox.get_node("SectNovelLabel").text = ""
+	info_vbox.get_node("SectDescLabel").text = "选择一个门派以获得门派技能和属性加成"
+	info_vbox.get_node("SectFeatureLabel").text = ""
+	info_vbox.get_node("MemberCountLabel").text = ""
+	info_vbox.get_node("JoinTitle").visible = true
+	info_vbox.get_node("JoinScroll").visible = true
+	
+	# 填充可加入门派列表
+	var join_scroll = info_vbox.get_node("JoinScroll")
+	var join_vbox = join_scroll.get_child(0)
+	for child in join_vbox.get_children():
+		child.queue_free()
+	
+	if _sect_system and _sect_system.has_method("get_all_sects"):
+		var all_sects = _sect_system.get_all_sects()
+		for sect in all_sects:
+			var sect_btn = Button.new()
+			sect_btn.custom_minimum_size = Vector2(260, 50)
+			sect_btn.text = "%s (%s)\n%s" % [
+				sect.name,
+				sect.novel_source,
+				sect.description.substr(0, 30) + "..."
+			]
+			sect_btn.pressed.connect(_on_sect_to_join.bind(sect.id))
+			join_vbox.add_child(sect_btn)
+	
+	# 清空技能和贡献面板
+	_sect_skills = []
 	_update_skills_display()
 
+func _on_sect_to_join(sect_id: String) -> void:
+	"""加入门派"""
+	if _sect_system and _sect_system.has_method("join_sect"):
+		var success = _sect_system.join_sect(sect_id)
+		if success:
+			_load_real_data()
+
 func _update_skills_display() -> void:
-	var skills_vbox = _skills_panel.get_child(0).get_child(0)
+	var skills_scroll = _skills_panel.get_child(0)
+	var skills_vbox = skills_scroll.get_child(0)
 	for child in skills_vbox.get_children():
 		child.queue_free()
+	
+	if _sect_skills.is_empty():
+		var empty_label = Label.new()
+		empty_label.text = "暂无门派技能"
+		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		skills_vbox.add_child(empty_label)
+		return
 	
 	for skill in _sect_skills:
 		var skill_panel = PanelContainer.new()
@@ -240,6 +378,19 @@ func _update_skills_display() -> void:
 		
 		skills_vbox.add_child(skill_panel)
 
+func _update_contribution_display() -> void:
+	var contrib_vbox = _contribution_panel.get_child(0)
+	var progress = contrib_vbox.get_node_or_null("ContribProgress")
+	var label = contrib_vbox.get_node_or_null("ContribLabel")
+	var rank = contrib_vbox.get_node_or_null("RankLabel")
+	
+	if progress:
+		progress.value = _member_contribution
+	if label:
+		label.text = "%d / 10000" % _member_contribution
+	if rank:
+		rank.text = "当前职位: %s" % _member_rank
+
 func setup_sect(sect_data: Dictionary) -> void:
 	_current_sect = sect_data
 	update_display()
@@ -251,21 +402,24 @@ func update_display() -> void:
 	var info_vbox = _info_panel.get_child(0)
 	var children = info_vbox.get_children()
 	
-	children[0].text = _current_sect.get("name", "未知门派")
-	children[1].text = "所属: %s" % _current_sect.get("novel", "未知")
-	children[2].text = _current_sect.get("description", "无描述")
-	children[3].text = "门派特色: %s" % _current_sect.get("feature", "无")
-	children[4].text = "成员数量: %d" % _current_sect.get("member_count", 0)
-	children[5].text = "门派等级: %d 级" % _current_sect.get("level", 1)
+	if children.size() >= 6:
+		children[0].text = _current_sect.get("name", "未知门派")
+		children[1].text = "所属: %s" % _current_sect.get("novel", "未知")
+		children[2].text = _current_sect.get("description", "无描述")
+		children[3].text = "门派特色: %s" % _current_sect.get("feature", "无")
+		children[4].text = "成员数量: %d" % _current_sect.get("member_count", 0)
+		children[5].text = "门派等级: %d 级" % _current_sect.get("level", 1)
 
 func update_contribution(contribution: int, rank: String) -> void:
 	_member_contribution = contribution
 	_member_rank = rank
-	# 更新贡献面板...
+	_update_contribution_display()
 
 func update_member_info(name: String, contribution: int, rank: String) -> void:
 	_member_contribution = contribution
 	_member_rank = rank
+
+# ==================== 事件处理 ====================
 
 func _on_close_clicked() -> void:
 	visible = false
@@ -273,6 +427,10 @@ func _on_close_clicked() -> void:
 
 func _on_shop_clicked() -> void:
 	sect_shop_requested.emit()
+
+func _on_join_clicked() -> void:
+	# 如果没有选择门派，不操作（门派列表已在界面中）
+	pass
 
 func _on_leave_clicked() -> void:
 	# 显示确认对话框
@@ -286,14 +444,20 @@ func _show_leave_confirmation() -> void:
 	confirm_dialog.popup_centered()
 
 func _on_leave_confirmed() -> void:
+	# 调用门派系统退出
+	if _sect_system and _sect_system.has_method("leave_sect"):
+		_sect_system.leave_sect()
 	sect_leave_requested.emit()
-	visible = false
+	_load_real_data()
 
 func _on_contribute_clicked() -> void:
-	# 捐献界面...
-	pass
+	# 调用门派系统增加贡献度
+	if _sect_system and _sect_system.has_method("add_contribution"):
+		_sect_system.add_contribution(100, "捐献资源")
+		_load_real_data()
 
 func show_panel() -> void:
+	_load_real_data()
 	visible = true
 
 func hide_panel() -> void:

@@ -1,4 +1,4 @@
-## 装备面板 - 强化/宝石/套装/打造
+## 装备面板 - 强化/宝石/套装/打造（接入EquipmentSystem真实数据）
 extends Control
 
 signal equipment_panel_closed()
@@ -8,22 +8,20 @@ signal equipment_crafted(item_id: String)
 
 # 当前角色装备数据
 var _character_equipment: Dictionary = {
-	"weapon": {"id": "equip_1", "name": "新手剑", "level": 0, "slots": []},
-	"armor": {"id": "equip_2", "name": "布衣", "level": 0, "slots": []},
-	"helmet": {"id": "equip_3", "name": "木簪", "level": 0, "slots": []},
-	"boots": {"id": "equip_4", "name": "草鞋", "level": 0, "slots": []},
-	"accessory": {"id": "equip_5", "name": "无", "level": 0, "slots": []}
+	"weapon": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+	"armor": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+	"helmet": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+	"boots": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+	"accessory": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}}
 }
 var _selected_slot: String = "weapon"
 var _current_tab: String = "enhance"  # enhance, gem, set, craft
 
 # 背包物品
 var _inventory_items: Array = []
-var _enhance_materials: Dictionary = {
-	"stone": 10,
-	"crystal": 5,
-	"gold": 1000
-}
+
+# 系统引用
+var _equipment_system: Node = null
 
 # UI组件
 var _main_container: VBoxContainer
@@ -55,7 +53,6 @@ func _custom_init() -> void:
 	_build_header()
 	_build_main_content()
 	_build_footer()
-	_load_sample_data()
 
 func _build_header() -> void:
 	var header = HBoxContainer.new()
@@ -176,11 +173,94 @@ func _build_equipment_display() -> Control:
 	
 	return panel
 
+# ==================== 真实数据加载 ====================
+
+func setup_system(sys: Node) -> void:
+	_equipment_system = sys
+
+func _load_real_data() -> void:
+	if not _equipment_system:
+		return
+	
+	# 获取玩家装备列表
+	var player_equipment = _equipment_system.get("player_equipment")
+	if player_equipment:
+		# 重置装备栏
+		_character_equipment = {
+			"weapon": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+			"armor": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+			"helmet": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+			"boots": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}},
+			"accessory": {"id": "", "name": "无装备", "level": 0, "slots": [], "quality": 0, "stats": {}}
+		}
+		
+		for equip in player_equipment:
+			var slot_id = _get_slot_key(equip.get("slot", 0))
+			if slot_id != "" and _character_equipment.has(slot_id):
+				_character_equipment[slot_id] = {
+					"id": equip.get("id", ""),
+					"name": equip.get("name", "未知装备"),
+					"level": equip.get("enhancement_level", 0),
+					"slots": equip.get("gems", []),
+					"quality": equip.get("quality", 0),
+					"stats": equip.get("stats", {}),
+					"set_id": equip.get("set_id", ""),
+					"gem_slots": equip.get("gem_slots", 0),
+				}
+	
+	# 获取装备模板列表（用于打造面板）
+	var templates = _equipment_system.get("equipment_templates")
+	if templates:
+		_inventory_items = []
+		for tid in templates:
+			var tpl = templates[tid]
+			_inventory_items.append({
+				"id": tpl.get("id", ""),
+				"name": tpl.get("name", ""),
+				"quality": tpl.get("quality", 0),
+				"level_req": tpl.get("level_requirement", 1),
+				"stats": tpl.get("base_stats", {}),
+			})
+	
+	# 刷新UI
+	_refresh_equipment_display()
+
+func _get_slot_key(slot_enum: int) -> String:
+	"""将EquipmentSlot枚举转换为面板slot key"""
+	match slot_enum:
+		0: return "weapon"   # WEAPON
+		1: return "armor"    # ARMOR
+		2: return "accessory" # ACCESSORY
+		_: return ""
+
+func _refresh_equipment_display() -> void:
+	# 刷新装备栏显示
+	var vbox = _equipment_display.get_child(0)
+	var children = vbox.get_children()
+	var slot_ids = ["weapon", "helmet", "armor", "boots", "accessory"]
+	var slot_names = ["武器", "头盔", "衣服", "鞋子", "饰品"]
+	
+	for i in range(slot_ids.size()):
+		# Button is at index i+1 (after title)
+		if i + 1 < children.size():
+			var slot_btn = children[i + 1]
+			if slot_btn is Button:
+				var equip = _character_equipment.get(slot_ids[i], {})
+				slot_btn.text = "%s: %s +%d" % [
+					slot_names[i],
+					equip.get("name", "无装备"),
+					equip.get("level", 0)
+				]
+
 func _show_enhance_panel() -> void:
 	_enhance_panel.visible = true
 	_gem_panel.visible = false
 	_set_panel.visible = false
 	_craft_panel.visible = false
+	
+	# 清除旧内容
+	for child in _enhance_panel.get_children():
+		child.queue_free()
 	
 	var vbox = VBoxContainer.new()
 	_enhance_panel.add_child(vbox)
@@ -201,17 +281,10 @@ func _show_enhance_panel() -> void:
 	rate_label.text = "成功率: %.1f%%" % (success_rate * 100)
 	vbox.add_child(rate_label)
 	
+	var cost = current_level * 100 + 50
 	var cost_label = Label.new()
-	cost_label.text = "消耗: 强化石 x1, 灵石 x%d" % (current_level * 100 + 50)
+	cost_label.text = "消耗: 灵石 x%d" % cost
 	vbox.add_child(cost_label)
-	
-	var materials_label = Label.new()
-	materials_label.text = "拥有: 强化石 x%d, 水晶 x%d, 金币 x%d" % [
-		_enhance_materials.get("stone", 0),
-		_enhance_materials.get("crystal", 0),
-		_enhance_materials.get("gold", 0)
-	]
-	vbox.add_child(materials_label)
 	
 	var enhance_btn = Button.new()
 	enhance_btn.text = "🔨 开始强化"
@@ -230,6 +303,10 @@ func _show_gem_panel() -> void:
 	_set_panel.visible = false
 	_craft_panel.visible = false
 	
+	# 清除旧内容
+	for child in _gem_panel.get_children():
+		child.queue_free()
+	
 	var vbox = VBoxContainer.new()
 	_gem_panel.add_child(vbox)
 	
@@ -238,27 +315,33 @@ func _show_gem_panel() -> void:
 	title.add_theme_font_size_override("font_size", 22)
 	vbox.add_child(title)
 	
+	var equip = _character_equipment.get(_selected_slot, {})
 	var desc = Label.new()
-	desc.text = "选择宝石类型进行镶嵌或摘除"
+	desc.text = "当前装备: %s (宝石孔: %d)" % [equip.get("name", ""), equip.get("gem_slots", 0)]
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(desc)
 	
-	var gem_types = ["红宝石(攻击)", "蓝宝石(防御)", "绿宝石(生命)", "黄宝石(速度)"]
+	var gem_types = [
+		{"id": 0, "name": "红宝石(攻击)", "key": "attack"},
+		{"id": 1, "name": "蓝宝石(防御)", "key": "defense"},
+		{"id": 2, "name": "绿宝石(生命)", "key": "hp"},
+		{"id": 3, "name": "黄宝石(速度)", "key": "speed"},
+	]
 	for gem_type in gem_types:
 		var gem_hbox = HBoxContainer.new()
 		var gem_label = Label.new()
-		gem_label.text = gem_type
+		gem_label.text = gem_type["name"]
 		gem_label.custom_minimum_size.x = 150
 		gem_hbox.add_child(gem_label)
 		
 		var socket_btn = Button.new()
 		socket_btn.text = "镶嵌"
-		socket_btn.pressed.connect(_on_gem_socket.bind(gem_type))
+		socket_btn.pressed.connect(_on_gem_socket.bind(gem_type["id"]))
 		gem_hbox.add_child(socket_btn)
 		
 		var remove_btn = Button.new()
 		remove_btn.text = "摘除"
-		remove_btn.pressed.connect(_on_gem_remove.bind(gem_type))
+		remove_btn.pressed.connect(_on_gem_remove.bind(gem_type["id"]))
 		gem_hbox.add_child(remove_btn)
 		
 		vbox.add_child(gem_hbox)
@@ -269,6 +352,10 @@ func _show_set_panel() -> void:
 	_set_panel.visible = true
 	_craft_panel.visible = false
 	
+	# 清除旧内容
+	for child in _set_panel.get_children():
+		child.queue_free()
+	
 	var vbox = VBoxContainer.new()
 	_set_panel.add_child(vbox)
 	
@@ -277,30 +364,45 @@ func _show_set_panel() -> void:
 	title.add_theme_font_size_override("font_size", 22)
 	vbox.add_child(title)
 	
-	var sets = [
-		{"name": "青云套装", "parts": 2, "effect": "攻击+10%"},
-		{"name": "玄铁套装", "parts": 4, "effect": "防御+15%"},
-		{"name": "天蚕套装", "parts": 5, "effect": "生命+20%"}
-	]
-	
-	for set_data in sets:
-		var set_hbox = HBoxContainer.new()
-		var set_label = Label.new()
-		set_label.text = "%s (%d件)" % [set_data["name"], set_data["parts"]]
-		set_label.custom_minimum_size.x = 150
-		set_hbox.add_child(set_label)
-		
-		var effect_label = Label.new()
-		effect_label.text = set_data["effect"]
-		set_hbox.add_child(effect_label)
-		
-		vbox.add_child(set_hbox)
+	# 从装备系统获取套装信息
+	if _equipment_system and _equipment_system.has_method("get_equipment_template"):
+		var sets = _equipment_system.get("equipment_sets")
+		if sets:
+			for set_id in sets:
+				var set_data = sets[set_id]
+				var set_hbox = HBoxContainer.new()
+				var set_label = Label.new()
+				set_label.text = "%s" % set_data.get("name", set_id)
+				set_label.custom_minimum_size.x = 150
+				set_hbox.add_child(set_label)
+				
+				var bonuses = set_data.get("bonuses", [])
+				var effect_text = ""
+				for bonus in bonuses:
+					effect_text += "%d件: %s\n" % [bonus.get("required", 0), bonus.get("special_effect", "")]
+				var effect_label = Label.new()
+				effect_label.text = effect_text.strip_edges()
+				set_hbox.add_child(effect_label)
+				
+				vbox.add_child(set_hbox)
+		else:
+			var no_sets = Label.new()
+			no_sets.text = "暂无套装数据"
+			vbox.add_child(no_sets)
+	else:
+		var no_system = Label.new()
+		no_system.text = "装备系统未连接"
+		vbox.add_child(no_system)
 
 func _show_craft_panel() -> void:
 	_enhance_panel.visible = false
 	_gem_panel.visible = false
 	_set_panel.visible = false
 	_craft_panel.visible = true
+	
+	# 清除旧内容
+	for child in _craft_panel.get_children():
+		child.queue_free()
 	
 	var vbox = VBoxContainer.new()
 	_craft_panel.add_child(vbox)
@@ -310,27 +412,26 @@ func _show_craft_panel() -> void:
 	title.add_theme_font_size_override("font_size", 22)
 	vbox.add_child(title)
 	
-	var recipes = [
-		{"name": "铁剑", "materials": "铁矿石x5, 木柄x2", "level_req": 1},
-		{"name": "钢甲", "materials": "钢锭x10, 皮革x5", "level_req": 5},
-		{"name": "精钢剑", "materials": "精钢x15, 宝石x2", "level_req": 10}
-	]
-	
-	for recipe in recipes:
+	# 从装备系统获取可打造装备
+	for item in _inventory_items:
 		var recipe_hbox = HBoxContainer.new()
 		var name_label = Label.new()
-		name_label.text = recipe["name"]
-		name_label.custom_minimum_size.x = 80
+		name_label.text = item.get("name", "")
+		name_label.custom_minimum_size.x = 100
 		recipe_hbox.add_child(name_label)
 		
+		var stats_text = ""
+		var stats = item.get("stats", {})
+		for key in stats:
+			stats_text += "%s:%d " % [key, stats[key]]
 		var materials_label = Label.new()
-		materials_label.text = recipe["materials"]
+		materials_label.text = stats_text
 		materials_label.custom_minimum_size.x = 200
 		recipe_hbox.add_child(materials_label)
 		
 		var craft_btn = Button.new()
 		craft_btn.text = "打造"
-		craft_btn.pressed.connect(_on_craft_item.bind(recipe["name"]))
+		craft_btn.pressed.connect(_on_craft_item.bind(item.get("id", "")))
 		recipe_hbox.add_child(craft_btn)
 		
 		vbox.add_child(recipe_hbox)
@@ -358,12 +459,7 @@ func _build_footer() -> void:
 	
 	_main_container.add_child(footer)
 
-func _load_sample_data() -> void:
-	_inventory_items = [
-		{"id": "item_stone", "name": "强化石", "count": 10},
-		{"id": "item_crystal", "name": "水晶", "count": 5},
-		{"id": "item_gem_red", "name": "红宝石", "count": 3}
-	]
+# ==================== 事件处理 ====================
 
 func _calculate_enhance_success_rate(level: int) -> float:
 	# 强化成功率随等级降低
@@ -406,42 +502,68 @@ func _on_craft_tab_clicked() -> void:
 
 func _on_enhance_clicked() -> void:
 	var equip = _character_equipment.get(_selected_slot, {})
-	var current_level = equip.get("level", 0)
-	var success_rate = _calculate_enhance_success_rate(current_level)
+	var equip_id = equip.get("id", "")
 	
-	# 检查材料
-	if _enhance_materials.get("stone", 0) < 1:
-		_show_enhance_result("材料不足！")
+	if equip_id.is_empty():
+		_show_enhance_result("请先装备一件装备！")
 		return
 	
-	# 消耗材料
-	_enhance_materials["stone"] -= 1
-	
-	# 成功率判定
-	if randf() < success_rate:
-		_character_equipment[_selected_slot]["level"] = current_level + 1
-		_show_enhance_result("强化成功！+%d" % (current_level + 1))
-		equipment_enhanced.emit(_selected_slot, current_level + 1)
+	# 调用装备系统强化
+	if _equipment_system and _equipment_system.has_method("enhance_equipment"):
+		var result = _equipment_system.enhance_equipment(equip_id)
+		if result.get("success", false):
+			_show_enhance_result("强化成功！+%d" % result.get("new_level", 0))
+			equipment_enhanced.emit(_selected_slot, result.get("new_level", 0))
+		else:
+			_show_enhance_result("强化失败: %s" % result.get("reason", ""))
+		_load_real_data()
 	else:
-		_show_enhance_result("强化失败...")
-	
-	_refresh_panels()
+		_show_enhance_result("装备系统未连接")
 
 func _show_enhance_result(text: String) -> void:
 	var vbox = _enhance_panel.get_child(0)
-	var result_label = vbox.get_node("ResultLabel")
+	var result_label = vbox.get_node_or_null("ResultLabel")
 	if result_label:
 		result_label.text = text
 
-func _on_gem_socket(gem_type: String) -> void:
-	equipment_gem_socketed.emit(_selected_slot, gem_type)
+func _on_gem_socket(gem_type: int) -> void:
+	var equip = _character_equipment.get(_selected_slot, {})
+	var equip_id = equip.get("id", "")
+	
+	if equip_id.is_empty():
+		return
+	
+	if _equipment_system and _equipment_system.has_method("insert_gem"):
+		_equipment_system.insert_gem(equip_id, gem_type)
+		_load_real_data()
+		_refresh_panels()
+	
+	equipment_gem_socketed.emit(_selected_slot, str(gem_type))
 
-func _on_gem_remove(gem_type: String) -> void:
-	# 摘除宝石...
-	pass
+func _on_gem_remove(gem_type: int) -> void:
+	var equip = _character_equipment.get(_selected_slot, {})
+	var equip_id = equip.get("id", "")
+	
+	if equip_id.is_empty():
+		return
+	
+	if _equipment_system and _equipment_system.has_method("remove_gem"):
+		# 查找对应宝石的槽位
+		var gems = equip.get("slots", [])
+		for i in range(gems.size()):
+			if gems[i] == gem_type:
+				_equipment_system.remove_gem(equip_id, i)
+				break
+		_load_real_data()
+		_refresh_panels()
 
-func _on_craft_item(item_name: String) -> void:
-	equipment_crafted.emit(item_name)
+func _on_craft_item(item_id: String) -> void:
+	if _equipment_system and _equipment_system.has_method("create_equipment"):
+		var result = _equipment_system.create_equipment(item_id)
+		if result:
+			_load_real_data()
+			_refresh_panels()
+	equipment_crafted.emit(item_id)
 
 func _on_close_clicked() -> void:
 	visible = false
@@ -460,6 +582,7 @@ func setup_equipment(equipment: Dictionary) -> void:
 	_refresh_panels()
 
 func show_panel() -> void:
+	_load_real_data()
 	visible = true
 
 func hide_panel() -> void:

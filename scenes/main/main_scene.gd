@@ -375,7 +375,9 @@ func _show_sect_panel() -> void:
 	if not _sect_panel:
 		_sect_panel = SECT_PANEL_SCENE.instantiate()
 		_sect_panel.sect_panel_closed.connect(_on_sect_panel_closed)
+		_sect_panel.sect_leave_requested.connect(_on_sect_leave_requested)
 		ui_layer.add_child(_sect_panel)
+	_sect_panel.set_system(sect_system)
 	_sect_panel.show()
 
 
@@ -385,6 +387,7 @@ func _show_spirit_beast_panel() -> void:
 		_spirit_beast_panel = SPIRIT_BEAST_SCENE.instantiate()
 		_spirit_beast_panel.spirit_beast_panel_closed.connect(_on_spirit_beast_panel_closed)
 		ui_layer.add_child(_spirit_beast_panel)
+	_spirit_beast_panel.set_system(spirit_beast_system)
 	_spirit_beast_panel.show()
 
 
@@ -394,6 +397,7 @@ func _show_equipment_panel() -> void:
 		_equipment_panel = EQUIPMENT_SCENE.instantiate()
 		_equipment_panel.equipment_panel_closed.connect(_on_equipment_panel_closed)
 		ui_layer.add_child(_equipment_panel)
+	_equipment_panel.set_system(equipment_system)
 	_equipment_panel.show()
 
 
@@ -402,7 +406,9 @@ func _show_dungeon_panel() -> void:
 	if not _dungeon_panel:
 		_dungeon_panel = DUNGEON_SCENE.instantiate()
 		_dungeon_panel.dungeon_panel_closed.connect(_on_dungeon_panel_closed)
+		_dungeon_panel.dungeon_started.connect(_on_dungeon_started)
 		ui_layer.add_child(_dungeon_panel)
+	_dungeon_panel.set_system(dungeon_system)
 	_dungeon_panel.show()
 
 
@@ -412,6 +418,7 @@ func _show_daily_panel() -> void:
 		_daily_panel = DAILY_ACTIVITY_SCENE.instantiate()
 		_daily_panel.daily_activity_panel_closed.connect(_on_daily_panel_closed)
 		ui_layer.add_child(_daily_panel)
+	_daily_panel.set_system(daily_activity_system)
 	_daily_panel.show()
 
 
@@ -420,7 +427,9 @@ func _show_combat_panel() -> void:
 	if not _combat_panel:
 		_combat_panel = COMBAT_SCENE.instantiate()
 		_combat_panel.combat_panel_closed.connect(_on_combat_panel_closed)
+		_combat_panel.combat_ended.connect(_on_combat_ended)
 		ui_layer.add_child(_combat_panel)
+	_combat_panel.set_system(combat_system)
 	_combat_panel.show()
 
 
@@ -482,6 +491,41 @@ func _on_dungeon_panel_closed() -> void:
 		_dungeon_panel.hide()
 	if _main_menu:
 		_main_menu.show()
+
+
+func _on_dungeon_started(dungeon_id: String, difficulty: String) -> void:
+	"""副本开始 → 自动进入战斗面板"""
+	# 隐藏副本面板，显示战斗面板
+	if _dungeon_panel:
+		_dungeon_panel.hide()
+	# 构建敌人队伍（从副本系统的波次配置）
+	var wave_enemies: Array = []
+	if dungeon_system and dungeon_system.has_method("get_dungeon"):
+		var dungeon = dungeon_system.get_dungeon(dungeon_id)
+		if dungeon and dungeon.wave_config.size() > 0:
+			# 取第一波敌人
+			var first_wave = dungeon.wave_config[0]
+			wave_enemies = first_wave.get("enemies", [])
+	# 打开战斗面板
+	_show_combat_panel()
+	if _combat_panel:
+		_combat_panel.start_combat_from_enemies(wave_enemies)
+
+
+func _on_combat_ended(victory: bool) -> void:
+	"""战斗结束 → 返回主菜单"""
+	if _combat_panel:
+		_combat_panel.hide()
+	if _main_menu:
+		_main_menu.show()
+	# 如果胜利，通知副本系统波次完成
+	if victory and dungeon_system and dungeon_system.has_method("on_wave_completed"):
+		dungeon_system.on_wave_completed()
+
+
+func _on_sect_leave_requested() -> void:
+	"""门派退出请求已处理（sect_panel内部已调用sect_system）"""
+	pass
 
 
 func _on_daily_panel_closed() -> void:
