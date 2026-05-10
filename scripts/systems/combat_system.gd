@@ -242,13 +242,13 @@ func _normal_attack(attacker, defender) -> void:
 	var damage = maxi(1, attack - defense / 2)
 
 	# 暴击
-	var crit_rate = GameConstants.base_crit_rate + _char_get_stat(attacker, "crit_rate", 0.0)
+	var crit_rate = 0.05 + _char_get_stat(attacker, "crit_rate", 0.0)
 	if randf() < crit_rate:
-		damage = int(damage * GameConstants.base_crit_damage)
+		damage = int(damage * 1.5)
 		combat_log.append("💥 %s 暴击！" % _char_get_name(attacker))
 
 	# 闪避
-	var dodge = GameConstants.dodge_base + _char_get_stat(defender, "dodge", 0.0)
+	var dodge = 0.02 + _char_get_stat(defender, "dodge", 0.0)
 	if randf() < dodge:
 		damage = 0
 		combat_log.append("💨 %s 闪避了攻击" % _char_get_name(defender))

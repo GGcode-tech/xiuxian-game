@@ -89,6 +89,9 @@ func _advance_one_day() -> void:
 		year_passed.emit(game_time["year"])
 		_process_year_end()
 
+	# 每日自动修炼 - 所有存活角色获得经验
+	_daily_auto_cultivate()
+
 	day_passed.emit(game_time["day"], game_time["month"], game_time["year"])
 	time_elapsed.emit(game_time.duplicate())
 
@@ -103,6 +106,29 @@ func _process_month_end() -> void:
 
 func _process_year_end() -> void:
 	EventManager.process_yearly_events()
+
+
+# ==================== 每日自动修炼 ====================
+
+func _daily_auto_cultivate() -> void:
+	"""每天推进时，所有存活角色自动获得修炼经验"""
+	var base_daily_exp: int = 5  # 每天基础修炼经验
+
+	for char_id in all_characters:
+		var character = all_characters[char_id]
+		if not character.get("is_alive", false):
+			continue
+
+		# 计算灵根加成
+		var spirit_root = character.get("spirit_root", {})
+		var root_bonus = 0.0
+		for element in spirit_root:
+			root_bonus += spirit_root[element]
+		# 灵根加成 0% ~ 150%
+		var exp_gain = int(base_daily_exp * (1.0 + root_bonus))
+
+		# 增加修炼经验
+		character["realm_exp"] = character.get("realm_exp", 0) + exp_gain
 
 
 # ==================== 游戏控制 ====================

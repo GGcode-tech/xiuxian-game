@@ -25,6 +25,15 @@ const DUNGEON_SCENE          = preload("res://ui/dungeon_panel.tscn")
 const DAILY_ACTIVITY_SCENE  = preload("res://ui/daily_activity_panel.tscn")
 const COMBAT_SCENE           = preload("res://ui/combat_panel.tscn")
 
+# ==================== 核心系统脚本 ====================
+const CombatSystemScript         = preload("res://scripts/systems/combat_system.gd")
+const DungeonSystemScript        = preload("res://scripts/systems/dungeon_system.gd")
+const SectSystemScript           = preload("res://scripts/systems/sect_system.gd")
+const SpiritBeastSystemScript    = preload("res://scripts/systems/spirit_beast_system.gd")
+const EquipmentSystemScript      = preload("res://scripts/systems/equipment_system.gd")
+const DailyActivitySystemScript  = preload("res://scripts/systems/daily_activity_system.gd")
+const AlchemySystemScript        = preload("res://scripts/systems/alchemy_system.gd")
+
 # ==================== 面板实例引用 ====================
 var _start_menu:        Control = null
 var _character_create:  Control = null
@@ -41,6 +50,15 @@ var _equipment_panel:   Control = null
 var _dungeon_panel:      Control = null
 var _daily_panel:       Control = null
 var _combat_panel:      Control = null
+
+# ==================== 核心系统实例引用 ====================
+var combat_system: Node = null
+var dungeon_system: Node = null
+var sect_system: Node = null
+var spirit_beast_system: Node = null
+var equipment_system: Node = null
+var daily_activity_system: Node = null
+var alchemy_system: Node = null
 
 # 当前游戏状态
 var current_state: GameManager.GameState = GameManager.GameState.MAIN_MENU
@@ -60,10 +78,59 @@ func _initialize_game() -> void:
 	DataManager.load_all_data()
 	AudioManager.initialize()
 
+	# 实例化核心系统
+	_instantiate_systems()
+
 	_notification = NOTIFICATION_SCENE.instantiate()
 	ui_layer.add_child(_notification)
 
 	_show_start_menu()
+
+
+func _instantiate_systems() -> void:
+	# 战斗系统
+	combat_system = Node.new()
+	combat_system.name = "CombatSystem"
+	combat_system.set_script(CombatSystemScript)
+	add_child(combat_system)
+
+	# 副本系统
+	dungeon_system = Node.new()
+	dungeon_system.name = "DungeonSystem"
+	dungeon_system.set_script(DungeonSystemScript)
+	add_child(dungeon_system)
+
+	# 门派系统
+	sect_system = Node.new()
+	sect_system.name = "SectSystem"
+	sect_system.set_script(SectSystemScript)
+	add_child(sect_system)
+
+	# 灵兽系统
+	spirit_beast_system = Node.new()
+	spirit_beast_system.name = "SpiritBeastSystem"
+	spirit_beast_system.set_script(SpiritBeastSystemScript)
+	add_child(spirit_beast_system)
+
+	# 装备系统
+	equipment_system = Node.new()
+	equipment_system.name = "EquipmentSystem"
+	equipment_system.set_script(EquipmentSystemScript)
+	add_child(equipment_system)
+
+	# 日常活动系统
+	daily_activity_system = Node.new()
+	daily_activity_system.name = "DailyActivitySystem"
+	daily_activity_system.set_script(DailyActivitySystemScript)
+	add_child(daily_activity_system)
+
+	# 炼丹系统
+	alchemy_system = Node.new()
+	alchemy_system.name = "AlchemySystem"
+	alchemy_system.set_script(AlchemySystemScript)
+	add_child(alchemy_system)
+
+	print("[MainScene] 核心系统实例化完成：7个系统已加入场景树")
 
 
 # ==================== 状态机 ====================
