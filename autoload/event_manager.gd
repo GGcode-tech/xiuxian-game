@@ -69,11 +69,137 @@ func _check_world_events() -> void:
 
 
 func _check_monthly_events() -> void:
-	pass
+	var all_events = DataManager.get_all_events()
+	var current_month: int = GameManager.game_time.get("month", 1)
+	var eligible_events: Array = []
+
+	for event_data in all_events:
+		if event_data.get("event_type", "") != "monthly":
+			continue
+		var trigger_cond: Dictionary = event_data.get("trigger_condition", {})
+		var min_month: int = trigger_cond.get("min_month", 1)
+		if current_month < min_month:
+			continue
+		eligible_events.append(event_data)
+
+	if eligible_events.is_empty():
+		return
+
+	# 月度事件最多触发1个，按概率随机
+	var shuffled: Array = eligible_events.duplicate()
+	shuffled.shuffle()
+	for event_data in shuffled:
+		if randf() <= event_data.get("probability", 0.3):
+			_trigger_event(event_data, {"monthly": true})
+			break
 
 
 func _check_yearly_events() -> void:
-	pass
+	var all_events = DataManager.get_all_events()
+	var current_year: int = GameManager.game_time.get("year", 1)
+	var eligible_events: Array = []
+
+	for event_data in all_events:
+		if event_data.get("event_type", "") != "yearly":
+			continue
+		var trigger_cond: Dictionary = event_data.get("trigger_condition", {})
+		var min_year: int = trigger_cond.get("min_year", 1)
+		if current_year < min_year:
+			continue
+		eligible_events.append(event_data)
+
+	if eligible_events.is_empty():
+		return
+
+	# 年度事件最多触发1个，概率较低但效果更强
+	var shuffled: Array = eligible_events.duplicate()
+	shuffled.shuffle()
+	for event_data in shuffled:
+		if randf() <= event_data.get("probability", 0.25):
+			_trigger_event(event_data, {"yearly": true})
+			break
+
+
+## 公共方法：外部调用应用事件效果（如 notification_system.gd）
+func apply_event_outcome(outcome: Dictionary) -> void:
+	# 获取当前玩家角色作为默认目标
+	var character: Dictionary = {}
+	if GameManager.has_method("get_player_character"):
+		character = GameManager.get_player_character()
+
+	for effect in outcome.get("effects", []):
+		var effect_type: String = effect.get("type", "")
+		var value = effect.get("value", 0)
+		var effect_id: String = effect.get("id", "")
+
+		match effect_type:
+			"add_exp":
+				if not character.is_empty():
+					var exp: int = character.get("realm_exp", 0) + int(value)
+					character["realm_exp"] = exp
+					print("[EventManager] 角色获得经验: %d" % int(value))
+			"add_resource":
+				# 家族资源变化
+				if GameManager.has_method("get_player_family"):
+					var family: Dictionary = GameManager.get_player_family()
+					if not family.is_empty():
+						var resources: Dictionary = family.get("resources", {})
+						resources[effect_id] = resources.get(effect_id, 0) + int(value)
+						family["resources"] = resources
+						print("[EventManager] 家族资源 %s 变化: %d" % [effect_id, int(value)])
+			"add_relationship":
+				# NPC 关系变化
+				if GameManager.has_method("modify_relationship"):
+					GameManager.modify_relationship(effect_id, int(value))
+					print("[EventManager] NPC关系 %s 变化: %d" % [effect_id, int(value)])
+			"change_stat":
+				# 角色属性变化
+				if not character.is_empty():
+					var stats: Dictionary = character.get("base_stats", {})
+					stats[effect_id] = stats.get(effect_id, 0) + int(value)
+					character["base_stats"] = stats
+					print("[EventManager] 角色属性 %s 变化: %d" % [effect_id, int(value)])
+			"give_item":
+				# 获得物品
+				if not character.is_empty():
+					var items: Array = character.get("items", [])
+					items.append(effect_id)
+					character["items"] = items
+					print("[EventManager] 角色获得物品: %s" % effect_id)
+			"add_exp_mult":
+				# 经验倍率加成（持续性效果标记）
+				if not character.is_empty():
+					var mult: float = character.get("exp_multiplier", 1.0) + float(value)
+					character["exp_multiplier"] = mult
+					print("[EventManager] 角色经验倍率变化: x%.2f" % mult)
+			"damage":
+				if not character.is_empty():
+					var hp: int = character.get("hp", 0) - int(value)
+					character["hp"] = maxi(0, hp)
+					if hp <= 0:
+						character["is_alive"] = false
+					print("[EventManager] 角色受到伤害: %d" % int(value))
+			"heal":
+				if not character.is_empty():
+					var hp: int = character.get("hp", 0)
+					var max_hp: int = character.get("base_stats", {}).get("max_hp", 100)
+					character["hp"] = mini(max_hp, hp + int(value))
+					print("[EventManager] 角色恢复生命: %d" % int(value))
+			"breakthrough_boost":
+				if not character.is_empty():
+					var boost: float = character.get("breakthrough_boost", 0.0) + float(value)
+					character["breakthrough_boost"] = boost
+					print("[EventManager] 突破加成: +%.2f" % float(value))
+			"add_item":
+				if not character.is_empty():
+					var items: Array = character.get("items", [])
+					items.append(effect_id)
+					character["items"] = items
+					print("[EventManager] 角色获得物品: %s" % effect_id)
+			_:
+				print("[EventManager] 未知效果类型: %s" % effect_type)
+
+	print("[EventManager] apply_event_outcome 完成")
 
 
 func _can_trigger_character_event(event: Dictionary, character: Dictionary) -> bool:

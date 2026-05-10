@@ -33,6 +33,7 @@ const SpiritBeastSystemScript    = preload("res://scripts/systems/spirit_beast_s
 const EquipmentSystemScript      = preload("res://scripts/systems/equipment_system.gd")
 const DailyActivitySystemScript  = preload("res://scripts/systems/daily_activity_system.gd")
 const AlchemySystemScript        = preload("res://scripts/systems/alchemy_system.gd")
+const DialogueSystemScript       = preload("res://scripts/systems/dialogue_system.gd")
 
 # ==================== 面板实例引用 ====================
 var _start_menu:        Control = null
@@ -50,6 +51,7 @@ var _equipment_panel:   Control = null
 var _dungeon_panel:      Control = null
 var _daily_panel:       Control = null
 var _combat_panel:      Control = null
+var _dialogue_panel:    Control = null
 
 # ==================== 核心系统实例引用 ====================
 var combat_system: Node = null
@@ -59,6 +61,7 @@ var spirit_beast_system: Node = null
 var equipment_system: Node = null
 var daily_activity_system: Node = null
 var alchemy_system: Node = null
+var dialogue_system: Node = null
 
 # 当前游戏状态
 var current_state: GameManager.GameState = GameManager.GameState.MAIN_MENU
@@ -131,6 +134,12 @@ func _instantiate_systems() -> void:
 	add_child(alchemy_system)
 
 	print("[MainScene] 核心系统实例化完成：7个系统已加入场景树")
+
+	# 对话系统
+	dialogue_system = Node.new()
+	dialogue_system.name = "DialogueSystem"
+	dialogue_system.set_script(DialogueSystemScript)
+	add_child(dialogue_system)
 
 
 # ==================== 状态机 ====================
@@ -433,6 +442,46 @@ func _show_combat_panel() -> void:
 	_combat_panel.show()
 
 
+func _show_dialogue_panel(npc_id: String) -> void:
+	"""打开NPC对话面板"""
+	_hide_all_overlay_panels()
+	if not _dialogue_panel:
+		var panel_script = load("res://ui/dialogue_panel.gd")
+		_dialogue_panel = Control.new()
+		_dialogue_panel.set_script(panel_script)
+		_dialogue_panel.dialogue_panel_closed.connect(_on_dialogue_panel_closed)
+		_dialogue_panel.choice_made.connect(_on_dialogue_choice_made)
+		ui_layer.add_child(_dialogue_panel)
+
+	var dialogue_data = dialogue_system.start_dialogue(npc_id)
+	if not dialogue_data.is_empty():
+		_dialogue_panel.show_dialogue(dialogue_data)
+
+
+func _on_dialogue_panel_closed() -> void:
+	if _hud:
+		_hud.show()
+
+
+func _on_dialogue_choice_made(npc_id: String, choice_index: int) -> void:
+	"""处理对话选项选择"""
+	var result = dialogue_system.process_choice(npc_id, choice_index)
+	if result.is_empty():
+		return
+
+	# 应用效果
+	var notifications = dialogue_system.apply_effects(result.get("effects", []))
+
+	# 更新面板显示回复
+	if _dialogue_panel and _dialogue_panel.has_method("update_response"):
+		_dialogue_panel.update_response(result.get("response_text", ""))
+
+	# 显示效果通知
+	if _notification and _notification.has_method("show_notification"):
+		for note in notifications:
+			_notification.show_notification(note, "info")
+
+
 func _show_character_panel() -> void:
 	var player = _get_player_character()
 	if not _character_panel:
@@ -459,6 +508,7 @@ func _hide_all_overlay_panels() -> void:
 	if _dungeon_panel:     _dungeon_panel.hide()
 	if _daily_panel:       _daily_panel.hide()
 	if _combat_panel:      _combat_panel.hide()
+	if _dialogue_panel:    _dialogue_panel.hide()
 	if _character_panel:   _character_panel.hide()
 	if _family_panel:       _family_panel.hide()
 
@@ -615,13 +665,22 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("quick_load"):
 		SaveManager.load_game("quick")
 	
-	# 左键点击地面移动角色
+	# 左键点击：射线检测建筑/角色，或移动角色
 	if current_state == GameManager.GameState.PLAYING and not GameManager.is_paused:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			# 检查是否点击在UI上
 			if _get_control_at_point(event.position):
 				return
-			world.move_player_from_screen(event.position)
+			# 先做射线检测，看是否命中建筑/角色
+			var hit_info = world.raycast_objects(event.position)
+			if hit_info.has("type"):
+				if hit_info["type"] == "building":
+					_on_building_clicked(hit_info["name"])
+				elif hit_info["type"] == "character":
+					_on_character_clicked(hit_info["id"])
+			else:
+				# 未命中物体，移动角色
+				world.move_player_from_screen(event.position)
 		
 		# 滚轮缩放相机
 		if event is InputEventMouseButton:
@@ -630,6 +689,46 @@ func _input(event: InputEvent) -> void:
 					world._zoom_camera(-world._camera_zoom_speed)
 				MOUSE_BUTTON_WHEEL_DOWN:
 					world._zoom_camera(world._camera_zoom_speed)
+
+
+# ==================== 建筑/角色交互 ====================
+
+func _on_building_clicked(building_name: String) -> void:
+	"""点击建筑 → 根据建筑名分发功能"""
+	match building_name:
+		"主殿":
+			_show_sect_panel()
+		"炼丹房":
+			_show_daily_panel()
+		"藏经阁":
+			_show_character_panel()
+		"修炼塔":
+			_show_character_panel()
+		"山门":
+			_show_dungeon_panel()
+		"祭坛":
+			_show_sect_panel()
+		"炼器房":
+			_show_equipment_panel()
+		_:
+			if _notification and _notification.has_method("show_notification"):
+				_notification.show_notification("%s 暂未开放" % building_name, "info")
+
+
+func _on_character_clicked(character_id: String) -> void:
+	"""点击角色 → NPC打开对话面板，玩家角色打开角色面板"""
+	# 检查是否是NPC
+	var npc_data = NPCSystem.get_npc(character_id)
+	if not npc_data.is_empty():
+		_show_dialogue_panel(character_id)
+		return
+
+	var character = GameManager.get_character(character_id)
+	if character and not character.is_empty():
+		_show_character_panel()
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("角色信息暂不可用", "info")
 
 
 func _get_control_at_point(point: Vector2) -> Control:

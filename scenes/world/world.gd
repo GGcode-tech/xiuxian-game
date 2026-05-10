@@ -15,6 +15,7 @@ extends Node3D
 # 缓存
 var _character_nodes: Dictionary = {}
 var _building_nodes: Dictionary = {}
+var _npc_nodes: Dictionary = {}
 
 # 地形参数
 @export var terrain_size: float = 100.0
@@ -34,6 +35,7 @@ func initialize() -> void:
 	_place_buildings()
 	_generate_nature()
 	_spawn_characters()
+	_spawn_npcs()
 	_setup_camera()
 
 
@@ -173,6 +175,7 @@ func _create_default_buildings() -> void:
 			building_node.set_meta("building_name", item["name"])
 			buildings.add_child(building_node)
 			_building_nodes[item["name"]] = building_node
+			_add_building_collision(building_node)
 		else:
 			# 回退到程序化几何体
 			var building: MeshInstance3D = _create_building_fallback(item["type"], 1.0)
@@ -180,6 +183,7 @@ func _create_default_buildings() -> void:
 			building.set_meta("building_name", item["name"])
 			buildings.add_child(building)
 			_building_nodes[item["name"]] = building
+			_add_building_collision(building)
 
 
 func _place_family_buildings(family: Dictionary) -> void:
@@ -187,7 +191,10 @@ func _place_family_buildings(family: Dictionary) -> void:
 	if main_hall:
 		main_hall.position = Vector3(0, 0, 10)
 		main_hall.scale = Vector3(3.5, 3.5, 3.5)
+		main_hall.set_meta("building_name", "主殿")
 		buildings.add_child(main_hall)
+		_add_building_collision(main_hall)
+		_building_nodes["主殿"] = main_hall
 
 	var building_positions: Dictionary = {
 		"alchemy": Vector3(12, 0, 5),
@@ -204,7 +211,11 @@ func _place_family_buildings(family: Dictionary) -> void:
 			if building_node:
 				building_node.position = building_positions[building_id]
 				building_node.scale = Vector3(3.0, 3.0, 3.0)
+				var b_name := _get_building_name(building_id)
+				building_node.set_meta("building_name", b_name)
 				buildings.add_child(building_node)
+				_add_building_collision(building_node)
+				_building_nodes[b_name] = building_node
 
 
 func _get_building_type(building_id: String) -> int:
@@ -215,6 +226,140 @@ func _get_building_type(building_id: String) -> int:
 		"pagoda": return 6
 		"residence": return 8
 		_: return 1
+
+
+func _get_building_name(building_id: String) -> String:
+	match building_id:
+		"alchemy": return "炼丹房"
+		"forge": return "炼器房"
+		"library": return "藏经阁"
+		"pagoda": return "修炼塔"
+		"residence": return "居室"
+		_: return "主殿"
+
+
+func _add_building_collision(node: Node3D) -> void:
+	"""给建筑节点添加StaticBody3D碰撞体（碰撞层=2）"""
+	var body := StaticBody3D.new()
+	body.name = node.name + "_body"
+	body.collision_layer = 2   # layer 2 = buildings
+	body.collision_mask = 0    # 建筑不需要检测其他物理体
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(6, 6, 6)
+	shape.shape = box
+	body.add_child(shape)
+	node.add_child(body)
+
+
+func _add_character_collision(node: Node3D) -> void:
+	"""给角色节点添加StaticBody3D碰撞体（碰撞层=3）"""
+	var body := StaticBody3D.new()
+	body.name = "CharacterBody"
+	body.collision_layer = 4   # layer 3 = characters
+	body.collision_mask = 0
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 1.5
+	shape.shape = sphere
+	body.add_child(shape)
+	node.add_child(body)
+
+
+# ==================== NPC生成 ====================
+
+func _spawn_npcs() -> void:
+	"""从NPCSystem生成代表性NPC到3D世界"""
+	var all_npcs = NPCSystem.get_all_npcs()
+	if all_npcs.is_empty():
+		print("[World] NPCSystem无NPC数据，跳过NPC生成")
+		return
+
+	# 选取10-15个代表性NPC（不同来源各取几个）
+	var sources = NPCSystem.get_all_sources()
+	var selected: Array = []
+	var per_source = maxi(1, 12 / maxi(sources.size(), 1))
+
+	for source in sources:
+		var npcs = NPCSystem.get_npcs_by_source(source)
+		for i in range(mini(per_source, npcs.size())):
+			selected.append(npcs[i])
+		if selected.size() >= 12:
+			break
+
+	# 如果不够，从所有NPC中补充
+	if selected.size() < 10:
+		var all_ids = all_npcs.keys()
+		all_ids.shuffle()
+		for nid in all_ids:
+			if selected.size() >= 12:
+				break
+			var already = false
+			for s in selected:
+				if s.get("id", "") == nid:
+					already = true
+					break
+			if not already:
+				selected.append(all_npcs[nid])
+
+	print("[World] 生成NPC数量: %d" % selected.size())
+
+	for i in range(selected.size()):
+		var npc = selected[i]
+		_spawn_npc_node(npc, i)
+
+
+func _spawn_npc_node(npc: Dictionary, index: int) -> void:
+	var container := Node3D.new()
+
+	# 角色模型（使用已有模板）
+	var npc_color = _get_npc_color(npc)
+	var mesh := _create_character_mesh(0, npc_color)
+	mesh.scale = Vector3(2.0, 2.0, 2.0)
+	container.add_child(mesh)
+
+	# 名字标签（3D文字）
+	var label3d = Label3D.new()
+	label3d.text = npc.get("name", "?")
+	label3d.font_size = 48
+	label3d.position = Vector3(0, 4.5, 0)
+	label3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label3d.modulate = Color(0.7, 1.0, 0.7)  # 绿色区分NPC
+	container.add_child(label3d)
+
+	# 随机位置（建筑周围散开）
+	var angle = (float(index) / 12.0) * TAU + randf_range(-0.3, 0.3)
+	var dist = randf_range(15.0, 35.0)
+	container.position = Vector3(cos(angle) * dist, 0, sin(angle) * dist)
+
+	# 碰撞和元数据
+	_add_character_collision(container)
+	container.set_meta("character_id", npc.get("id", ""))
+	container.set_meta("is_npc", true)
+
+	characters_node.add_child(container)
+	_npc_nodes[npc.get("id", "")] = container
+	_character_nodes[npc.get("id", "")] = container
+
+
+func _get_npc_color(npc: Dictionary) -> Color:
+	"""根据NPC来源分配不同颜色"""
+	var source = npc.get("source", "")
+	var color_map: Dictionary = {
+		"凡人修仙传": Color(0.3, 0.5, 0.7),
+		"遮天": Color(0.6, 0.3, 0.5),
+		"完美世界": Color(0.5, 0.6, 0.3),
+		"斗破苍穹": Color(0.7, 0.4, 0.2),
+		"盘龙": Color(0.4, 0.4, 0.7),
+		"仙逆": Color(0.5, 0.3, 0.6),
+		"大主宰": Color(0.6, 0.5, 0.2),
+		"一念永恒": Color(0.3, 0.6, 0.5),
+		"我欲封天": Color(0.7, 0.5, 0.3),
+		"武动乾坤": Color(0.5, 0.4, 0.3),
+		"长生界": Color(0.4, 0.5, 0.6),
+		"神墓": Color(0.6, 0.3, 0.3),
+	}
+	return color_map.get(source, Color(0.4, 0.5, 0.6))
 
 
 # ==================== 自然物生成 ====================
@@ -305,7 +450,9 @@ func _create_default_characters() -> void:
 		var mesh := _create_character_mesh(types[i], colors[i])
 		char_node.add_child(mesh)
 		char_node.position = default_positions[i]
+		char_node.set_meta("character_id", "default_%d" % i)
 		characters_node.add_child(char_node)
+		_add_character_collision(char_node)
 		# 第一个角色设为玩家
 		if i == 0 and _player_node == null:
 			_player_node = char_node
@@ -327,6 +474,8 @@ func _spawn_character_node(character: Dictionary) -> void:
 	# 放在靠近摄像机的位置
 	container.position = Vector3(randf_range(-5, 5), 0, randf_range(15, 25))
 	characters_node.add_child(container)
+	_add_character_collision(container)
+	container.set_meta("character_id", character.get("id", ""))
 	_character_nodes[character.get("id", "")] = container
 	# 如果是玩家角色（第一代修炼者），设置引用
 	if character.get("generation", 0) == 1 and character.get("role", "") == "cultivator":
@@ -641,6 +790,30 @@ func _move_player_to(target_pos: Vector3) -> void:
 	_move_target = target_pos
 	_is_moving = true
 	# 显示移动目标指示（可选）
+
+
+func raycast_objects(screen_pos: Vector2) -> Dictionary:
+	"""从屏幕坐标射线检测，返回命中的建筑/角色信息"""
+	if not camera:
+		return {}
+	var space_state = get_world_3d().direct_space_state
+	var ray_origin = camera.project_ray_origin(screen_pos)
+	var ray_end = ray_origin + camera.project_ray_normal(screen_pos) * 1000
+	var query = PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	query.collision_mask = 6  # 0b110: layer2(buildings) + layer3(characters)
+	var result = space_state.intersect_ray(query)
+	if result.is_empty():
+		return {}
+	var collider = result["collider"]
+	# 向上遍历找带meta的节点
+	var node = collider
+	while node:
+		if node.has_meta("building_name"):
+			return {"type": "building", "name": node.get_meta("building_name"), "node": node, "position": result["position"]}
+		if node.has_meta("character_id"):
+			return {"type": "character", "id": node.get_meta("character_id"), "node": node, "position": result["position"]}
+		node = node.get_parent()
+	return {}
 
 
 func move_player_from_screen(screen_pos: Vector2) -> bool:

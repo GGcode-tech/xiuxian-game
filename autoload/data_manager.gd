@@ -341,13 +341,390 @@ func _load_events() -> void:
 					]},
 					{"text": "你找到了不少灵石。", "probability": 0.5, "effects": [
 						{"type": "add_resource", "id": "spirit_stone", "value": 500}
-					]},
-					{"text": "你遭遇了禁制反噬。", "probability": 0.2, "effects": [
+				]},
+				{"text": "你遭遇了禁制反噬。", "probability": 0.2, "effects": [
 						{"type": "damage", "value": 50}
 					]}
 				]
-			}
-		]
+				}
+			]
+	})
+	# ==================== 月度事件 (8个) ====================
+	_add_event({
+			"id": "monthly_fullmoon", "name": "月圆之夜",
+			"event_type": "monthly", "probability": 0.3,
+			"trigger_condition": {"min_month": 1},
+			"description": "月华如水，灵气充沛，天地间的灵力在月光下涌动。",
+			"choices": [
+				{
+					"text": "趁月修炼",
+					"outcomes": [
+						{"probability": 0.7, "text": "月华入体，修炼效果极佳！", "effects": [
+							{"type": "add_exp_mult", "value": 0.5}
+						]},
+						{"probability": 0.3, "text": "月光刺眼，修炼受到干扰。", "effects": []}
+					]
+				},
+				{
+					"text": "静观其变",
+					"outcomes": [
+						{"probability": 1.0, "text": "你静静观赏月色，心绪平和。", "effects": []}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "monthly_exam", "name": "门派考核",
+			"event_type": "monthly", "probability": 0.4,
+			"trigger_condition": {"min_month": 3},
+			"description": "门派一年一度的考核即将到来，弟子们各显神通。",
+			"choices": [
+				{
+					"text": "全力参与",
+					"outcomes": [
+						{"probability": 0.5, "text": "表现出色，门派贡献度大增！", "effects": [
+							{"type": "add_resource", "id": "prestige", "value": 50},
+							{"type": "add_exp", "value": 200}
+						]},
+						{"probability": 0.5, "text": "表现平平，没有特别收获。", "effects": []}
+					]
+				},
+				{
+					"text": "故意藏拙",
+					"outcomes": [
+						{"probability": 1.0, "text": "低调行事，不引人注目。", "effects": []}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "monthly_herb", "name": "灵药成熟",
+			"event_type": "monthly", "probability": 0.25,
+			"trigger_condition": {"min_month": 1},
+			"description": "后山药田中一株灵药散发出浓郁的药香，似乎已完全成熟。",
+			"choices": [
+				{
+					"text": "采摘灵药",
+					"outcomes": [
+						{"probability": 0.6, "text": "灵药品质上乘，可炼制高级丹药！", "effects": [
+							{"type": "add_item", "id": "item_jiuxuan"}
+						]},
+						{"probability": 0.4, "text": "灵药尚欠火候，只得到普通药材。", "effects": [
+							{"type": "add_resource", "id": "herb", "value": 30}
+						]}
+					]
+				},
+				{
+					"text": "留给弟子们",
+					"outcomes": [
+						{"probability": 1.0, "text": "弟子们感激不尽，门派凝聚力提升。", "effects": [
+							{"type": "add_resource", "id": "prestige", "value": 20}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "monthly_caravan", "name": "商队来访",
+			"event_type": "monthly", "probability": 0.35,
+			"trigger_condition": {"min_month": 1},
+			"description": "一支远道而来的商队途经此地，带来了各地的稀有物品。",
+			"choices": [
+				{
+					"text": "购买材料",
+					"outcomes": [
+						{"probability": 0.8, "text": "以合理价格购得稀有材料！", "effects": [
+							{"type": "add_resource", "id": "spirit_stone", "value": -100},
+							{"type": "add_item", "id": "item_feijian"}
+						]},
+						{"probability": 0.2, "text": "商队漫天要价，没有成交。", "effects": []}
+					]
+				},
+				{
+					"text": "置之不理",
+					"outcomes": [
+						{"probability": 1.0, "text": "商队匆匆离去，没有停留。", "effects": []}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "monthly_beast", "name": "妖兽出没",
+			"event_type": "monthly", "probability": 0.3,
+			"trigger_condition": {"min_month": 2},
+			"description": "附近山林中传来妖兽的嚎叫，似乎有一头强大的妖兽出没。",
+			"choices": [
+				{
+					"text": "迎战妖兽",
+					"requirements": {"min_realm": 2},
+					"outcomes": [
+						{"probability": 0.6, "text": "成功斩杀妖兽，获得珍贵内丹！", "effects": [
+							{"type": "add_item", "id": "item_beast_core"},
+							{"type": "add_exp", "value": 300}
+						]},
+						{"probability": 0.4, "text": "妖兽凶猛，你受了不轻的伤。", "effects": [
+							{"type": "damage", "value": 50}
+						]}
+					]
+				},
+				{
+					"text": "躲避妖兽",
+					"outcomes": [
+						{"probability": 1.0, "text": "你小心避开，没有惊动妖兽。", "effects": []}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "monthly_visit", "name": "同道拜访",
+			"event_type": "monthly", "probability": 0.35,
+			"trigger_condition": {"min_month": 1},
+			"description": "一位久未谋面的道友前来拜访，带来了远方的消息。",
+			"choices": [
+				{
+					"text": "热情款待",
+					"outcomes": [
+						{"probability": 1.0, "text": "与道友畅谈甚欢，关系更加亲密。", "effects": [
+							{"type": "add_relationship", "id": "daoist_friend", "value": 10}
+						]}
+					]
+				},
+				{
+					"text": "婉拒见面",
+					"outcomes": [
+						{"probability": 1.0, "text": "道友失望离去，关系略显冷淡。", "effects": [
+							{"type": "add_relationship", "id": "daoist_friend", "value": -5}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "monthly_omen", "name": "天象异变",
+			"event_type": "monthly", "probability": 0.15,
+			"trigger_condition": {"min_month": 6},
+			"description": "天空中出现奇异天象，星辰闪烁不定，似乎预示着什么。",
+			"choices": [
+				{
+					"text": "参悟天机",
+					"outcomes": [
+						{"probability": 0.4, "text": "感悟天地大道，修为大进！", "effects": [
+							{"type": "add_exp", "value": 800}
+						]},
+						{"probability": 0.6, "text": "天机难测，未能参透。", "effects": []}
+					]
+				},
+				{
+					"text": "祈福消灾",
+					"outcomes": [
+						{"probability": 1.0, "text": "你焚香祈福，心中安定。", "effects": [
+							{"type": "heal", "value": 30}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "monthly_harvest", "name": "资源丰收",
+			"event_type": "monthly", "probability": 0.3,
+			"trigger_condition": {"min_month": 8},
+			"description": "今年风调雨顺，灵田丰收，各种资源产量大增。",
+			"choices": [
+				{
+					"text": "全力收割",
+					"outcomes": [
+						{"probability": 1.0, "text": "收获满满！家族资源大幅提升。", "effects": [
+							{"type": "add_resource", "id": "spirit_stone", "value": 200},
+							{"type": "add_resource", "id": "herb", "value": 50}
+						]}
+					]
+				},
+				{
+					"text": "部分保留",
+					"outcomes": [
+						{"probability": 1.0, "text": "保留部分资源以备不时之需。", "effects": [
+							{"type": "add_resource", "id": "spirit_stone", "value": 100}
+						]}
+					]
+				}
+			]
+	})
+	# ==================== 年度事件 (6个) ====================
+	_add_event({
+			"id": "yearly_assembly", "name": "宗门大会",
+			"event_type": "yearly", "probability": 0.25,
+			"trigger_condition": {"min_year": 1},
+			"description": "各宗门齐聚一堂，共商修仙界大事，声望与资源的较量。",
+			"choices": [
+				{
+					"text": "积极参与",
+					"outcomes": [
+						{"probability": 0.5, "text": "宗门大放异彩，声望与资源双丰收！", "effects": [
+							{"type": "add_resource", "id": "prestige", "value": 100},
+							{"type": "add_resource", "id": "spirit_stone", "value": 500}
+						]},
+						{"probability": 0.5, "text": "宗门表现平平，没有特别收获。", "effects": [
+							{"type": "add_resource", "id": "prestige", "value": 20}
+						]}
+					]
+				},
+				{
+					"text": "低调参与",
+					"outcomes": [
+						{"probability": 1.0, "text": "低调行事，获得基本尊重。", "effects": [
+							{"type": "add_resource", "id": "prestige", "value": 30}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "yearly_calamity", "name": "天地大劫",
+			"event_type": "yearly", "probability": 0.15,
+			"trigger_condition": {"min_year": 5},
+			"description": "天地间灵气紊乱，一道道天雷劈下，高阶修士首当其冲。",
+			"choices": [
+				{
+					"text": "正面抵抗",
+					"requirements": {"min_realm": 4},
+					"outcomes": [
+						{"probability": 0.4, "text": "你成功抵御天劫，修为更进一步！", "effects": [
+							{"type": "add_exp", "value": 2000},
+							{"type": "breakthrough_boost", "value": 0.2}
+						]},
+						{"probability": 0.6, "text": "天劫威力巨大，你身受重伤。", "effects": [
+							{"type": "damage", "value": 200}
+						]}
+					]
+				},
+				{
+					"text": "闭关躲劫",
+					"outcomes": [
+						{"probability": 0.7, "text": "你躲在阵法中安然度过。", "effects": [
+							{"type": "add_exp", "value": 500}
+						]},
+						{"probability": 0.3, "text": "阵法被天劫击破，你受到波及。", "effects": [
+							{"type": "damage", "value": 80}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "yearly_ascend", "name": "飞升契机",
+			"event_type": "yearly", "probability": 0.1,
+			"trigger_condition": {"min_year": 10},
+			"description": "天地感应，一股神秘力量降临，金丹以上修士或有飞升契机。",
+			"choices": [
+				{
+					"text": "尝试突破",
+					"requirements": {"min_realm": 3},
+					"outcomes": [
+						{"probability": 0.3, "text": "天地共鸣，你感悟到飞升的真谛！", "effects": [
+							{"type": "breakthrough_boost", "value": 0.5},
+							{"type": "add_exp", "value": 5000}
+						]},
+						{"probability": 0.7, "text": "时机未到，未能突破瓶颈。", "effects": [
+							{"type": "add_exp", "value": 1000}
+						]}
+					]
+				},
+				{
+					"text": "静待机缘",
+					"outcomes": [
+						{"probability": 1.0, "text": "你默默等待，内心更加坚定。", "effects": [
+							{"type": "add_exp", "value": 300}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "yearly_century", "name": "百年庆典",
+			"event_type": "yearly", "probability": 0.2,
+			"trigger_condition": {"min_year": 1},
+			"description": "修仙界迎来百年庆典，各地张灯结彩，修士们欢聚一堂。",
+			"choices": [
+				{
+					"text": "参与庆典",
+					"outcomes": [
+						{"probability": 1.0, "text": "庆典上获赠灵丹，全属性小幅提升！", "effects": [
+							{"type": "add_exp", "value": 1500},
+							{"type": "heal", "value": 100}
+						]}
+					]
+				},
+				{
+					"text": "闭关修炼",
+					"outcomes": [
+						{"probability": 1.0, "text": "别人欢庆时你潜心修炼，修为稳步提升。", "effects": [
+							{"type": "add_exp", "value": 2000}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "yearly_tide", "name": "妖潮来袭",
+			"event_type": "yearly", "probability": 0.2,
+			"trigger_condition": {"min_year": 3},
+			"description": "大批妖兽从深山涌出，形成妖潮向人族领地袭来！",
+			"choices": [
+				{
+					"text": "率众御敌",
+					"requirements": {"min_realm": 2},
+					"outcomes": [
+						{"probability": 0.5, "text": "成功击退妖潮，缴获大量妖兽内丹！", "effects": [
+							{"type": "add_item", "id": "item_beast_core"},
+							{"type": "add_item", "id": "item_beast_core"},
+							{"type": "add_resource", "id": "prestige", "value": 80}
+						]},
+						{"probability": 0.5, "text": "妖潮凶猛，防线被突破，损失惨重。", "effects": [
+							{"type": "damage", "value": 150},
+							{"type": "add_resource", "id": "spirit_stone", "value": -200}
+						]}
+					]
+				},
+				{
+					"text": "固守不出",
+					"outcomes": [
+						{"probability": 0.6, "text": "阵法坚固，妖潮无功而返。", "effects": [
+							{"type": "add_exp", "value": 500}
+						]},
+						{"probability": 0.4, "text": "妖兽破阵而入，你勉强抵挡。", "effects": [
+							{"type": "damage", "value": 60}
+						]}
+					]
+				}
+			]
+	})
+	_add_event({
+			"id": "yearly_taizu", "name": "道祖讲道",
+			"event_type": "yearly", "probability": 0.15,
+			"trigger_condition": {"min_year": 5},
+			"description": "传说中的道祖现身讲道，天地间灵气涌动，万物聆听。",
+			"choices": [
+				{
+					"text": "虔诚聆听",
+					"outcomes": [
+						{"probability": 0.6, "text": "道祖之道博大精深，你获益匪浅！", "effects": [
+							{"type": "add_exp", "value": 3000},
+							{"type": "breakthrough_boost", "value": 0.3}
+						]},
+						{"probability": 0.4, "text": "道境太高，你只能领悟皮毛。", "effects": [
+							{"type": "add_exp", "value": 1000}
+						]}
+					]
+				},
+				{
+					"text": "默默感悟",
+					"outcomes": [
+						{"probability": 1.0, "text": "你静心感悟，收获不少。", "effects": [
+							{"type": "add_exp", "value": 1500}
+						]}
+					]
+				}
+			]
 	})
 
 
