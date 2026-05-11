@@ -147,7 +147,7 @@ func _generate_terrain() -> void:
 	ground.size = Vector3(terrain_size, 0.5, terrain_size)
 	ground.position.y = -0.25
 	var ground_mat := StandardMaterial3D.new()
-	ground_mat.albedo_color = Color(0.25, 0.45, 0.25)
+	ground_mat.albedo_color = Color(0.45, 0.72, 0.30)
 	ground.material = ground_mat
 	terrain.add_child(ground)
 
@@ -156,7 +156,7 @@ func _generate_terrain() -> void:
 	pond.height = 0.1
 	pond.position = Vector3(20, 0.05, 15)
 	var water_mat := StandardMaterial3D.new()
-	water_mat.albedo_color = Color(0.2, 0.4, 0.6, 0.7)
+	water_mat.albedo_color = Color(0.30, 0.60, 0.90, 0.65)
 	water_mat.roughness = 0.1
 	water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	pond.material = water_mat
@@ -411,7 +411,7 @@ func _spawn_npc_node(npc: Dictionary, index: int) -> void:
 	label3d.font_size = 48
 	label3d.position = Vector3(0, 4.5, 0)
 	label3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label3d.modulate = Color(0.7, 1.0, 0.7)  # 绿色区分NPC
+	label3d.modulate = Color(0.5, 1.0, 0.5)  # 亮绿区分NPC
 	container.add_child(label3d)
 
 	# 随机位置（建筑周围散开）
@@ -433,20 +433,20 @@ func _get_npc_color(npc: Dictionary) -> Color:
 	"""根据NPC来源分配不同颜色"""
 	var source = npc.get("source", "")
 	var color_map: Dictionary = {
-		"凡人修仙传": Color(0.3, 0.5, 0.7),
-		"遮天": Color(0.6, 0.3, 0.5),
-		"完美世界": Color(0.5, 0.6, 0.3),
-		"斗破苍穹": Color(0.7, 0.4, 0.2),
-		"盘龙": Color(0.4, 0.4, 0.7),
-		"仙逆": Color(0.5, 0.3, 0.6),
-		"大主宰": Color(0.6, 0.5, 0.2),
-		"一念永恒": Color(0.3, 0.6, 0.5),
-		"我欲封天": Color(0.7, 0.5, 0.3),
-		"武动乾坤": Color(0.5, 0.4, 0.3),
-		"长生界": Color(0.4, 0.5, 0.6),
-		"神墓": Color(0.6, 0.3, 0.3),
+		"凡人修仙传": Color(0.45, 0.7, 1.0),
+		"遮天": Color(0.85, 0.45, 0.7),
+		"完美世界": Color(0.7, 0.85, 0.35),
+		"斗破苍穹": Color(1.0, 0.55, 0.25),
+		"盘龙": Color(0.55, 0.55, 1.0),
+		"仙逆": Color(0.7, 0.45, 0.9),
+		"大主宰": Color(0.9, 0.75, 0.3),
+		"一念永恒": Color(0.4, 0.85, 0.7),
+		"我欲封天": Color(1.0, 0.7, 0.4),
+		"武动乾坤": Color(0.8, 0.6, 0.4),
+		"长生界": Color(0.6, 0.7, 0.9),
+		"神墓": Color(0.9, 0.45, 0.45),
 	}
-	return color_map.get(source, Color(0.4, 0.5, 0.6))
+	return color_map.get(source, Color(0.6, 0.7, 0.85))
 
 
 # ==================== 自然物生成 ====================
@@ -579,9 +579,9 @@ func _create_default_characters() -> void:
 	]
 	var types: Array = [1, 0, 2]
 	var colors: Array = [
-		Color(0.6, 0.4, 0.2),
-		Color(0.3, 0.5, 0.7),
-		Color(0.4, 0.6, 0.4),
+		Color(0.9, 0.6, 0.3),
+		Color(0.4, 0.7, 1.0),
+		Color(0.5, 0.85, 0.4),
 	]
 
 	for i in range(3):
@@ -609,7 +609,7 @@ func _spawn_character_node(character: Dictionary) -> void:
 	label3d.font_size = 48
 	label3d.position = Vector3(0, 4.5, 0)  # 头顶上方
 	label3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label3d.modulate = Color(1, 1, 0.8)
+	label3d.modulate = Color(1, 1, 0.6)
 	container.add_child(label3d)
 	# 放在靠近摄像机的位置
 	container.position = Vector3(randf_range(-5, 5), 0, randf_range(15, 25))
@@ -636,13 +636,13 @@ func _get_character_type(character: Dictionary) -> int:
 
 func _get_character_color(character: Dictionary) -> Color:
 	var color_map: Dictionary = {
-		"fire": Color(0.8, 0.3, 0.2),
-		"water": Color(0.2, 0.4, 0.7),
-		"wood": Color(0.3, 0.6, 0.3),
-		"metal": Color(0.7, 0.7, 0.75),
-		"earth": Color(0.6, 0.5, 0.3),
+		"fire": Color(1.0, 0.45, 0.2),
+		"water": Color(0.3, 0.6, 1.0),
+		"wood": Color(0.4, 0.8, 0.3),
+		"metal": Color(0.9, 0.9, 0.95),
+		"earth": Color(0.85, 0.7, 0.4),
 	}
-	return color_map.get(character.get("element", ""), Color(0.4, 0.5, 0.6))
+	return color_map.get(character.get("element", ""), Color(0.6, 0.7, 0.85))
 
 
 # ==================== 回退程序化生成（当GLB加载失败时） ====================
@@ -668,8 +668,8 @@ func _create_building_fallback(building_type: int, size: float) -> MeshInstance3
 	st.generate_normals()
 	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.6, 0.5, 0.4)
-	mat.roughness = 0.85
+	mat.albedo_color = Color(0.85, 0.72, 0.50)
+	mat.roughness = 0.75
 	array_mesh.surface_set_material(0, mat)
 	mesh_instance.mesh = array_mesh
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -696,7 +696,7 @@ func _create_tree_fallback(tree_type: int, size: float) -> MeshInstance3D:
 	st.generate_normals()
 	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.2, 0.5, 0.15)
+	mat.albedo_color = Color(0.35, 0.75, 0.25)
 	mat.roughness = 0.9
 	array_mesh.surface_set_material(0, mat)
 	mesh_instance.mesh = array_mesh
@@ -721,11 +721,11 @@ func _create_rock_fallback(rock_type: int, size: float) -> MeshInstance3D:
 	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
 	var mat := StandardMaterial3D.new()
 	if rock_type == 3:
-		mat.albedo_color = Color(0.3, 0.8, 0.9)
-		mat.emission = Color(0.1, 0.4, 0.5)
-		mat.emission_energy_multiplier = 2.0
+		mat.albedo_color = Color(0.5, 0.95, 1.0)
+		mat.emission = Color(0.2, 0.7, 0.9)
+		mat.emission_energy_multiplier = 3.0
 	else:
-		mat.albedo_color = Color(0.45, 0.42, 0.4)
+		mat.albedo_color = Color(0.70, 0.68, 0.65)
 	mat.roughness = 0.9
 	array_mesh.surface_set_material(0, mat)
 	mesh_instance.mesh = array_mesh
@@ -776,8 +776,8 @@ func _create_character_mesh(char_type: int, color: Color) -> MeshInstance3D:
 	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.6
-	mat.metallic = 0.1
+	mat.roughness = 0.5
+	mat.metallic = 0.15
 	array_mesh.surface_set_material(0, mat)
 	mesh_instance.mesh = array_mesh
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -806,10 +806,10 @@ func _add_player_aura(player_node: Node3D) -> void:
 	var arr_mesh := ArrayMesh.new()
 	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
 	var ring_mat := StandardMaterial3D.new()
-	ring_mat.albedo_color = Color(0.5, 0.8, 1.0, 0.6)
+	ring_mat.albedo_color = Color(0.6, 0.9, 1.0, 0.7)
 	ring_mat.emission_enabled = true
-	ring_mat.emission = Color(0.3, 0.6, 1.0)
-	ring_mat.emission_energy = 2.0
+	ring_mat.emission = Color(0.4, 0.8, 1.0)
+	ring_mat.emission_energy = 3.0
 	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	arr_mesh.surface_set_material(0, ring_mat)
@@ -822,10 +822,10 @@ func _add_player_aura(player_node: Node3D) -> void:
 	sphere.radius = 0.08
 	sphere.height = 0.16
 	var glow_mat := StandardMaterial3D.new()
-	glow_mat.albedo_color = Color(1.0, 0.9, 0.4)
+	glow_mat.albedo_color = Color(1.0, 0.95, 0.5)
 	glow_mat.emission_enabled = true
-	glow_mat.emission = Color(1.0, 0.8, 0.3)
-	glow_mat.emission_energy = 3.0
+	glow_mat.emission = Color(1.0, 0.9, 0.4)
+	glow_mat.emission_energy = 4.0
 	glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	sphere.surface_set_material(0, glow_mat)
 	glow.mesh = sphere
@@ -1079,10 +1079,10 @@ func _create_effect_mesh(effect_type: int, size: float, color_key: String) -> Me
 	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
 
 	var color_map: Dictionary = {
-		"qi_blue": Color(0.2, 0.5, 0.9),
-		"fire": Color(0.9, 0.3, 0.1),
-		"wood": Color(0.2, 0.7, 0.3),
-		"gold": Color(0.9, 0.8, 0.2),
+		"qi_blue": Color(0.4, 0.7, 1.0),
+		"fire": Color(1.0, 0.5, 0.15),
+		"wood": Color(0.4, 0.85, 0.3),
+		"gold": Color(1.0, 0.9, 0.3),
 	}
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color_map.get(color_key, Color(0.3, 0.6, 0.9))
@@ -1101,8 +1101,8 @@ func update_time_of_day(hour: float) -> void:
 	lighting.light_energy = intensity
 
 	if hour < 6 or hour > 20:
-		environment.environment.ambient_light_color = Color(0.05, 0.05, 0.15)
+		environment.environment.ambient_light_color = Color(0.08, 0.08, 0.20)
 	elif hour < 8 or hour > 18:
-		environment.environment.ambient_light_color = Color(0.15, 0.12, 0.1)
+		environment.environment.ambient_light_color = Color(0.25, 0.18, 0.15)
 	else:
-		environment.environment.ambient_light_color = Color(0.3, 0.3, 0.35)
+		environment.environment.ambient_light_color = Color(0.55, 0.55, 0.60)

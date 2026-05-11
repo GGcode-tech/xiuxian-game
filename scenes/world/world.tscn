@@ -4,12 +4,12 @@
 
 [sub_resource type="Environment" id="env_world"]
 background_mode = 2
-background_color = Color(0.4, 0.6, 0.8, 1)
+background_color = Color(0.65, 0.82, 0.98, 1)
 ambient_light_source = 3
-ambient_light_color = Color(0.6, 0.7, 0.9, 1)
-ambient_light_energy = 0.5
+ambient_light_color = Color(0.95, 0.95, 1.0, 1)
+ambient_light_energy = 1.8
 tonemap_mode = 2
-tonemap_exposure = 1.0
+tonemap_exposure = 2.0
 
 [node name="World" type="Node3D"]
 script = ExtResource("1")
@@ -21,8 +21,8 @@ environment = SubResource("env_world")
 [node name="Lighting" type="DirectionalLight3D" parent="."]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 20, 0)
-light_color = Color(1, 0.95, 0.8, 1)
-light_energy = 1.2
+light_color = Color(1, 0.98, 0.92, 1)
+light_energy = 3.0
 shadow_enabled = true
 directional_shadow_max_distance = 100.0
 
