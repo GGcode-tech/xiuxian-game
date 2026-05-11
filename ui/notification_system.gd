@@ -20,8 +20,8 @@ func _ready() -> void:
 	event_popup.visible = false
 
 
-func _on_notification(notification: Dictionary) -> void:
-	_add_notification(notification.title, notification.message, notification.type)
+func _on_notification(_notification: Dictionary) -> void:
+	_add_notification(_notification.get("title", ""), _notification.get("message", ""), _notification.get("type", "info"))
 
 
 func _add_notification(title: String, message: String, type: String = "info") -> void:
@@ -67,14 +67,19 @@ func _on_notification_added(title: String, message: String, type: String) -> voi
 	_add_notification(title, message, type)
 
 
-func _on_event_triggered(event, context: Dictionary) -> void:
+func _on_event_triggered(_event, _context: Dictionary) -> void:
 	# 显示事件弹窗
-	_show_event_popup(event)
+	_show_event_popup(_event)
 
 
-func _on_event_choice_made(event, choice_index: int, outcome) -> void:
+func _on_event_choice_made(_event, _choice_index: int, _outcome) -> void:
 	# 显示选择结果
-	_add_notification("事件结果", outcome.text, "info")
+	var outcome_text: String = ""
+	if _outcome is Dictionary:
+		outcome_text = _outcome.get("text", "")
+	elif _outcome != null:
+		outcome_text = str(_outcome)
+	_add_notification("事件结果", outcome_text, "info")
 
 
 func _show_event_popup(event) -> void:
@@ -86,25 +91,32 @@ func _show_event_popup(event) -> void:
 	
 	var vbox = VBoxContainer.new()
 	
-	# 标题
-	var title = Label.new()
-	title.text = event.title
-	title.add_theme_font_size_override("font_size", 20)
-	vbox.add_child(title)
+	# 标题 - 安全访问Dictionary
+	var event_title: String = event.get("title", "") if event is Dictionary else str(event)
+	var title_label = Label.new()
+	title_label.text = event_title
+	title_label.add_theme_font_size_override("font_size", 20)
+	vbox.add_child(title_label)
 	
 	# 描述
 	var desc = RichTextLabel.new()
-	desc.text = event.description
+	desc.text = event.get("description", "") if event is Dictionary else ""
 	desc.fit_content = true
 	desc.custom_minimum_size = Vector2(400, 100)
 	vbox.add_child(desc)
 	
 	# 选项按钮
-	for i in range(event.choices.size()):
-		var choice = event.choices[i]
+	var choices: Array = event.get("choices", []) if event is Dictionary else []
+	for i in range(choices.size()):
+		var choice = choices[i]
+		if not choice is Dictionary:
+			continue
 		var button = Button.new()
-		button.text = choice.text
-		button.tooltip_text = choice.get_requirement_string()
+		button.text = choice.get("text", "")
+		var req_str: String = ""
+		if choice.has("get_requirement_string") and choice.get_requirement_string is Callable:
+			req_str = choice.get_requirement_string()
+		button.tooltip_text = req_str
 		button.pressed.connect(_on_event_choice.bind(event, i))
 		vbox.add_child(button)
 	
@@ -118,28 +130,34 @@ func _show_event_popup(event) -> void:
 
 
 func _on_event_choice(event, choice_index: int) -> void:
-	var choice = event.choices[choice_index]
+	var choices: Array = event.get("choices", []) if event is Dictionary else []
+	if choice_index < 0 or choice_index >= choices.size():
+		return
+	var choice = choices[choice_index]
 	
 	# 随机选择结果
 	var roll = randf()
 	var cumulative = 0.0
 	var selected_outcome = null
 	
-	for outcome in choice.outcomes:
-		cumulative += outcome.probability
+	var outcomes: Array = choice.get("outcomes", []) if choice is Dictionary else []
+	for outcome in outcomes:
+		cumulative += outcome.get("probability", 0.0) if outcome is Dictionary else 0.0
 		if roll <= cumulative:
 			selected_outcome = outcome
 			break
 	
-	if not selected_outcome and choice.outcomes.size() > 0:
-		selected_outcome = choice.outcomes[-1]
+	if not selected_outcome and outcomes.size() > 0:
+		selected_outcome = outcomes[-1]
 	
 	if selected_outcome:
 		# 应用效果
 		_apply_outcome_effects(selected_outcome)
 		
 		# 显示结果
-		_add_notification(event.title, selected_outcome.text, "info")
+		var event_title: String = event.get("title", "") if event is Dictionary else ""
+		var outcome_text: String = selected_outcome.get("text", "") if selected_outcome is Dictionary else ""
+		_add_notification(event_title, outcome_text, "info")
 	
 	event_popup.visible = false
 
