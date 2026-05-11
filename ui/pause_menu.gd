@@ -30,9 +30,9 @@ func _on_load() -> void:
 
 func _on_settings() -> void:
 	# 设置面板暂未实现，显示提示
-	var notification = get_node_or_null("/root/Main/UILayer/NotificationSystem")
-	if notification and notification.has_method("show_notification"):
-		notification.show_notification("设置功能开发中...", "info")
+	var notification_node = get_node_or_null("/root/Main/UILayer/NotificationSystem")
+	if notification_node and notification_node.has_method("show_notification"):
+		notification_node.show_notification("设置功能开发中...", "info")
 	hide()
 
 func _on_quit_to_menu() -> void:

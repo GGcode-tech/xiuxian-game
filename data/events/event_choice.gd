@@ -13,7 +13,7 @@ class_name EventChoice extends Resource
 
 func get_requirement_string() -> String:
 	var parts = []
-	
+
 	for key in requirements:
 		match key:
 			"min_realm":
@@ -24,5 +24,5 @@ func get_requirement_string() -> String:
 				parts.append("需要物品: %s" % requirements[key])
 			_:
 				parts.append("%s: %s" % [key, str(requirements[key])])
-	
+
 	return "\n".join(parts)

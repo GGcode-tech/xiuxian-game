@@ -10,7 +10,6 @@ signal day_passed(day: int, month: int, year: int)
 signal character_died(character)
 signal character_born(character, parents: Array)
 signal realm_breakthrough(character, new_realm)
-signal family_event(event_type: String, data: Dictionary)
 signal game_loaded()
 signal game_saved()
 
@@ -295,8 +294,8 @@ func get_formatted_time() -> String:
 
 func get_total_days() -> int:
 	return (game_time["year"] - 1) * MONTHS_PER_YEAR * DAYS_PER_MONTH + \
-		   (game_time["month"] - 1) * DAYS_PER_MONTH + \
-		   game_time["day"]
+			(game_time["month"] - 1) * DAYS_PER_MONTH + \
+			game_time["day"]
 
 
 func set_state(new_state: GameState) -> void:

@@ -3,7 +3,6 @@
 extends Control
 
 signal menu_button_pressed(menu_type: String)
-signal character_info_requested()
 signal resource_updated()
 
 # 顶部角色信息
@@ -42,7 +41,7 @@ func _custom_init() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
-	
+
 	# 主容器 - 使用GridContainer实现布局
 	var main_grid = GridContainer.new()
 	main_grid.columns = 3
@@ -51,7 +50,7 @@ func _custom_init() -> void:
 	main_grid.add_theme_constant_override("row_min_height", 40)
 	main_grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(main_grid)
-	
+
 	_build_top_bar(main_grid)
 	_build_center_area(main_grid)
 	_build_bottom_bar(main_grid)
@@ -65,20 +64,20 @@ func _build_top_bar(parent: GridContainer) -> void:
 	var vbox = VBoxContainer.new()
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	char_panel.add_child(vbox)
-	
+
 	_char_name_label = Label.new()
 	_char_name_label.text = "未创建角色"
 	_char_name_label.add_theme_font_size_override("font_size", 20)
 	vbox.add_child(_char_name_label)
-	
+
 	_char_realm_label = Label.new()
 	_char_realm_label.text = "境界: 凡人"
 	vbox.add_child(_char_realm_label)
-	
+
 	_char_sect_label = Label.new()
 	_char_sect_label.text = "门派: 无"
 	vbox.add_child(_char_sect_label)
-	
+
 	var hp_hbox = HBoxContainer.new()
 	_char_hp_bar = ProgressBar.new()
 	_char_hp_bar.max_value = 100
@@ -88,7 +87,7 @@ func _build_top_bar(parent: GridContainer) -> void:
 	hp_hbox.add_child(Label.new())
 	hp_hbox.add_child(_char_hp_bar)
 	vbox.add_child(hp_hbox)
-	
+
 	var mp_hbox = HBoxContainer.new()
 	_char_mp_bar = ProgressBar.new()
 	_char_mp_bar.max_value = 100
@@ -98,7 +97,7 @@ func _build_top_bar(parent: GridContainer) -> void:
 	mp_hbox.add_child(Label.new())
 	mp_hbox.add_child(_char_mp_bar)
 	vbox.add_child(mp_hbox)
-	
+
 	# 将角色面板放到顶部左侧
 	parent.add_child(_create_spacer())
 	parent.add_child(_create_spacer())
@@ -112,34 +111,34 @@ func _build_center_area(parent: GridContainer) -> void:
 	var vbox = VBoxContainer.new()
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center_panel.add_child(vbox)
-	
+
 	var title = Label.new()
 	title.text = "📢 仙界公告"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
-	
+
 	_announcement_label = Label.new()
 	_announcement_label.text = "欢迎来到修仙世界！\n请创建角色开始游戏。"
 	_announcement_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_announcement_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(_announcement_label)
-	
+
 	# 活动按钮区域
 	var activity_hbox = HBoxContainer.new()
 	activity_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	activity_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
+
 	var dungeon_btn = _create_menu_button("副本", Callable(self, "_on_dungeon_clicked"))
 	var sect_btn = _create_menu_button("门派", Callable(self, "_on_sect_clicked"))
 	var spirit_btn = _create_menu_button("灵兽", Callable(self, "_on_spirit_beast_clicked"))
 	var equip_btn = _create_menu_button("装备", Callable(self, "_on_equipment_clicked"))
-	
+
 	activity_hbox.add_child(dungeon_btn)
 	activity_hbox.add_child(sect_btn)
 	activity_hbox.add_child(spirit_btn)
 	activity_hbox.add_child(equip_btn)
 	vbox.add_child(activity_hbox)
-	
+
 	parent.add_child(center_panel)
 
 func _build_right_panel(parent: GridContainer) -> void:
@@ -150,32 +149,32 @@ func _build_right_panel(parent: GridContainer) -> void:
 	var vbox = VBoxContainer.new()
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resource_panel.add_child(vbox)
-	
+
 	var res_title = Label.new()
 	res_title.text = "💰 资源"
 	res_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(res_title)
-	
+
 	_spirit_stone_label = Label.new()
 	_spirit_stone_label.text = "灵石: 0"
 	vbox.add_child(_spirit_stone_label)
-	
+
 	_essence_label = Label.new()
 	_essence_label.text = "精华: 0"
 	vbox.add_child(_essence_label)
-	
+
 	_spirit_jade_label = Label.new()
 	_spirit_jade_label.text = "灵玉: 0"
 	vbox.add_child(_spirit_jade_label)
-	
+
 	_stamina_label = Label.new()
 	_stamina_label.text = "体力: 100/100"
 	vbox.add_child(_stamina_label)
-	
+
 	_energy_label = Label.new()
 	_energy_label.text = "精力: 50/50"
 	vbox.add_child(_energy_label)
-	
+
 	parent.add_child(_create_spacer())
 	parent.add_child(_create_spacer())
 	parent.add_child(resource_panel)
@@ -190,7 +189,7 @@ func _build_bottom_bar(parent: GridContainer) -> void:
 	grid.add_theme_constant_override("h_separation", 12)
 	grid.add_theme_constant_override("v_separation", 4)
 	bottom_panel.add_child(grid)
-	
+
 	var quick_menus = [
 		{"icon": "📋", "name": "任务", "id": "quest"},
 		{"icon": "⚔️", "name": "副本", "id": "dungeon"},
@@ -201,13 +200,13 @@ func _build_bottom_bar(parent: GridContainer) -> void:
 		{"icon": "🎒", "name": "背包", "id": "inventory"},
 		{"icon": "⚙️", "name": "设置", "id": "settings"}
 	]
-	
+
 	for menu in quick_menus:
 		var btn = _create_icon_only_button(menu["icon"], menu["name"])
 		btn.pressed.connect(_on_quick_menu_pressed.bind(menu["id"]))
 		grid.add_child(btn)
 		_quick_buttons.append(btn)
-	
+
 	# 设置grid位置到底部
 	parent.add_child(_create_spacer())
 	parent.add_child(bottom_panel)
@@ -219,7 +218,7 @@ func _create_spacer() -> Control:
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return spacer
 
-func _create_menu_button(text: String, callback: Callable) -> Button:
+func _create_menu_button(text: String, _callback: Callable) -> Button:
 	var btn = Button.new()
 	btn.text = text
 	btn.custom_minimum_size = Vector2(60, 28)
@@ -227,7 +226,7 @@ func _create_menu_button(text: String, callback: Callable) -> Button:
 	btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	return btn
 
-func _create_icon_only_button(icon: String, name: String) -> Button:
+func _create_icon_only_button(icon: String, _name: String) -> Button:
 	"""纯图标按钮 - 点击区域仅限图标本身，不遮挡其他按钮"""
 	var btn = Button.new()
 	btn.custom_minimum_size = Vector2(36, 36)
@@ -273,18 +272,18 @@ func update_character_info(character: Dictionary) -> void:
 	_current_character = character
 	if character.is_empty():
 		return
-	
+
 	_char_name_label.text = character.get("name", "未知")
-	
+
 	var realm_data = DataManager.get_realm(character.get("realm_id", ""))
 	_char_realm_label.text = "境界: %s" % realm_data.get("name", "凡人")
-	
+
 	_char_sect_label.text = "门派: %s" % character.get("sect_name", "无")
-	
+
 	var stats = character.get("base_stats", {})
 	_char_hp_bar.max_value = stats.get("max_hp", 100)
 	_char_hp_bar.value = character.get("hp", stats.get("max_hp", 100))
-	
+
 	_char_mp_bar.max_value = stats.get("max_mp", 50)
 	_char_mp_bar.value = character.get("mp", stats.get("max_mp", 50))
 

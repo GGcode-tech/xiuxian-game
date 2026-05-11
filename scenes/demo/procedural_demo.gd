@@ -23,14 +23,14 @@ func _setup_scene() -> void:
 	camera.position = Vector3(0, 5, 12)
 	camera.look_at(Vector3.ZERO)
 	add_child(camera)
-	
+
 	# 光照
 	light = DirectionalLight3D.new()
 	light.position = Vector3(5, 10, 5)
 	light.look_at(Vector3.ZERO)
 	light.shadow_enabled = true
 	add_child(light)
-	
+
 	# 环境光
 	var env_light := WorldEnvironment.new()
 	var env := Environment.new()
@@ -38,7 +38,7 @@ func _setup_scene() -> void:
 	env.ambient_light_color = Color(0.4, 0.4, 0.5)
 	env_light.environment = env
 	add_child(env_light)
-	
+
 	# 地面
 	var floor_mesh := CSGBox3D.new()
 	floor_mesh.size = Vector3(30, 0.1, 30)
@@ -50,12 +50,12 @@ func _setup_scene() -> void:
 
 func _display_category(category_index: int) -> void:
 	current_category = category_index
-	
+
 	# 清除旧对象
 	for obj in display_objects:
 		obj.queue_free()
 	display_objects.clear()
-	
+
 	match category_index:
 		0: _display_buildings()
 		1: _display_characters()
@@ -73,15 +73,15 @@ func _display_buildings() -> void:
 		ProceduralBuilding.BuildingType.ALCHEMY_ROOM,
 		ProceduralBuilding.BuildingType.LIBRARY,
 	]
-	
+
 	var names := ["大殿", "宝塔", "亭阁", "祭坛", "山门", "炼器房", "炼丹房", "藏经阁"]
-	
+
 	for i in range(types.size()):
 		var building := ResourceManager.create_building(types[i], 0.8)
 		building.position = Vector3((i % 4 - 1.5) * 5, 0, (i / 4 - 0.5) * 6)
 		add_child(building)
 		display_objects.append(building)
-		
+
 		# 标签
 		var label := _create_label(names[i])
 		label.position = building.position + Vector3(0, 6, 0)
@@ -99,7 +99,7 @@ func _display_characters() -> void:
 		ProceduralCharacter.CharacterType.SWORDSMAN,
 		ProceduralCharacter.CharacterType.ELDER_MONK,
 	]
-	
+
 	var names := ["修士", "长老", "弟子", "村民", "守卫", "炼丹师", "剑修", "老僧"]
 	var colors := [
 		Color(0.3, 0.5, 0.7),  # 蓝袍
@@ -111,7 +111,7 @@ func _display_characters() -> void:
 		Color(0.25, 0.25, 0.35), # 黑袍
 		Color(0.75, 0.6, 0.4), # 僧袍
 	]
-	
+
 	for i in range(types.size()):
 		var char_node := Node3D.new()
 		var character := ResourceManager.create_character(types[i], colors[i])
@@ -120,7 +120,7 @@ func _display_characters() -> void:
 		char_node.position = Vector3((i % 4 - 1.5) * 4, 0, (i / 4 - 0.5) * 4)
 		add_child(char_node)
 		display_objects.append(char_node)
-		
+
 		var label := _create_label(names[i])
 		label.position = char_node.position + Vector3(0, 4, 0)
 		add_child(label)
@@ -137,18 +137,18 @@ func _display_nature() -> void:
 		ProceduralNature.TreeType.SPIRIT_TREE,
 	]
 	var tree_names := ["松树", "竹子", "柳树", "桃树", "银杏", "灵树"]
-	
+
 	for i in range(tree_types.size()):
 		var tree := ResourceManager.create_tree(tree_types[i], 1.0)
 		tree.position = Vector3((i % 3 - 1) * 4, 0, (i / 3 - 1.5) * 6)
 		add_child(tree)
 		display_objects.append(tree)
-		
+
 		var label := _create_label(tree_names[i])
 		label.position = tree.position + Vector3(0, 5, 0)
 		add_child(label)
 		display_objects.append(label)
-	
+
 	# 岩石
 	var rock_types := [
 		ProceduralNature.RockType.BOULDER,
@@ -156,18 +156,18 @@ func _display_nature() -> void:
 		ProceduralNature.RockType.SPIRIT_STONE,
 	]
 	var rock_names := ["巨石", "太湖石", "灵石"]
-	
+
 	for i in range(rock_types.size()):
 		var rock := ResourceManager.create_rock(rock_types[i], 1.5)
 		rock.position = Vector3(i * 3 - 3, 0, 4)
 		add_child(rock)
 		display_objects.append(rock)
-		
+
 		var label := _create_label(rock_names[i])
 		label.position = rock.position + Vector3(0, 3, 0)
 		add_child(label)
 		display_objects.append(label)
-	
+
 	# 花草
 	var plant_types := [
 		ProceduralNature.PlantType.GRASS,
@@ -175,13 +175,13 @@ func _display_nature() -> void:
 		ProceduralNature.PlantType.SPIRIT_HERB,
 	]
 	var plant_names := ["草丛", "荷花", "灵草"]
-	
+
 	for i in range(plant_types.size()):
 		var plant := ResourceManager.create_plant(plant_types[i], 2.0)
 		plant.position = Vector3(i * 3 + 6, 0, 4)
 		add_child(plant)
 		display_objects.append(plant)
-		
+
 		var label := _create_label(plant_names[i])
 		label.position = plant.position + Vector3(0, 2, 0)
 		add_child(label)
@@ -200,13 +200,13 @@ func _display_effects() -> void:
 	]
 	var names := ["灵气球", "飞剑", "丹火", "突破", "金丹", "元婴", "传送门", "光环"]
 	var colors := ["qi_blue", "qi_gold", "fire_red", "breakthrough_white", "qi_gold", "qi_blue", "qi_purple", "qi_green"]
-	
+
 	for i in range(types.size()):
 		var effect := ResourceManager.create_effect(types[i], 0.8, colors[i])
 		effect.position = Vector3((i % 4 - 1.5) * 4, 2, (i / 4 - 0.5) * 5)
 		add_child(effect)
 		display_objects.append(effect)
-		
+
 		var label := _create_label(names[i])
 		label.position = effect.position + Vector3(0, 4, 0)
 		add_child(label)

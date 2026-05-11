@@ -21,10 +21,10 @@ func setup(family) -> void:
 func _update_display() -> void:
 	if not current_family:
 		return
-	
+
 	family_name_label.text = current_family.get("name", "未知家族")
 	level_label.text = "等级: %d" % current_family.get("level", 1)
-	
+
 	_update_members()
 	_update_resources()
 	_update_buildings()
@@ -33,10 +33,10 @@ func _update_display() -> void:
 
 func _update_members() -> void:
 	member_list.clear()
-	
+
 	if not current_family:
 		return
-	
+
 	var members = current_family.get("members", [])
 	for member_id in members:
 		var character = GameManager.get_character(member_id)
@@ -53,15 +53,15 @@ func _update_members() -> void:
 func _update_resources() -> void:
 	for child in resource_grid.get_children():
 		child.queue_free()
-	
+
 	if not current_family:
 		return
-	
+
 	# 从玩家角色获取资源
 	var player = _get_player_character()
 	if player.is_empty():
 		return
-	
+
 	var resources = player.get("resources", {})
 	var resource_names = {
 		"spirit_stone": "灵石",
@@ -70,12 +70,12 @@ func _update_resources() -> void:
 		"stamina": "体力",
 		"energy": "精力"
 	}
-	
+
 	for resource_id in resources:
 		var name_label = Label.new()
 		name_label.text = resource_names.get(resource_id, resource_id)
 		resource_grid.add_child(name_label)
-		
+
 		var value_label = Label.new()
 		value_label.text = str(resources[resource_id])
 		resource_grid.add_child(value_label)
@@ -91,24 +91,24 @@ func _get_player_character() -> Dictionary:
 
 func _update_buildings() -> void:
 	building_list.clear()
-	
+
 	if not current_family:
 		return
-	
+
 	var buildings = current_family.get("unlocked_buildings", [])
 	for building_id in buildings:
 		building_list.add_item(building_id)
-	
+
 	if buildings.is_empty():
 		building_list.add_item("暂无建筑")
 
 
 func _update_territories() -> void:
 	territory_list.clear()
-	
+
 	if not current_family:
 		return
-	
+
 	# 家族数据中没有 territories 字段，显示提示
 	territory_list.add_item("暂无领地")
 
@@ -116,7 +116,7 @@ func _update_territories() -> void:
 func _on_member_selected(index: int) -> void:
 	if not current_family:
 		return
-	
+
 	var members = current_family.get("members", [])
 	if index < members.size():
 		var member_id = members[index]

@@ -34,7 +34,7 @@ func apply_effect(target) -> void:
 			target.heal(effects.hp_change)
 		else:
 			target.take_damage(-effects.hp_change)
-	
+
 	if effects.mp_change != 0:
 		if effects.mp_change > 0:
 			target.restore_mp(effects.mp_change)
@@ -60,26 +60,26 @@ func is_expired() -> bool:
 
 func get_description() -> String:
 	var parts = []
-	
+
 	if effects.hp_change != 0:
 		if effects.hp_change > 0:
 			parts.append("每回合恢复%d生命" % effects.hp_change)
 		else:
 			parts.append("每回合损失%d生命" % -effects.hp_change)
-	
+
 	if effects.mp_change != 0:
 		if effects.mp_change > 0:
 			parts.append("每回合恢复%d灵力" % effects.mp_change)
 		else:
 			parts.append("每回合损失%d灵力" % -effects.mp_change)
-	
+
 	for stat in effects.stat_modifiers:
 		var value = effects.stat_modifiers[stat]
 		if value > 0:
 			parts.append("%s+%d" % [stat, value])
 		else:
 			parts.append("%s%d" % [stat, value])
-	
+
 	return "%s (%d回合)" % [name, remaining_duration]
 
 

@@ -112,19 +112,19 @@ func can_learn(character) -> bool:
 		if char_realm and req_realm:
 			if char_realm.tier < req_realm.tier:
 				return false
-	
+
 	# 检查灵根要求
 	for element in required_spirit_root:
 		if character.spirit_root.get(element, 0) < required_spirit_root[element]:
 			return false
-	
+
 	# 检查前置功法
 	for pre_tech in required_techniques:
 		if not character.has_technique(pre_tech):
 			return false
-	
+
 	# 检查血脉要求
 	if required_bloodline != "" and character.bloodline != required_bloodline:
 		return false
-	
+
 	return true

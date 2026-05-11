@@ -65,7 +65,7 @@ func get_cooldown_string() -> String:
 func get_damage_string() -> String:
 	if damage.is_empty():
 		return ""
-	
+
 	var base = damage.get("base", 0)
 	var scaling = damage.get("scaling", 1.0)
 	return "伤害: %d (×%.1f灵力)" % [base, scaling]

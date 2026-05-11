@@ -135,8 +135,8 @@ func apply_event_outcome(outcome: Dictionary) -> void:
 		match effect_type:
 			"add_exp":
 				if not character.is_empty():
-					var exp: int = character.get("realm_exp", 0) + int(value)
-					character["realm_exp"] = exp
+					var exp_value: int = character.get("realm_exp", 0) + int(value)
+					character["realm_exp"] = exp_value
 					print("[EventManager] 角色获得经验: %d" % int(value))
 			"add_resource":
 				# 家族资源变化
@@ -299,7 +299,7 @@ func _check_choice_requirements(choice: Dictionary, context: Dictionary) -> bool
 	return true
 
 
-func _calculate_outcome(choice: Dictionary, context: Dictionary) -> Dictionary:
+func _calculate_outcome(choice: Dictionary, _context: Dictionary) -> Dictionary:
 	var outcomes: Array = choice.get("outcomes", [])
 	if outcomes.is_empty():
 		return {"text": "什么也没发生。", "effects": []}
@@ -330,8 +330,8 @@ func _apply_outcome(result: Dictionary, context: Dictionary) -> void:
 		match effect_type:
 			"add_exp":
 				if character:
-					var exp = character.get("realm_exp", 0) + value
-					character["realm_exp"] = exp
+					var exp_value = character.get("realm_exp", 0) + value
+					character["realm_exp"] = exp_value
 			"add_resource":
 				if family:
 					var resources: Dictionary = family.get("resources", {})
@@ -376,14 +376,14 @@ func _process_queue() -> void:
 
 
 func add_notification(title: String, content: String, type: String = "info") -> void:
-	var notification: Dictionary = {
+	var notif_data: Dictionary = {
 		"title": title,
 		"content": content,
 		"type": type,
 		"timestamp": GameManager.get_total_days(),
 		"time_text": GameManager.get_formatted_time()
 	}
-	notifications.append(notification)
+	notifications.append(notif_data)
 	if notifications.size() > max_notifications:
 		notifications.pop_front()
 	notification_added.emit(title, content, type)

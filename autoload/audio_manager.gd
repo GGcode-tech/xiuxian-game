@@ -33,7 +33,7 @@ func _create_audio_players() -> void:
 	bgm_player = AudioStreamPlayer.new()
 	bgm_player.bus = "BGM"
 	add_child(bgm_player)
-	
+
 	# 创建SFX播放器池
 	for i in range(max_sfx_players):
 		var player = AudioStreamPlayer.new()
@@ -47,31 +47,31 @@ func _create_audio_players() -> void:
 func play_bgm(bgm_id: String, fade_duration: float = 1.0) -> void:
 	if current_bgm == bgm_id and is_bgm_playing:
 		return
-	
+
 	var bgm_path = "res://audio/bgm/%s.ogg" % bgm_id
-	
+
 	if not ResourceLoader.exists(bgm_path):
 		push_warning("[AudioManager] BGM不存在: " + bgm_id)
 		return
-	
+
 	var stream = load(bgm_path)
-	
+
 	# 渐出当前BGM
 	if bgm_player.playing:
 		var tween = create_tween()
 		tween.tween_property(bgm_player, "volume_db", -40.0, fade_duration)
 		await tween.finished
 		bgm_player.stop()
-	
+
 	# 播放新BGM
 	bgm_player.stream = stream
 	bgm_player.volume_db = -40.0
 	bgm_player.play()
-	
+
 	# 渐入
 	var tween_in = create_tween()
 	tween_in.tween_property(bgm_player, "volume_db", linear_to_db(bgm_volume), fade_duration)
-	
+
 	current_bgm = bgm_id
 	is_bgm_playing = true
 
@@ -79,11 +79,11 @@ func play_bgm(bgm_id: String, fade_duration: float = 1.0) -> void:
 func stop_bgm(fade_duration: float = 1.0) -> void:
 	if not bgm_player.playing:
 		return
-	
+
 	var tween = create_tween()
 	tween.tween_property(bgm_player, "volume_db", -40.0, fade_duration)
 	await tween.finished
-	
+
 	bgm_player.stop()
 	current_bgm = ""
 	is_bgm_playing = false
@@ -101,17 +101,17 @@ func resume_bgm() -> void:
 
 func play_sfx(sfx_id: String, volume_scale: float = 1.0) -> void:
 	var sfx_path = "res://audio/sfx/%s.wav" % sfx_id
-	
+
 	if not ResourceLoader.exists(sfx_path):
 		# 尝试ogg格式
 		sfx_path = "res://audio/sfx/%s.ogg" % sfx_id
 		if not ResourceLoader.exists(sfx_path):
 			push_warning("[AudioManager] SFX不存在: " + sfx_id)
 			return
-	
+
 	var stream = load(sfx_path)
 	var player = _get_available_sfx_player()
-	
+
 	if player:
 		player.stream = stream
 		player.volume_db = linear_to_db(sfx_volume * volume_scale)
@@ -123,7 +123,7 @@ func _get_available_sfx_player() -> AudioStreamPlayer:
 	for player in sfx_players:
 		if not player.playing:
 			return player
-	
+
 	# 全部占用时，使用第一个（覆盖最旧的）
 	return sfx_players[0]
 
@@ -162,7 +162,7 @@ func _save_settings() -> void:
 		"bgm_volume": bgm_volume,
 		"sfx_volume": sfx_volume
 	}
-	
+
 	var file = FileAccess.open("user://audio_settings.cfg", FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(settings))
@@ -179,6 +179,6 @@ func _load_settings() -> void:
 			bgm_volume = settings.get("bgm_volume", 0.8)
 			sfx_volume = settings.get("sfx_volume", 1.0)
 		file.close()
-	
+
 	# 应用音量设置
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(master_volume))

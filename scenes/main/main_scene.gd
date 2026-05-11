@@ -296,7 +296,7 @@ func _calculate_stats(attributes: Dictionary) -> Dictionary:
 	var base_defense = 5
 	var base_speed = 10
 	var base_spirit = 10
-	
+
 	return {
 		"max_hp": base_hp + attributes.get("constitution", 0) * 10,
 		"max_mp": base_mp + attributes.get("spirit", 0) * 5,
@@ -322,16 +322,16 @@ func _show_main_menu() -> void:
 		_hud.map_panel_requested.connect(_on_map_panel_requested)
 		ui_layer.add_child(_hud)
 	_hud.show()
-	
+
 	# 主菜单面板
 	if not _main_menu:
 		_main_menu = MAIN_MENU_SCENE.instantiate()
 		_main_menu.menu_button_pressed.connect(_on_menu_button_pressed)
 		ui_layer.add_child(_main_menu)
-	
+
 	# 自动截图
 	ScreenshotSystem.auto_screenshot("04_主界面")
-	
+
 	# 更新主菜单角色信息
 	var player = _get_player_character()
 	if _main_menu.has_method("update_character_info"):
@@ -664,7 +664,7 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("quick_load"):
 		SaveManager.load_game("quick")
-	
+
 	# 左键点击：射线检测建筑/角色，或移动角色
 	if current_state == GameManager.GameState.PLAYING and not GameManager.is_paused:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -681,7 +681,7 @@ func _input(event: InputEvent) -> void:
 			else:
 				# 未命中物体，移动角色
 				world.move_player_from_screen(event.position)
-		
+
 		# 滚轮缩放相机
 		if event is InputEventMouseButton:
 			match event.button_index:

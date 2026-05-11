@@ -56,18 +56,18 @@ func process_choice(npc_id: String, choice_index: int) -> Dictionary:
 					"response_text": resp_text,
 					"effects": [{"type": "realm_exp", "amount": exp_gain}],
 				}
-			else:
-				var responses2: Array = [
-					"%s摇头道：「修行之道，需自悟自强，我能教你的有限。」" % npc_name,
-					"%s沉吟片刻：「此中玄妙，非三言两语能说清，你自行领悟吧。」" % npc_name,
-				]
-				var resp2 = responses2[randi() % responses2.size()]
-				var exp_gain = randi_range(5, 10)
-				resp2 += "\n[color=#44ff88]修炼经验 +%d[/color]" % exp_gain
-				return {
-					"response_text": resp2,
-					"effects": [{"type": "realm_exp", "amount": exp_gain}],
-				}
+
+			var responses2: Array = [
+				"%s摇头道：「修行之道，需自悟自强，我能教你的有限。」" % npc_name,
+				"%s沉吟片刻：「此中玄妙，非三言两语能说清，你自行领悟吧。」" % npc_name,
+			]
+			var resp2 = responses2[randi() % responses2.size()]
+			var exp_gain = randi_range(5, 10)
+			resp2 += "\n[color=#44ff88]修炼经验 +%d[/color]" % exp_gain
+			return {
+				"response_text": resp2,
+				"effects": [{"type": "realm_exp", "amount": exp_gain}],
+			}
 
 		2:  # 告辞
 			var responses: Array = [

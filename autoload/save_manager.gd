@@ -54,12 +54,12 @@ func delete_save(slot: String) -> bool:
 	if FileAccess.file_exists(file_path):
 		var err = DirAccess.remove_absolute(file_path)
 		if err == OK:
-			refresh_save_slots()
-			print("[SaveManager] 删除存档: %s" % slot)
-			return true
-		else:
-			push_error("[SaveManager] 删除存档失败")
-			return false
+		refresh_save_slots()
+		print("[SaveManager] 删除存档: %s" % slot)
+		return true
+
+	push_error("[SaveManager] 删除存档失败")
+	return false
 	return false
 
 

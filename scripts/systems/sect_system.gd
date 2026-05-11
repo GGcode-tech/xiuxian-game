@@ -22,17 +22,17 @@ class SectContribution extends RefCounted:
 
 ## 门派类型枚举
 enum SectType {
-	None,
-	Sect_YaoYao,
-	Sect_HeCun,
-	Sect_BaiLiu,
-	Sect_CiYan,
-	Sect_Qin,
-	Sect_Qingxia,
-	Sect_TianChuan,
-	Sect_XiaoYao,
-	Sect_WanJian,
-	Sect_WuShuang,
+	NONE,
+	SECT_YAOYAO,
+	SECT_HECUN,
+	SECT_BAILIU,
+	SECT_CIYAN,
+	SECT_QIN,
+	SECT_QINGXIA,
+	SECT_TIANCHUAN,
+	SECT_XIAOYAO,
+	SECT_WANJIAN,
+	SECT_WUSHUANG,
 }
 
 ## 信号
@@ -57,7 +57,7 @@ func _init_default_sects() -> void:
 			"id": "sect_yaoyao",
 			"name": "掩月宗",
 			"novel_source": "凡人修仙传",
-			"sect_type": SectType.Sect_YaoYao,
+			"sect_type": SectType.SECT_YAOYAO,
 			"description": "掩月宗是越国三大修仙门派之一，以炼丹和符箓闻名",
 			"bonus_stats": {"spirit": 15, "max_mp": 20},
 			"skills": ["skill_yanyan_blade", "skill_zhaohu"],
@@ -68,7 +68,7 @@ func _init_default_sects() -> void:
 			"id": "sect_yuanying",
 			"name": "元婴殿",
 			"novel_source": "凡人修仙传",
-			"sect_type": SectType.Sect_HeCun,
+			"sect_type": SectType.SECT_HECUN,
 			"description": "元婴殿是乱星海最神秘的势力之一",
 			"bonus_stats": {"attack": 20, "max_hp": 50},
 			"skills": ["skill_spirit_cultivation"],
@@ -79,7 +79,7 @@ func _init_default_sects() -> void:
 			"id": "sect_wanjian",
 			"name": "万剑宗",
 			"novel_source": "星辰变",
-			"sect_type": SectType.Sect_WanJian,
+			"sect_type": SectType.SECT_WANJIAN,
 			"description": "以剑道闻名，御剑术独步天下",
 			"bonus_stats": {"attack": 25, "speed": 10},
 			"skills": ["skill_feijian", "skill_jianxin"],
@@ -90,7 +90,7 @@ func _init_default_sects() -> void:
 			"id": "sect_qingxia",
 			"name": "清虚观",
 			"novel_source": "星辰变",
-			"sect_type": SectType.Sect_Qingxia,
+			"sect_type": SectType.SECT_QINGXIA,
 			"description": "正道领袖，以天机术和阵法著称",
 			"bonus_stats": {"defense": 15, "max_mp": 30},
 			"skills": ["skill_tianji", "skill_zhenfa"],
@@ -101,7 +101,7 @@ func _init_default_sects() -> void:
 			"id": "sect_tianchuan",
 			"name": "天策府",
 			"novel_source": "诛仙",
-			"sect_type": SectType.Sect_TianChuan,
+			"sect_type": SectType.SECT_TIANCHUAN,
 			"description": "朝廷修仙势力，军旅风格",
 			"bonus_stats": {"defense": 20, "max_hp": 40},
 			"skills": ["skill_military_strategy"],
@@ -112,7 +112,7 @@ func _init_default_sects() -> void:
 			"id": "sect_xiaoyao",
 			"name": "逍遥派",
 			"novel_source": "诛仙",
-			"sect_type": SectType.Sect_XiaoYao,
+			"sect_type": SectType.SECT_XIAOYAO,
 			"description": "隐世门派，行事洒脱",
 			"bonus_stats": {"speed": 20, "luck": 15},
 			"skills": ["skill_xiaoyao_arts"],
@@ -154,7 +154,7 @@ func _create_sect_data(data: Dictionary) -> SectData:
 	sect.id = data.get("id", "")
 	sect.name = data.get("name", "")
 	sect.novel_source = data.get("novel_source", "")
-	sect.sect_type = data.get("sect_type", SectType.None)
+	sect.sect_type = data.get("sect_type", SectType.NONE)
 	sect.description = data.get("description", "")
 	sect.bonus_stats = data.get("bonus_stats", {})
 	sect.skills = data.get("skills", [])
@@ -189,7 +189,7 @@ func get_sect_bonus() -> Dictionary:
 	return {}
 
 ## 增加贡献度
-func add_contribution(amount: int, reason: String = "") -> void:
+func add_contribution(amount: int, _reason: String = "") -> void:
 	player_contribution.total_contribution += amount
 	player_contribution.weekly_contribution += amount
 	player_contribution.accumulated_points += amount
@@ -250,16 +250,16 @@ func get_current_sect_name() -> String:
 ## 获取门派类型名称
 func get_sect_type_name(sect_type: SectType) -> String:
 	match sect_type:
-		SectType.Sect_YaoYao: return "掩月宗"
-		SectType.Sect_HeCun: return "黄枫谷"
-		SectType.Sect_BaiLiu: return "百机阁"
-		SectType.Sect_CiYan: return "慈云寺"
-		SectType.Sect_Qin: return "秦王朝"
-		SectType.Sect_Qingxia: return "清虚观"
-		SectType.Sect_TianChuan: return "天策府"
-		SectType.Sect_XiaoYao: return "逍遥派"
-		SectType.Sect_WanJian: return "万剑宗"
-		SectType.Sect_WuShuang: return "无双城"
+		SectType.SECT_YAOYAO: return "掩月宗"
+		SectType.SECT_HECUN: return "黄枫谷"
+		SectType.SECT_BAILIU: return "百机阁"
+		SectType.SECT_CIYAN: return "慈云寺"
+		SectType.SECT_QIN: return "秦王朝"
+		SectType.SECT_QINGXIA: return "清虚观"
+		SectType.SECT_TIANCHUAN: return "天策府"
+		SectType.SECT_XIAOYAO: return "逍遥派"
+		SectType.SECT_WANJIAN: return "万剑宗"
+		SectType.SECT_WUSHUANG: return "无双城"
 		_: return "未知"
 
 ## 每周重置

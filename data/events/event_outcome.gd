@@ -21,12 +21,12 @@ class_name EventOutcome extends Resource
 
 func get_effect_preview() -> String:
 	var parts = []
-	
+
 	for effect in effects:
 		var effect_type = effect.get("type", "")
 		var value = effect.get("value", 0)
 		var id = effect.get("id", "")
-		
+
 		match effect_type:
 			"add_exp":
 				parts.append("✨ 修炼经验 +%d" % value)
@@ -48,5 +48,5 @@ func get_effect_preview() -> String:
 				parts.append("🏆 声望 +%d" % value)
 			_:
 				parts.append("❓ %s" % effect_type)
-	
+
 	return "\n".join(parts)

@@ -29,15 +29,15 @@ class EquipmentInstance extends RefCounted:
 	var name: String
 	var quality: EquipmentQuality
 	var slot: EquipmentSlot
-	
+
 	var enhancement_level: int = 0   # 强化等级 +1~+15
 	var gems: Array[int] = []        # 已镶嵌的宝石 [GemType, ...]，最多4个
-	
+
 	# 属性
 	var stats: Dictionary = {}
 	var set_id: String = ""
 	var equipped_by: String = ""  # 装备角色ID
-	
+
 	func _init() -> void:
 		gems.resize(4)  # 4个宝石孔
 
@@ -230,7 +230,7 @@ func _init_default_equipment_templates() -> void:
 			"description": "新手入门的简单武器"
 		}
 	]
-	
+
 	for tpl in templates:
 		equipment_templates[tpl["id"]] = tpl
 
@@ -269,7 +269,7 @@ func create_equipment(equip_id: String) -> EquipmentInstance:
 	var template = get_equipment_template(equip_id)
 	if not template:
 		return null
-	
+
 	var inst = EquipmentInstance.new()
 	inst.id = "equip_%d" % Time.get_ticks_msec()
 	inst.equipment_data_id = equip_id
@@ -280,7 +280,7 @@ func create_equipment(equip_id: String) -> EquipmentInstance:
 	inst.stats = template.base_stats.duplicate()
 	inst.set_id = template.set_id
 	inst.gem_slots = template.gem_slots
-	
+
 	player_equipment.append(inst)
 	return inst
 
@@ -290,36 +290,36 @@ func enhance_equipment(equip_id: String) -> Dictionary:
 	var equip = _get_equipment_by_id(equip_id)
 	if not equip:
 		return {"success": false, "reason": "装备不存在"}
-	
+
 	if equip.enhancement_level >= 15:
 		return {"success": false, "reason": "已达最大强化等级"}
-	
+
 	# 强化消耗
 	var cost = _calculate_enhance_cost(equip)
 	var player = _get_current_player()
 	if not player:
 		return {"success": false, "reason": "玩家不存在"}
-	
+
 	# 消耗灵石
 	if player.get_item_count("item_lingshi") < cost:
 		return {"success": false, "reason": "灵石不足"}
-	
+
 	player.remove_item("item_lingshi", cost)
-	
+
 	# 强化成功率（保底机制）
 	var base_success_rate = 0.5 + equip.enhancement_level * 0.03
 	var success_rate = minf(base_success_rate, 0.95)  # 最高95%
-	
+
 	if randf() < success_rate:
 		equip.enhancement_level += 1
 		_apply_enhancement_bonus(equip)
 		enhancement_success.emit(equip_id, equip.enhancement_level)
 		_save_to_game_db()
 		return {"success": true, "new_level": equip.enhancement_level}
-	else:
-		# 保底：强化等级不降
-		enhancement_failed.emit(equip_id)
-		return {"success": false, "reason": "强化失败（保底机制：等级不降）"}
+
+	# 保底：强化等级不降
+	enhancement_failed.emit(equip_id)
+	return {"success": false, "reason": "强化失败（保底机制：等级不降）"}
 
 
 func _calculate_enhance_cost(equip: EquipmentInstance) -> int:
@@ -341,23 +341,23 @@ func insert_gem(equip_id: String, gem_type: GemType, slot_index: int = -1) -> bo
 	var equip = _get_equipment_by_id(equip_id)
 	if not equip:
 		return false
-	
+
 	# 检查宝石孔数量
 	var max_slots = minf(equip.gem_slots, 4) if equip.gem_slots > 0 else 4
 	if max_slots == 0:
 		max_slots = 4  # 默认4孔
-	
+
 	# 找到空槽位
 	if slot_index < 0:
 		slot_index = _find_empty_gem_slot(equip)
-	
+
 	if slot_index < 0 or slot_index >= max_slots:
 		return false
-	
+
 	# 检查宝石是否已存在
 	if equip.gems[slot_index] >= 0:
 		return false
-	
+
 	equip.gems[slot_index] = gem_type
 	gem_inserted.emit(equip_id, gem_type, slot_index)
 	_apply_gem_bonus(equip)
@@ -378,7 +378,7 @@ func _apply_gem_bonus(equip: EquipmentInstance) -> void:
 	if template:
 		equip.stats = template.base_stats.duplicate()
 		_apply_enhancement_bonus(equip)
-	
+
 	# 应用宝石加成
 	for gem_type in equip.gems:
 		if gem_type >= 0:
@@ -414,13 +414,13 @@ func remove_gem(equip_id: String, slot_index: int) -> GemType:
 	var equip = _get_equipment_by_id(equip_id)
 	if not equip:
 		return GemType.ATTACK  # 默认
-	
+
 	var gem_type = equip.gems[slot_index]
 	if gem_type >= 0:
 		equip.gems[slot_index] = -1
 		gem_removed.emit(equip_id, gem_type)
 		_save_to_game_db()
-	
+
 	return gem_type
 
 
@@ -429,16 +429,16 @@ func equip_item(equip_id: String, character_id: String) -> bool:
 	var equip = _get_equipment_by_id(equip_id)
 	if not equip:
 		return false
-	
+
 	var character = GameManager.get_character(character_id)
 	if character.is_empty():
 		return false
-	
+
 	# 检查等级要求
 	var template = get_equipment_template(equip.equipment_data_id)
 	if template and character.get("realm_tier", 1) < template.level_requirement / 10:
 		return false
-	
+
 	# 装备到对应槽位
 	equip.equipped_by = character_id
 	equipment_equipped.emit(equip, equip.slot)
@@ -451,7 +451,7 @@ func unequip_item(equip_id: String) -> bool:
 	var equip = _get_equipment_by_id(equip_id)
 	if not equip:
 		return false
-	
+
 	equip.equipped_by = ""
 	equipment_unequipped.emit(equip)
 	_save_to_game_db()
@@ -466,7 +466,7 @@ func get_character_equipment(character_id: String) -> Dictionary:
 		"accessory1": null,
 		"accessory2": null
 	}
-	
+
 	for equip in player_equipment:
 		if equip.equipped_by == character_id:
 			match equip.slot:
@@ -479,7 +479,7 @@ func get_character_equipment(character_id: String) -> Dictionary:
 						result["accessory1"] = equip
 					else:
 						result["accessory2"] = equip
-	
+
 	return result
 
 
@@ -487,7 +487,7 @@ func get_character_equipment(character_id: String) -> Dictionary:
 func calculate_set_bonus(character_id: String) -> Dictionary:
 	var char_equipment = get_character_equipment(character_id)
 	var equipped_sets: Dictionary = {}  # set_id -> count
-	
+
 	# 统计套装件数
 	for slot in char_equipment:
 		var equip = char_equipment[slot]
@@ -495,22 +495,22 @@ func calculate_set_bonus(character_id: String) -> Dictionary:
 			if not equipped_sets.has(equip.set_id):
 				equipped_sets[equip.set_id] = 0
 			equipped_sets[equip.set_id] += 1
-	
+
 	var bonuses: Array = []
 	var completed_sets: Array = []
-	
+
 	for set_id in equipped_sets:
 		var set_data = equipment_sets.get(set_id, {})
 		var count = equipped_sets[set_id]
 		var set_bonuses = set_data.get("bonuses", [])
-		
+
 		for bonus in set_bonuses:
 			if count >= bonus.get("required", 0):
 				bonuses.append(bonus)
 				if bonus.get("required", 0) == count:
 					completed_sets.append(set_id)
 					set_completed.emit(set_id, bonus)
-	
+
 	return {
 		"bonuses": bonuses,
 		"completed_sets": completed_sets,
@@ -532,23 +532,23 @@ func _aggregate_bonus_stats(bonuses: Array) -> Dictionary:
 ## 副本掉落/商店购买装备
 func generate_random_equipment(quality: EquipmentQuality, level: int) -> EquipmentInstance:
 	var candidates: Array = []
-	
+
 	for tid in equipment_templates:
 		var tpl = equipment_templates[tid]
 		if tpl.get("quality", EquipmentQuality.WHITE) == quality:
 			if absf(tpl.get("level_requirement", 1) - level) <= 5:
 				candidates.append(tid)
-	
+
 	if candidates.is_empty():
 		# 降级选择
 		for tid in equipment_templates:
 			var tpl = equipment_templates[tid]
 			if absf(tpl.get("level_requirement", 1) - level) <= 10:
 				candidates.append(tid)
-	
+
 	if candidates.is_empty():
 		return null
-	
+
 	var selected_id = candidates[randi() % candidates.size()]
 	return create_equipment(selected_id)
 
@@ -622,10 +622,10 @@ func _save_to_game_db() -> void:
 	var save_data = {
 		"player_equipment": []
 	}
-	
+
 	for equip in player_equipment:
 		save_data["player_equipment"].append(_serialize_equipment(equip))
-	
+
 	SaveManager.set_data("equipment", save_data)
 
 
@@ -646,7 +646,7 @@ func _serialize_equipment(equip: EquipmentInstance) -> Dictionary:
 
 func load_from_save(data: Dictionary) -> void:
 	player_equipment.clear()
-	
+
 	var equip_list = data.get("player_equipment", [])
 	for equip_dict in equip_list:
 		var equip = _deserialize_equipment(equip_dict)
@@ -679,20 +679,20 @@ func sell_equipment(equip_id: String) -> int:
 	var equip = _get_equipment_by_id(equip_id)
 	if not equip:
 		return 0
-	
+
 	var template = get_equipment_template(equip.equipment_data_id)
 	if not template:
 		return 0
-	
+
 	# 装备价值 = 基础价值 * 品质系数
 	var base_value = template.base_stats.values().reduce(func(a, b): return a + b, 0) * 10
 	var quality_multiplier = [1.0, 1.5, 2.5, 4.0, 7.0, 12.0][equip.quality]
 	var sell_value = int(base_value * quality_multiplier)
-	
+
 	# 强化等级加成
 	sell_value *= (1 + equip.enhancement_level * 0.1)
-	
+
 	player_equipment.erase(equip)
 	_save_to_game_db()
-	
+
 	return int(sell_value)

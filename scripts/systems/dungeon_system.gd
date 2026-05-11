@@ -19,13 +19,13 @@ class DungeonData extends RefCounted:
 	var recommended_power: int = 0
 	var stamina_cost: int = 10   # 消耗体力
 	var waves_count: int = 3     # 波次数量
-	
+
 	var rewards: Dictionary = {  # 通关奖励
 		"spirit_stones": 100,
 		"exp": 500,
 		"items": []
 	}
-	
+
 	var wave_config: Array[Dictionary] = []  # 波次配置
 	var chapter_id: String = ""  # 所属章节
 	var boss_wave: int = 3       # Boss所在波次
@@ -53,7 +53,7 @@ enum DungeonDifficulty {
 	NORMAL,   # 普通
 	HARD,     # 困难
 	EXPERT,   # 专家
-	Hell,     # 地狱
+	HELL,     # 地狱
 }
 
 ## 信号
@@ -249,7 +249,7 @@ func _init_default_dungeons() -> void:
 			]
 		}
 	]
-	
+
 	for dungeon in default_dungeons:
 		dungeons_data[dungeon["id"]] = dungeon
 
@@ -329,34 +329,34 @@ func start_dungeon(dungeon_id: String) -> Dictionary:
 	var dungeon = get_dungeon(dungeon_id)
 	if not dungeon:
 		return {"success": false, "reason": "副本不存在"}
-	
+
 	# 检查体力
 	if not _check_stamina(dungeon.stamina_cost):
 		return {"success": false, "reason": "体力不足"}
-	
+
 	# 消耗体力
 	_consume_stamina(dungeon.stamina_cost)
-	
+
 	current_dungeon = dungeon
 	current_wave = 0
 	dungeon_start_time = Time.get_ticks_msec() / 1000
-	
+
 	dungeon_started.emit(dungeon_id, current_wave)
 	_start_next_wave()
-	
+
 	return {"success": true, "dungeon": dungeon}
 
 
 func _start_next_wave() -> void:
 	current_wave += 1
-	
+
 	if current_wave > current_dungeon.waves_count:
 		_complete_dungeon()
 		return
-	
+
 	var wave_enemies = _get_wave_enemies(current_wave)
 	wave_started.emit(current_wave, wave_enemies.size())
-	
+
 	# 调用战斗系统
 	_start_wave_combat(wave_enemies)
 
@@ -377,7 +377,7 @@ func _start_wave_combat(enemies: Array[Dictionary]) -> void:
 		for i in range(count):
 			var enemy_char = _create_enemy_character(enemy)
 			enemy_team.append(enemy_char)
-	
+
 	# TODO: 调用combat_system进行战斗
 	# CombatSystem.start_combat(player_team, enemy_team)
 
@@ -417,14 +417,14 @@ func _create_enemy_character(enemy: Dictionary) -> Dictionary:
 		"items": [],
 	}
 	return ch
-	
-	
+
+
 ## 波次完成
 func on_wave_completed() -> void:
 	var wave_reward = _calculate_wave_reward(current_wave)
 	wave_completed.emit(current_wave, wave_reward)
 	_give_wave_reward(wave_reward)
-	
+
 	# 检查是否还有下一波
 	if current_wave < current_dungeon.waves_count:
 		_start_next_wave()
@@ -436,17 +436,17 @@ func on_wave_completed() -> void:
 func _complete_dungeon() -> void:
 	if not current_dungeon:
 		return
-	
+
 	var time_taken = (Time.get_ticks_msec() / 1000) - dungeon_start_time
 	var rewards = _calculate_dungeon_rewards(time_taken)
-	
+
 	_give_rewards(rewards)
-	
+
 	# 更新进度
 	_update_progress(current_dungeon.id, time_taken)
-	
+
 	dungeon_completed.emit(current_dungeon.id, rewards)
-	
+
 	# 重置状态
 	current_dungeon = null
 	current_wave = 0
@@ -456,13 +456,13 @@ func _update_progress(dungeon_id: String, time_taken: int) -> void:
 	var progress = player_progress.get(dungeon_id, DungeonProgress.new())
 	progress.dungeon_id = dungeon_id
 	progress.completed_times += 1
-	
+
 	if progress.best_time == 0 or time_taken < progress.best_time:
 		progress.best_time = time_taken
-	
+
 	progress.last_completed_date = GameManager.get_formatted_time()
 	player_progress[dungeon_id] = progress
-	
+
 	_save_to_game_db()
 
 
@@ -485,13 +485,13 @@ func _calculate_wave_reward(wave_num: int) -> Dictionary:
 
 func _calculate_dungeon_rewards(time_taken: int) -> Dictionary:
 	var base_rewards = current_dungeon.rewards.duplicate()
-	
+
 	# 速度加成：时间越短奖励越高
 	var time_bonus = maxf(1.0 - time_taken / 600.0, 0.5)  # 最少50%
-	
+
 	base_rewards["spirit_stones"] = int(base_rewards.get("spirit_stones", 0) * time_bonus)
 	base_rewards["exp"] = int(base_rewards.get("exp", 0) * time_bonus)
-	
+
 	return base_rewards
 
 
@@ -535,7 +535,7 @@ func _create_item(item_id: String):
 	var item_data = DataManager.get_item(item_id)
 	if item_data.is_empty():
 		return null
-	
+
 	var item = ItemInstance.new()
 	item.item_id = item_id
 	item.count = 1
@@ -623,7 +623,7 @@ func _save_to_game_db() -> void:
 		"current_stamina": current_stamina,
 		"max_stamina": max_stamina
 	}
-	
+
 	for pid in player_progress:
 		var prog = player_progress[pid]
 		save_data["player_progress"][pid] = {
@@ -633,16 +633,16 @@ func _save_to_game_db() -> void:
 			"best_time": prog.best_time,
 			"last_completed_date": prog.last_completed_date
 		}
-	
+
 	SaveManager.set_data("dungeons", save_data)
 
 
 func load_from_save(data: Dictionary) -> void:
 	player_progress.clear()
-	
+
 	current_stamina = data.get("current_stamina", 100)
 	max_stamina = data.get("max_stamina", 100)
-	
+
 	var progress_data = data.get("player_progress", {})
 	for pid in progress_data:
 		var prog = DungeonProgress.new()
@@ -671,5 +671,5 @@ func get_difficulty_name(diff: DungeonDifficulty) -> String:
 		DungeonDifficulty.NORMAL: return "普通"
 		DungeonDifficulty.HARD: return "困难"
 		DungeonDifficulty.EXPERT: return "专家"
-		DungeonDifficulty.Hell: return "地狱"
+		DungeonDifficulty.HELL: return "地狱"
 		_: return "未知"

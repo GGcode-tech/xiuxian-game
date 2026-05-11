@@ -60,7 +60,7 @@ func remove_member(member_id: String) -> void:
 func on_member_death(character) -> void:
 	members.erase(character.id)
 	dead_members.append(character.id)
-	
+
 	# 威望损失
 	prestige -= 10
 
@@ -110,10 +110,10 @@ func can_afford(costs: Dictionary) -> bool:
 func process_monthly() -> void:
 	# 资源增长
 	_process_resource_growth()
-	
+
 	# 声望自然增长
 	_process_reputation()
-	
+
 	# 检查家族等级
 	_check_family_level()
 
@@ -121,7 +121,7 @@ func process_monthly() -> void:
 func _process_resource_growth() -> void:
 	# 基础增长
 	resources.spirit_stone += level * 100
-	
+
 	# 领地产出
 	for territory_id in territories:
 		var territory = GameManager.map_data.get_territory(territory_id)
@@ -138,7 +138,7 @@ func _process_reputation() -> void:
 			var realm = DataManager.get_realm(character.realm_id)
 			if realm:
 				reputation += realm.tier
-	
+
 	# 声望上限
 	reputation = mini(reputation, 10000)
 
@@ -147,7 +147,7 @@ func _check_family_level() -> void:
 	# 根据成员数量和实力升级
 	var total_power = calculate_total_power()
 	var member_count = get_alive_members().size()
-	
+
 	var required_for_next = level * 1000
 	if total_power >= required_for_next and member_count >= level * 2:
 		level += 1
@@ -162,34 +162,34 @@ func _check_family_level() -> void:
 
 func calculate_total_power() -> int:
 	var power = 0
-	
+
 	for member_id in members:
 		var character = GameManager.get_character(member_id)
 		if character and character.is_alive:
 			power += calculate_member_power(character)
-	
+
 	# 领地加成
 	for territory_id in territories:
 		var territory = GameManager.map_data.get_territory(territory_id)
 		if territory:
 			power += territory.power_bonus
-	
+
 	return power
 
 
 func calculate_member_power(character) -> int:
 	var power = 0
-	
+
 	# 境界实力
 	var realm = DataManager.get_realm(character.realm_id)
 	if realm:
 		power += realm.tier * 100
-	
+
 	# 属性实力
 	power += character.get("derived_stats", {}).get("attack", 10)
 	power += character.get("derived_stats", {}).get("defense", 5)
 	power += int(character.get("derived_stats", {}).get("max_hp", 100) * 0.5)
-	
+
 	# 装备实力
 	for slot in character.equipment:
 		var equipped = character.equipment[slot]
@@ -197,10 +197,10 @@ func calculate_member_power(character) -> int:
 			var item_data = equipped.get_item_data()
 			if item_data:
 				power += item_data.quality * 20
-	
+
 	# 血脉加成
 	power += int(power * character.bloodline_purity * 0.3)
-	
+
 	return power
 
 
@@ -209,13 +209,13 @@ func calculate_member_power(character) -> int:
 func update_relation(other_family_id: String, change: int) -> void:
 	if not relations.has(other_family_id):
 		relations[other_family_id] = 0
-	
+
 	relations[other_family_id] += change
 	relations[other_family_id] = clamp(relations[other_family_id], -100, 100)
-	
+
 	# 更新同盟/敌对状态
 	var relation = relations[other_family_id]
-	
+
 	if relation >= 70:
 		if not allies.has(other_family_id):
 			allies.append(other_family_id)
@@ -246,7 +246,7 @@ func is_enemy(other_family_id: String) -> bool:
 func get_heir() -> String:
 	# 获取继承人（按辈分、能力排序）
 	var candidates = []
-	
+
 	for member_id in members:
 		var character = GameManager.get_character(member_id)
 		if character and character.is_alive:
@@ -255,17 +255,17 @@ func get_heir() -> String:
 				"power": calculate_member_power(character),
 				"generation": character.generation
 			})
-	
+
 	if candidates.is_empty():
 		return ""
-	
+
 	# 排序：辈分优先，然后实力
-	candidates.sort_custom(func(a, b): 
+	candidates.sort_custom(func(a, b):
 		if a.generation != b.generation:
 			return a.generation < b.generation
 		return a.power > b.power
 	)
-	
+
 	return candidates[0].id
 
 
@@ -277,23 +277,23 @@ func serialize() -> Dictionary:
 		"name": name,
 		"founder_id": founder_id,
 		"founded_year": founded_year,
-		
+
 		"members": members.duplicate(),
 		"dead_members": dead_members.duplicate(),
-		
+
 		"resources": resources.duplicate(),
-		
+
 		"territories": territories.duplicate(),
 		"main_territory_id": main_territory_id,
-		
+
 		"level": level,
 		"reputation": reputation,
 		"prestige": prestige,
-		
+
 		"unlocked_buildings": unlocked_buildings.duplicate(),
 		"unlocked_techniques": unlocked_techniques.duplicate(),
 		"special_bloodline": special_bloodline,
-		
+
 		"relations": relations.duplicate(),
 		"allies": allies.duplicate(),
 		"enemies": enemies.duplicate()
@@ -305,23 +305,23 @@ func deserialize(data: Dictionary) -> void:
 	name = data.get("name", "")
 	founder_id = data.get("founder_id", "")
 	founded_year = data.get("founded_year", 1)
-	
+
 	members = data.get("members", [])
 	dead_members = data.get("dead_members", [])
-	
+
 	resources = data.get("resources", {})
-	
+
 	territories = data.get("territories", [])
 	main_territory_id = data.get("main_territory_id", "")
-	
+
 	level = data.get("level", 1)
 	reputation = data.get("reputation", 0)
 	prestige = data.get("prestige", 0)
-	
+
 	unlocked_buildings = data.get("unlocked_buildings", [])
 	unlocked_techniques = data.get("unlocked_techniques", [])
 	special_bloodline = data.get("special_bloodline", "")
-	
+
 	relations = data.get("relations", {})
 	allies = data.get("allies", [])
 	enemies = data.get("enemies", [])

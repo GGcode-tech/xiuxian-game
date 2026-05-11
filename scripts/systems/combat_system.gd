@@ -373,7 +373,7 @@ func _attempt_flee(character) -> void:
 		combat_log.append("🏃 %s 逃跑失败！" % _char_get_name(character))
 
 
-func _use_combat_item(character, target) -> void:
+func _use_combat_item(character, _target) -> void:
 	# TODO: 实现战斗中使用物品
 	combat_log.append("%s 使用了物品" % _char_get_name(character))
 
@@ -449,7 +449,7 @@ func _process_combat_rewards() -> void:
 			family["spirit_stone"] = family.get("spirit_stone", 0) + total_spirit_stones
 
 
-func _generate_drop(enemy):
+func _generate_drop(_enemy):
 	# TODO: 根据敌人类型生成掉落
 	return null
 

@@ -15,7 +15,7 @@ func _ready() -> void:
 	load_button.pressed.connect(_on_load_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
-	
+
 	# 检查存档
 	if SaveManager.get_save_slots().is_empty():
 		load_button.disabled = true

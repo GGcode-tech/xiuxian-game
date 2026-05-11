@@ -27,10 +27,10 @@ func get_item_name() -> String:
 
 func get_display_name() -> String:
 	var name = get_item_name()
-	
+
 	if enhanced > 0:
 		name += " +%d" % enhanced
-	
+
 	return name
 
 
@@ -38,14 +38,14 @@ func get_total_stats() -> Dictionary:
 	var data = get_item_data()
 	if not data:
 		return {}
-	
+
 	var stats = data.equip_stats.duplicate()
-	
+
 	# 强化加成
 	if enhanced > 0:
 		for stat in stats:
 			stats[stat] = int(stats[stat] * (1 + enhanced * 0.1))
-	
+
 	# 词缀加成
 	for modifier in modifiers:
 		var stat = modifier.get("stat", "")
@@ -54,7 +54,7 @@ func get_total_stats() -> Dictionary:
 			stats[stat] += value
 		else:
 			stats[stat] = value
-	
+
 	return stats
 
 
@@ -73,11 +73,11 @@ func enhance(success_rate: float) -> bool:
 	if randf() <= success_rate:
 		enhanced += 1
 		return true
-	else:
-		# 强化失败，可能降级或损坏
-		if randf() < 0.3:
-			enhanced = maxi(0, enhanced - 1)
-		return false
+
+	# 强化失败，可能降级或损坏
+	if randf() < 0.3:
+		enhanced = maxi(0, enhanced - 1)
+	return false
 
 
 func serialize() -> Dictionary:
@@ -102,12 +102,12 @@ func deserialize(data: Dictionary) -> void:
 
 static func create(item_id: String, count: int = 1):
 	var instance = ItemInstance.new(item_id, count)
-	
+
 	# 随机生成词缀（高级装备）
 	var data = instance.get_item_data()
 	if data and data.quality >= ItemData.ItemQuality.RARE:
 		instance._generate_modifiers(data)
-	
+
 	return instance
 
 
@@ -122,7 +122,7 @@ func _generate_modifiers(data) -> void:
 			modifier_count = randi_range(3, 4)
 		ItemData.ItemQuality.IMMORTAL:
 			modifier_count = randi_range(4, 6)
-	
+
 	var possible_modifiers = [
 		{"stat": "attack", "min": 5, "max": 20},
 		{"stat": "defense", "min": 3, "max": 15},
@@ -132,21 +132,21 @@ func _generate_modifiers(data) -> void:
 		{"stat": "crit_damage", "min": 0.1, "max": 0.5},
 		{"stat": "speed", "min": 5, "max": 20}
 	]
-	
+
 	for i in range(modifier_count):
 		if possible_modifiers.is_empty():
 			break
-		
+
 		var idx = randi() % possible_modifiers.size()
 		var mod_template = possible_modifiers[idx]
 		possible_modifiers.remove_at(idx)
-		
+
 		var value = randf_range(mod_template.min, mod_template.max)
 		if mod_template.stat in ["crit_rate", "crit_damage"]:
 			value = snapped(value, 0.01)
 		else:
 			value = int(value)
-		
+
 		modifiers.append({
 			"stat": mod_template.stat,
 			"value": value

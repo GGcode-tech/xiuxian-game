@@ -113,11 +113,11 @@ func get_type_name() -> String:
 
 func get_effect_string() -> String:
 	var parts = []
-	
+
 	for effect in pill_effects:
 		var effect_type = effect.get("type", "")
 		var value = effect.get("value", 0)
-		
+
 		match effect_type:
 			"exp":
 				parts.append("修炼经验+%d" % value)
@@ -131,13 +131,13 @@ func get_effect_string() -> String:
 				parts.append("寿元+%d年" % value)
 			_:
 				parts.append(effect_type)
-	
+
 	return "\n".join(parts)
 
 
 func get_stat_string() -> String:
 	var parts = []
-	
+
 	for stat_name in equip_stats:
 		var value = equip_stats[stat_name]
 		match stat_name:
@@ -155,5 +155,5 @@ func get_stat_string() -> String:
 				parts.append("暴击伤害+%.0f%%" % (value * 100))
 			_:
 				parts.append("%s+%d" % [stat_name, value])
-	
+
 	return "\n".join(parts)

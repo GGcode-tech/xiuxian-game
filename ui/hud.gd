@@ -26,7 +26,7 @@ signal map_panel_requested
 func _ready() -> void:
 	GameManager.time_elapsed.connect(_on_time_elapsed)
 	GameManager.speed_changed.connect(_on_speed_changed)
-	
+
 	# 连接底部按钮
 	var family_btn = $BottomBar/MarginContainer/HBox/ActionBar/FamilyButton
 	var map_btn = $BottomBar/MarginContainer/HBox/ActionBar/MapButton
@@ -34,7 +34,7 @@ func _ready() -> void:
 		family_btn.pressed.connect(_on_family_button_pressed)
 	if map_btn:
 		map_btn.pressed.connect(_on_map_button_pressed)
-	
+
 	# 自动截图
 	ScreenshotSystem.auto_screenshot("04_HUD主界面")
 
@@ -52,7 +52,7 @@ func _update_date_display() -> void:
 		_get_month_name(gt.month),
 		gt.day
 	]
-	
+
 	var speed_text = {0: "0.5x", 1: "1x", 2: "2x", 3: "5x", 4: "10x"}
 	var idx = 0
 	var speeds = [0.5, 1.0, 2.0, 5.0, 10.0]
@@ -64,7 +64,7 @@ func _update_date_display() -> void:
 		speed_label.text = "速度: 暂停"
 	else:
 		speed_label.text = "速度: %s" % speed_text.get(idx, "1x")
-	
+
 	season_label.text = _get_season_name(gt.month)
 
 
@@ -75,11 +75,11 @@ func _update_family_overview() -> void:
 		member_count_label.text = "族人: 0"
 		spirit_stone_label.text = "灵石: 0"
 		return
-	
+
 	family_name_label.text = family.get("name", "未知")
 	var members = family.get("members", [])
 	member_count_label.text = "族人: %d" % members.size()
-	
+
 	var player = _get_player_character_from_hud()
 	var spirit_stone = player.get("resources", {}).get("spirit_stone", 0) if player else 0
 	spirit_stone_label.text = "灵石: %d" % spirit_stone
@@ -88,11 +88,11 @@ func _update_family_overview() -> void:
 func _update_character_sidebar() -> void:
 	for child in character_sidebar.get_children():
 		child.queue_free()
-	
+
 	var family = GameManager.get_player_family()
 	if family.is_empty():
 		return
-	
+
 	var members = family.get("members", [])
 	for member_id in members:
 		var character = GameManager.get_character(member_id)
@@ -115,7 +115,7 @@ func _get_player_character_from_hud() -> Dictionary:
 	return {}
 
 
-func _on_time_elapsed(day_data: Dictionary) -> void:
+func _on_time_elapsed(_day_data: Dictionary) -> void:
 	_update_date_display()
 	_update_family_overview()
 
@@ -138,7 +138,7 @@ func _on_map_button_pressed() -> void:
 
 func _get_month_name(month: int) -> String:
 	var months = ["正月", "二月", "三月", "四月", "五月", "六月",
-				  "七月", "八月", "九月", "十月", "冬月", "腊月"]
+					"七月", "八月", "九月", "十月", "冬月", "腊月"]
 	if month >= 1 and month <= 12:
 		return months[month - 1]
 	return "未知"
@@ -147,9 +147,8 @@ func _get_month_name(month: int) -> String:
 func _get_season_name(month: int) -> String:
 	if month in [1, 2, 3]:
 		return "🌸 春"
-	elif month in [4, 5, 6]:
+	if month in [4, 5, 6]:
 		return "☀️ 夏"
-	elif month in [7, 8, 9]:
+	if month in [7, 8, 9]:
 		return "🍂 秋"
-	else:
-		return "❄️ 冬"
+	return "❄️ 冬"

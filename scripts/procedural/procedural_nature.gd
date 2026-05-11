@@ -93,24 +93,24 @@ static func _generate_pine(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 树干
 	_add_box(st, Vector3(0, 1.0, 0) * size, Vector3(0.25, 2.0, 0.25) * size)
-	
+
 	# 层叠树冠 (松塔形)
 	for i in range(4):
 		var y := 2.5 + i * 0.8
 		var scale := 1.5 - i * 0.3
 		_add_cone(st, Vector3(0, y, 0) * size, scale * size, 1.2 * size, false, 8)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.2, 0.5, 0.25)
 	mat.roughness = 0.9
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -120,7 +120,7 @@ static func _generate_bamboo(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 竹竿 (多节)
 	var segments := 5
 	for i in range(segments):
@@ -128,21 +128,21 @@ static func _generate_bamboo(size: float) -> MeshInstance3D:
 		_add_cylinder(st, Vector3(0, y, 0) * size, 0.12 * size, 0.5 * size, 6)
 		# 节环
 		_add_cylinder(st, Vector3(0, y + 0.28, 0) * size, 0.14 * size, 0.04 * size, 6)
-	
+
 	# 竹叶
 	for i in range(3):
 		var angle := TAU * i / 3
 		var base := Vector3(cos(angle), 3.2, sin(angle)) * size
 		_add_leaf(st, base, 0.4 * size, angle + PI/2)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.35, 0.65, 0.35)
 	mat.roughness = 0.7
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -152,29 +152,29 @@ static func _generate_willow(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 弯曲树干
 	_add_cylinder(st, Vector3(0, 1.5, 0) * size, 0.3 * size, 3.0 * size, 8)
-	
+
 	# 树冠
 	_add_sphere(st, Vector3(0, 3.5, 0) * size, 1.0 * size, 1)
 	_add_sphere(st, Vector3(0.4, 3.3, 0.3) * size, 0.6 * size, 1)
 	_add_sphere(st, Vector3(-0.4, 3.3, 0.3) * size, 0.6 * size, 1)
-	
+
 	# 下垂的柳条
 	for i in range(12):
 		var angle := TAU * i / 12
 		var base := Vector3(cos(angle) * 0.8, 3.2, sin(angle) * 0.8) * size
 		_add_willow_branch(st, base, 1.5 * size, angle)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.4, 0.6, 0.35)
 	mat.roughness = 0.85
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -184,28 +184,28 @@ static func _generate_peach(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 树干
 	_add_cylinder(st, Vector3(0, 1.0, 0) * size, 0.2 * size, 2.0 * size, 6)
-	
+
 	# 枝干
 	_add_box(st, Vector3(0.5, 2.2, 0) * size, Vector3(1.0, 0.15, 0.15) * size)
 	_add_box(st, Vector3(-0.4, 2.0, 0.3) * size, Vector3(0.8, 0.12, 0.12) * size)
-	
+
 	# 花冠 (粉色)
 	_add_sphere(st, Vector3(0.8, 2.8, 0) * size, 0.8 * size, 1)
 	_add_sphere(st, Vector3(-0.6, 2.6, 0.4) * size, 0.7 * size, 1)
 	_add_sphere(st, Vector3(0, 2.9, -0.3) * size, 0.6 * size, 1)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	# 分离材质：树干棕色+花冠粉色
 	var mat_wood := StandardMaterial3D.new()
 	mat_wood.albedo_color = Color(0.4, 0.3, 0.2)
 	mat_wood.roughness = 0.9
 	mesh.surface_set_material(0, mat_wood)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -215,21 +215,21 @@ static func _generate_pagoda_tree(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 粗壮树干
 	_add_cylinder(st, Vector3(0, 1.5, 0) * size, 0.4 * size, 3.0 * size, 8)
-	
+
 	# 伞形树冠
 	_add_dome(st, Vector3(0, 4.0, 0) * size, 2.5 * size, 2.0 * size, 12, 4)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.3, 0.55, 0.3)
 	mat.roughness = 0.85
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -239,27 +239,27 @@ static func _generate_ginkgo(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 树干
 	_add_cylinder(st, Vector3(0, 1.5, 0) * size, 0.35 * size, 3.0 * size, 8)
-	
+
 	# 扇形树冠 (用多个椭球)
 	var colors := [Color(0.9, 0.85, 0.2), Color(0.95, 0.9, 0.3), Color(0.85, 0.8, 0.15)]
 	for i in range(6):
 		var angle := TAU * i / 6
 		var pos := Vector3(cos(angle) * 1.2, 4.0 + randf_range(0, 0.5), sin(angle) * 1.2) * size
 		_add_sphere(st, pos, randf_range(0.6, 0.9) * size, 1)
-	
+
 	_add_sphere(st, Vector3(0, 4.5, 0) * size, 1.2 * size, 1)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.9, 0.85, 0.2)  # 金黄色
 	mat.roughness = 0.8
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -269,23 +269,23 @@ static func _generate_spirit_tree(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 扭曲的发光树干
 	_add_cylinder(st, Vector3(0, 1.5, 0) * size, 0.25 * size, 3.0 * size, 6)
-	
+
 	# 发光球体树冠
 	_add_sphere(st, Vector3(0, 3.8, 0) * size, 1.2 * size, 1)
 	_add_sphere(st, Vector3(0.6, 3.5, 0.4) * size, 0.7 * size, 1)
 	_add_sphere(st, Vector3(-0.5, 3.6, -0.3) * size, 0.6 * size, 1)
-	
+
 	# 悬浮的能量结晶
 	_add_icosphere(st, Vector3(1.0, 4.2, 0) * size, 0.15 * size, 1)
 	_add_icosphere(st, Vector3(-0.8, 4.5, 0.5) * size, 0.12 * size, 1)
 	_add_icosphere(st, Vector3(0, 4.8, -0.6) * size, 0.13 * size, 1)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.4, 1.0, 0.8)  # 青绿发光
 	mat.emission_enabled = true
@@ -293,7 +293,7 @@ static func _generate_spirit_tree(size: float) -> MeshInstance3D:
 	mat.emission_energy = 0.5
 	mat.roughness = 0.3
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -305,21 +305,21 @@ static func _generate_boulder(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 不规则多边形
 	var seed_val := randi()
 	var noise_scale := 0.8 + randf() * 0.4
-	
+
 	_add_dodecahedron(st, Vector3(0, 0.5, 0) * size, size * noise_scale)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.5, 0.5, 0.52)
 	mat.roughness = 0.95
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -329,21 +329,21 @@ static func _generate_cliff(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 不规则峭壁
 	_add_box(st, Vector3(0, 1.5, 0) * size, Vector3(2.0, 3.0, 1.5) * size)
 	_add_box(st, Vector3(0.5, 2.8, 0.6) * size, Vector3(1.2, 0.8, 0.4) * size)
 	_add_box(st, Vector3(-0.6, 1.2, -0.4) * size, Vector3(0.8, 1.5, 0.6) * size)
 	_add_box(st, Vector3(0.3, 0.6, -0.5) * size, Vector3(1.5, 0.8, 0.5) * size)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.45, 0.42, 0.4)
 	mat.roughness = 0.9
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -353,18 +353,18 @@ static func _generate_stepping(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 扁平石头
 	_add_cylinder(st, Vector3(0, 0.1, 0) * size, 0.5 * size, 0.2 * size, 6)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.55, 0.52, 0.5)
 	mat.roughness = 0.85
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -374,13 +374,13 @@ static func _generate_spirit_stone(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 晶体形状
 	_add_octahedron(st, Vector3(0, 0.4, 0) * size, size * 0.5)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.3, 0.7, 1.0)  # 蓝色灵石
 	mat.emission_enabled = true
@@ -390,7 +390,7 @@ static func _generate_spirit_stone(size: float) -> MeshInstance3D:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.85
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -400,7 +400,7 @@ static func _generate_taihu(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 多孔形状
 	_add_dodecahedron(st, Vector3(0, 1.0, 0) * size, size * 0.6)
 	_add_dodecahedron(st, Vector3(0.3, 0.5, 0.2) * size, size * 0.4)
@@ -408,15 +408,15 @@ static func _generate_taihu(size: float) -> MeshInstance3D:
 	_add_dodecahedron(st, Vector3(0.1, 0.8, -0.3) * size, size * 0.3)
 	_add_icosphere(st, Vector3(-0.5, 1.2, 0.3) * size, size * 0.25, 1)
 	_add_icosphere(st, Vector3(0.4, 1.6, -0.2) * size, size * 0.2, 1)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.85, 0.85, 0.82)
 	mat.roughness = 0.7
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -428,22 +428,22 @@ static func _generate_grass(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 多个草叶
 	for i in range(6):
 		var angle := TAU * i / 6 + randf_range(-0.2, 0.2)
 		var x := cos(angle) * 0.1
 		var z := sin(angle) * 0.1
 		_add_grass_blade(st, Vector3(x, 0, z) * size, (0.3 + randf() * 0.2) * size, angle)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.35, 0.6, 0.25)
 	mat.roughness = 0.9
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -453,26 +453,26 @@ static func _generate_lotus(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 花瓣
 	for i in range(8):
 		var angle := TAU * i / 8
 		_add_lotus_petal(st, Vector3(0, 0.3, 0) * size, size * 0.3, angle)
-	
+
 	# 花心
 	_add_sphere(st, Vector3(0, 0.35, 0) * size, 0.08 * size, 1)
-	
+
 	# 茎
 	_add_cylinder(st, Vector3(0, -0.2, 0) * size, 0.03 * size, 0.6 * size, 6)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.95, 0.85, 0.9)  # 粉白色
 	mat.roughness = 0.6
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -482,24 +482,24 @@ static func _generate_plum(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 枝干
 	_add_box(st, Vector3(0, 0.3, 0) * size, Vector3(0.4, 0.05, 0.05) * size)
 	_add_box(st, Vector3(0.1, 0.5, 0) * size, Vector3(0.03, 0.25, 0.03) * size)
-	
+
 	# 花朵
 	for i in range(3):
 		var pos := Vector3(randf_range(-0.2, 0.3), 0.35 + i * 0.12, randf_range(-0.05, 0.05)) * size
 		_add_flower_head(st, pos, size * 0.08)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.95, 0.75, 0.8)  # 粉红
 	mat.roughness = 0.7
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -509,20 +509,20 @@ static func _generate_bamboo_leaf(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 几片竹叶
 	for i in range(4):
 		var angle := TAU * i / 4
 		_add_leaf(st, Vector3(0, 0.1, 0) * size, 0.15 * size, angle)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.4, 0.65, 0.35)
 	mat.roughness = 0.8
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -532,21 +532,21 @@ static func _generate_spirit_herb(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 茎
 	_add_box(st, Vector3(0, 0.15, 0) * size, Vector3(0.02, 0.3, 0.02) * size)
-	
+
 	# 叶片
 	for i in range(4):
 		var angle := TAU * i / 4
 		_add_leaf(st, Vector3(0, 0.25, 0) * size, 0.12 * size, angle)
-	
+
 	# 发光果实
 	_add_icosphere(st, Vector3(0, 0.35, 0) * size, 0.05 * size, 1)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.3, 1.0, 0.5)  # 亮绿色
 	mat.emission_enabled = true
@@ -554,7 +554,7 @@ static func _generate_spirit_herb(size: float) -> MeshInstance3D:
 	mat.emission_energy = 0.6
 	mat.roughness = 0.5
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -592,7 +592,7 @@ static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, heigh
 		st.add_vertex(center + Vector3(c2, h, s2))
 		st.add_vertex(center + Vector3(c1, h, s1))
 
-static func _add_cone(st: SurfaceTool, apex: Vector3, radius: float, height: float, hollow: bool, segments: int = 8) -> void:
+static func _add_cone(st: SurfaceTool, apex: Vector3, radius: float, height: float, _hollow: bool, segments: int = 8) -> void:
 	var base_y := apex.y - height
 	for i in range(segments):
 		var a1 := TAU * i / segments
@@ -605,7 +605,7 @@ static func _add_cone(st: SurfaceTool, apex: Vector3, radius: float, height: flo
 		st.add_vertex(Vector3(c1, base_y, s1) + Vector3(apex.x, 0, apex.z))
 		st.add_vertex(Vector3(c2, base_y, s2) + Vector3(apex.x, 0, apex.z))
 
-static func _add_sphere(st: SurfaceTool, center: Vector3, radius: float, subdivisions: int = 1) -> void:
+static func _add_sphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 	var verts := PackedVector3Array([
 		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),
@@ -638,7 +638,7 @@ static func _add_dome(st: SurfaceTool, center: Vector3, radius: float, height: f
 			st.add_vertex(p1); st.add_vertex(p2); st.add_vertex(p3)
 			st.add_vertex(p2); st.add_vertex(p4); st.add_vertex(p3)
 
-static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, subdivisions: int = 1) -> void:
+static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 	var verts := PackedVector3Array([
 		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),

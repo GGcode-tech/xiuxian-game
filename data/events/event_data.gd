@@ -44,7 +44,7 @@ enum EventType {
 
 func get_trigger_description() -> String:
 	var parts = []
-	
+
 	if triggers.min_realm != "":
 		parts.append("需要境界: %s" % triggers.min_realm)
 	if triggers.min_age > 0:
@@ -55,5 +55,5 @@ func get_trigger_description() -> String:
 		parts.append("需要特质: %s" % triggers.required_trait)
 	if triggers.min_year > 0:
 		parts.append("年份 ≥ 第%d年" % triggers.min_year)
-	
+
 	return "\n".join(parts)

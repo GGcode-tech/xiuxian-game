@@ -63,16 +63,16 @@ static func _generate_qi_orb(size: float, color_key: String) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 外层光球
 	_add_icosphere(st, Vector3.ZERO, size, 1)
-	
+
 	# 内层核心
 	_add_icosphere(st, Vector3.ZERO, size * 0.4, 1)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var color := COLORS.get(color_key, COLORS.qi_blue)
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
@@ -83,7 +83,7 @@ static func _generate_qi_orb(size: float, color_key: String) -> MeshInstance3D:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.6
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -93,23 +93,23 @@ static func _generate_gliding_sword(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 剑身 (流线型)
 	_add_sword_blade(st, Vector3(0, 0, 0) * size, size)
-	
+
 	# 剑柄
 	_add_box(st, Vector3(0, -size * 0.3, 0), Vector3(0.05, 0.15, 0.04) * size)
-	
+
 	# 护手
 	_add_box(st, Vector3(0, -size * 0.2, 0), Vector3(0.15, 0.03, 0.05) * size)
-	
+
 	# 剑气光环
 	_add_ring(st, Vector3(0, size * 0.5, 0), size * 0.3, size * 0.05, 8)
 	_add_ring(st, Vector3(0, size * 0.3, 0), size * 0.25, size * 0.03, 8)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.85, 0.95, 1.0)
 	mat.emission_enabled = true
@@ -118,7 +118,7 @@ static func _generate_gliding_sword(size: float) -> MeshInstance3D:
 	mat.roughness = 0.2
 	mat.metallic = 0.9
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -128,16 +128,16 @@ static func _generate_alchemy_flame(size: float, color_key: String) -> MeshInsta
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 三层火焰
 	for layer in range(3):
 		var scale := 1.0 - layer * 0.25
 		var offset := Vector3(randf_range(-0.05, 0.05), layer * 0.1, randf_range(-0.05, 0.05)) * size
 		_add_flame(st, offset, size * scale, 5 - layer)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var color := COLORS.get(color_key, COLORS.fire_red)
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
@@ -148,7 +148,7 @@ static func _generate_alchemy_flame(size: float, color_key: String) -> MeshInsta
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.7
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -158,19 +158,19 @@ static func _generate_meditation_aura(size: float, color_key: String) -> MeshIns
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 多层光环
 	for i in range(3):
 		var r := size * (0.8 + i * 0.3)
 		var y := size * (0.1 + i * 0.2)
 		_add_ring(st, Vector3(0, y, 0), r, size * 0.05, 16)
-	
+
 	# 升腾的灵气柱
 	_add_cylinder(st, Vector3(0, size * 1.5, 0), size * 0.3, size * 2.0, 8)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var color := COLORS.get(color_key, COLORS.qi_blue)
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
@@ -181,7 +181,7 @@ static func _generate_meditation_aura(size: float, color_key: String) -> MeshIns
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.5
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -191,23 +191,23 @@ static func _generate_breakthrough(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 中央光柱
 	_add_cylinder(st, Vector3(0, size, 0), size * 0.4, size * 4.0, 8)
-	
+
 	# 散射光芒
 	for i in range(8):
 		var angle := TAU * i / 8
 		var base := Vector3(cos(angle) * size * 0.3, 0, sin(angle) * size * 0.3)
 		_add_light_ray(st, base, size * 2.0, angle)
-	
+
 	# 顶部光环
 	_add_ring(st, Vector3(0, size * 2.5, 0), size * 1.2, size * 0.1, 16)
 	_add_ring(st, Vector3(0, size * 2.8, 0), size * 0.8, size * 0.08, 12)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(1.0, 1.0, 1.0)
 	mat.emission_enabled = true
@@ -217,7 +217,7 @@ static func _generate_breakthrough(size: float) -> MeshInstance3D:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.8
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -227,28 +227,28 @@ static func _generate_talisman(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 符纸
 	_add_box(st, Vector3(0, 0, 0), Vector3(0.4, 0.6, 0.01) * size)
-	
+
 	# 符文符头
 	_add_box(st, Vector3(0, 0.25, 0.005) * size, Vector3(0.15, 0.1, 0.005) * size)
-	
+
 	# 竖笔
 	_add_box(st, Vector3(0, 0.05, 0.005) * size, Vector3(0.02, 0.35, 0.005) * size)
-	
+
 	# 左右点
 	_add_box(st, Vector3(-0.1, 0.1, 0.005) * size, Vector3(0.05, 0.05, 0.005) * size)
 	_add_box(st, Vector3(0.1, 0.1, 0.005) * size, Vector3(0.05, 0.05, 0.005) * size)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.9, 0.85, 0.7)  # 黄纸
 	mat.roughness = 0.9
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -258,18 +258,18 @@ static func _generate_dan(size: float, color_key: String) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 圆形丹体
 	_add_icosphere(st, Vector3.ZERO, size, 2)
-	
+
 	# 纹路
 	for i in range(4):
 		var angle := TAU * i / 4
 		_add_ring(st, Vector3(0, 0, 0), size * 0.8, size * 0.02, 8)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var color := COLORS.get(color_key, COLORS.qi_gold)
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
@@ -281,7 +281,7 @@ static func _generate_dan(size: float, color_key: String) -> MeshInstance3D:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.9
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -291,7 +291,7 @@ static func _generate_yuanying(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 小人形
 	# 头
 	_add_icosphere(st, Vector3(0, size * 0.5, 0), size * 0.2, 1)
@@ -303,13 +303,13 @@ static func _generate_yuanying(size: float) -> MeshInstance3D:
 	# 腿
 	_add_box(st, Vector3(-size * 0.08, -size * 0.1, 0), Vector3(0.08, 0.25, 0.1) * size)
 	_add_box(st, Vector3(size * 0.08, -size * 0.1, 0), Vector3(0.08, 0.25, 0.1) * size)
-	
+
 	# 光环
 	_add_ring(st, Vector3(0, -size * 0.1, 0), size * 0.6, size * 0.05, 12)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var color := Color(0.6, 0.8, 1.0)  # 半透明蓝色
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
@@ -320,7 +320,7 @@ static func _generate_yuanying(size: float) -> MeshInstance3D:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.7
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -330,7 +330,7 @@ static func _generate_spirit_beast(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 龙形简化
 	# 头
 	_add_icosphere(st, Vector3(0, size * 0.6, size * 0.3), size * 0.2, 1)
@@ -341,10 +341,10 @@ static func _generate_spirit_beast(size: float) -> MeshInstance3D:
 	_add_wing(st, Vector3(size * 0.3, size * 0.5, 0), size * 0.4, PI/4)
 	# 尾巴
 	_add_cylinder(st, Vector3(0, size * 0.2, -size * 0.5), size * 0.08, size * 0.4, 4)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.4, 0.7, 0.9)
 	mat.emission_enabled = true
@@ -354,7 +354,7 @@ static func _generate_spirit_beast(size: float) -> MeshInstance3D:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.8
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -364,20 +364,20 @@ static func _generate_portal(size: float) -> MeshInstance3D:
 	var mesh := ArrayMesh.new()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
+
 	# 门框 (环形)
 	_add_torus(st, Vector3(0, size, 0), size * 0.8, size * 0.1, 12)
-	
+
 	# 门内漩涡
 	_add_disc(st, Vector3(0, size, 0), size * 0.7, 16)
-	
+
 	# 装饰柱
 	_add_box(st, Vector3(-size * 0.9, size * 0.5, 0), Vector3(0.2, size, 0.2) * size)
 	_add_box(st, Vector3(size * 0.9, size * 0.5, 0), Vector3(0.2, size, 0.2) * size)
-	
+
 	st.generate_normals()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	
+
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.5, 0.3, 0.9)
 	mat.emission_enabled = true
@@ -387,7 +387,7 @@ static func _generate_portal(size: float) -> MeshInstance3D:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.75
 	mesh.surface_set_material(0, mat)
-	
+
 	instance.mesh = mesh
 	return instance
 
@@ -417,7 +417,7 @@ static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, heigh
 		st.add_vertex(center + Vector3(cos(a2) * radius, h, sin(a2) * radius))
 		st.add_vertex(center + Vector3(cos(a1) * radius, h, sin(a1) * radius))
 
-static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, subdivisions: int = 1) -> void:
+static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 	var verts := PackedVector3Array([
 		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),

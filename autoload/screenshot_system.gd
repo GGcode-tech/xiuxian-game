@@ -18,19 +18,19 @@ func take_screenshot(custom_name: String = "") -> void:
 	# 等一帧确保渲染完成
 	await get_tree().process_frame
 	await get_tree().process_frame
-	
+
 	var image = get_viewport().get_texture().get_image()
 	_screenshot_count += 1
-	
+
 	var filename: String
 	if custom_name != "":
 		filename = "%s_%s.png" % [_screenshot_count, custom_name]
 	else:
 		filename = "%03d_screenshot.png" % _screenshot_count
-	
+
 	var path = SCREENSHOT_DIR + filename
 	var error = image.save_png(path)
-	
+
 	if error == OK:
 		var abs_path = ProjectSettings.globalize_path(path)
 		print("[Screenshot] 截图已保存: ", abs_path)

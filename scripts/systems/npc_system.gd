@@ -28,31 +28,31 @@ func _load_npcs() -> void:
 	if not FileAccess.file_exists(db_path):
 		push_warning("[NPCSystem] game_database.json not found")
 		return
-	
+
 	var file = FileAccess.open(db_path, FileAccess.READ)
 	if not file:
 		return
-	
+
 	var json_text = file.get_as_text()
 	file.close()
-	
+
 	var json_obj = JSON.new()
 	if json_obj.parse(json_text) != OK:
 		push_warning("[NPCSystem] JSON parse error")
 		return
-	
+
 	var db = json_obj.data
 	var characters = db.get("characters", {})
-	
+
 	for source_name in characters:
 		var char_list = characters[source_name]
 		_npc_by_source[source_name] = []
-		
+
 		for char_data in char_list:
 			var npc = _create_npc(char_data, source_name)
 			_npcs[npc["id"]] = npc
 			_npc_by_source[source_name].append(npc["id"])
-	
+
 	print("[NPCSystem] 加载完成，NPC总数: %d" % _npcs.size())
 
 func _create_npc(data: Dictionary, source: String) -> Dictionary:
@@ -120,11 +120,11 @@ func get_npc_dialogue(npc_id: String) -> String:
 	var npc = get_npc(npc_id)
 	if npc.is_empty():
 		return ""
-	
+
 	var pool = npc.get("dialogue_pool", [])
 	if pool.is_empty():
 		return "..."
-	
+
 	return pool[randi() % pool.size()]
 
 # 修改与NPC的关系

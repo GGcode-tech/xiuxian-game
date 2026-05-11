@@ -22,7 +22,7 @@ func _generate_stats() -> void:
 	if family.is_empty():
 		stats_label.text = "存续年数: ? | 历代族人: ?"
 		return
-	
+
 	var txt = ""
 	txt += "[b]存续年数[/b]: %d 年\n" % GameManager.game_time.year
 	txt += "[b]历代族人[/b]: %d 人\n" % family.get("members", []).size()

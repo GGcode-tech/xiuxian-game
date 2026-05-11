@@ -65,16 +65,16 @@ func _load_glb_model(path: String) -> Node3D:
 		var cached_scene = _model_cache[path]
 		if cached_scene:
 			return cached_scene.instantiate()
-	
+
 	if not ResourceLoader.exists(path):
 		push_warning("[World] GLB模型不存在: %s" % path)
 		return null
-	
+
 	var scene = load(path)
 	if scene is PackedScene:
 		_model_cache[path] = scene
 		return scene.instantiate()
-	
+
 	push_warning("[World] GLB加载后不是PackedScene: %s" % path)
 	return null
 
@@ -92,7 +92,7 @@ func _get_building_model(building_type: int) -> Node3D:
 		7: KENNEY_BUILDINGS + "bridge-straight.glb", # 观景亭
 		8: KENNEY_BUILDINGS + "wall.glb",            # 居室
 	}
-	
+
 	var path = model_map.get(building_type, KENNEY_BUILDINGS + "tower-square.glb")
 	return _load_glb_model(path)
 
@@ -116,7 +116,7 @@ func _get_tree_model(tree_type: int) -> Node3D:
 		13: KENNEY_PLANTS + "tree_oak_fall.glb",          # 秋色橡树
 		14: KENNEY_PLANTS + "tree_default_fall.glb",      # 秋色树
 	}
-	
+
 	var path = model_map.get(tree_type, KENNEY_NATURE + "tree_default.glb")
 	return _load_glb_model(path)
 
@@ -135,7 +135,7 @@ func _get_rock_model(rock_type: int) -> Node3D:
 		8: KENNEY_TERRAIN + "stone_large_b.glb",     # 大灵石B
 		9: KENNEY_TERRAIN + "stone_large_c.glb",     # 大灵石C
 	}
-	
+
 	var path = model_map.get(rock_type, KENNEY_NATURE + "rock_smallA.glb")
 	return _load_glb_model(path)
 
@@ -283,48 +283,48 @@ func _place_decorations() -> void:
 	"""放置灵泉、灯笼、旗帜、摊位等装饰"""
 	# 灵泉（中心广场）
 	_place_deco(KENNEY_DECOR + "fountain-round.glb", Vector3(0, 0, -2), 2.5)
-	
+
 	# 灯笼（主要路口）
 	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(-8, 0, 12), 1.5)
 	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(8, 0, 12), 1.5)
 	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(0, 0, 22), 1.5)
 	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(-12, 0, -8), 1.5)
 	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(12, 0, -8), 1.5)
-	
+
 	# 旗帜（山门两侧）
 	_place_deco(KENNEY_DECOR + "banner-red.glb", Vector3(-4, 0, 28), 2.0)
 	_place_deco(KENNEY_DECOR + "banner-green.glb", Vector3(4, 0, 28), 2.0)
 	_place_deco(KENNEY_DECOR + "flag.glb", Vector3(-3, 0, 32), 1.5)
 	_place_deco(KENNEY_DECOR + "flag.glb", Vector3(3, 0, 32), 1.5)
-	
+
 	# 集市摊位（广场两侧）
 	_place_deco(KENNEY_DECOR + "stall-red.glb", Vector3(10, 0, -15), 2.0)
 	_place_deco(KENNEY_DECOR + "stall-green.glb", Vector3(-10, 0, -15), 2.0)
 	_place_deco(KENNEY_DECOR + "stall.glb", Vector3(6, 0, -18), 1.5)
 	_place_deco(KENNEY_DECOR + "stall-bench.glb", Vector3(-6, 0, -18), 1.5)
-	
+
 	# 石柱（主殿两侧）
 	_place_deco(KENNEY_DECOR + "pillar-stone.glb", Vector3(-5, 0, 10), 2.0)
 	_place_deco(KENNEY_DECOR + "pillar-stone.glb", Vector3(5, 0, 10), 2.0)
-	
+
 	# 推车（小径旁）
 	_place_deco(KENNEY_DECOR + "cart.glb", Vector3(18, 0, 3), 1.5)
-	
+
 	# 篱笆（居室周围）
 	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(-14, 0, -23), 2.0)
 	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(-8, 0, -23), 2.0)
 	_place_deco(KENNEY_DECOR + "fence-gate.glb", Vector3(-11, 0, -23), 2.0)
 	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(8, 0, -23), 2.0)
 	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(14, 0, -23), 2.0)
-	
+
 	# 雕像（祭坛旁）
 	_place_deco(KENNEY_TERRAIN + "statue_obelisk.glb", Vector3(-6, 0, -1), 2.0)
 	_place_deco(KENNEY_TERRAIN + "statue_obelisk.glb", Vector3(6, 0, -1), 2.0)
-	
+
 	# 石桥（灵泉旁）
 	_place_deco(KENNEY_TERRAIN + "bridge_stone.glb", Vector3(12, 0.1, 15), 2.0)
 	_place_deco(KENNEY_TERRAIN + "bridge_wood.glb", Vector3(-12, 0.1, 15), 2.0)
-	
+
 	# 花盆（主殿门前）
 	_place_deco(KENNEY_TERRAIN + "pot_large.glb", Vector3(-3, 0, 14), 1.5)
 	_place_deco(KENNEY_TERRAIN + "pot_large.glb", Vector3(3, 0, 14), 1.5)
@@ -504,23 +504,23 @@ func _generate_nature() -> void:
 	_place_plants_batch("flower_purple", KENNEY_PLANTS + "flower_purple.glb", 4, 0.8)
 	_place_plants_batch("flower_red", KENNEY_PLANTS + "flower_red.glb", 4, 0.8)
 	_place_plants_batch("flower_yellow", KENNEY_PLANTS + "flower_yellow.glb", 4, 0.8)
-	
+
 	# 灵芝/蘑菇：5-8个
 	_place_plants_batch("mushroom", KENNEY_PLANTS + "mushroom_red.glb", 3, 1.2)
 	_place_plants_batch("mushroom_group", KENNEY_PLANTS + "mushroom_tan_group.glb", 3, 1.0)
 	_place_plants_batch("mushroom_tall", KENNEY_PLANTS + "mushroom_red_tall.glb", 2, 1.0)
-	
+
 	# 莲花：在水边放4朵
 	_place_plants_batch("lily", KENNEY_PLANTS + "lily_large.glb", 4, 1.5, Vector3(18, 0.15, 13), 6.0)
-	
+
 	# 灌木：10-15丛
 	_place_plants_batch("bush", KENNEY_PLANTS + "bush.glb", 6, 1.5)
 	_place_plants_batch("bush_large", KENNEY_PLANTS + "bush_large.glb", 5, 1.8)
-	
+
 	# 草丛：大量
 	_place_plants_batch("grass", KENNEY_PLANTS + "grass.glb", 8, 1.0)
 	_place_plants_batch("grass_large", KENNEY_PLANTS + "grass_large.glb", 6, 1.2)
-	
+
 	# 营火：在炼丹房和广场各放一个
 	_place_single("campfire", KENNEY_PLANTS + "campfire_stones.glb", Vector3(15, 0, 8), 2.0)
 	_place_single("campfire2", KENNEY_PLANTS + "campfire_logs.glb", Vector3(-5, 0, -12), 1.5)
@@ -566,7 +566,7 @@ func _spawn_characters() -> void:
 			_spawn_character_node(character)
 		else:
 			print("[World] SKIP: character empty or dead")
-	
+
 	if _player_node == null:
 		push_warning("[World] ⚠️ _player_node 未设置！请检查角色数据")
 
@@ -955,7 +955,7 @@ func _process(delta: float) -> void:
 			_player_node.look_at(Vector3(_move_target.x, _player_node.position.y, _move_target.z), Vector3.UP)
 			var step = _move_speed * delta
 			_player_node.position += direction.normalized() * step
-	
+
 	# 相机跟随玩家（人物始终在画面中心）
 	if _player_node and camera:
 		var target_cam_pos = _player_node.position + _camera_offset
@@ -967,18 +967,18 @@ func _raycast_ground(screen_pos: Vector2) -> Vector3:
 	"""从屏幕坐标射线检测地面(y=0)交点"""
 	if not camera:
 		return Vector3.INF
-	
+
 	var ray_origin = camera.project_ray_origin(screen_pos)
 	var ray_dir = camera.project_ray_normal(screen_pos)
-	
+
 	# 计算与 y=0 平面的交点
 	if abs(ray_dir.y) < 0.001:
 		return Vector3.INF
-	
+
 	var t = -ray_origin.y / ray_dir.y
 	if t < 0:
 		return Vector3.INF
-	
+
 	var hit_pos = ray_origin + ray_dir * t
 	# 限制在地图范围内
 	hit_pos.x = clampf(hit_pos.x, -terrain_size * 0.45, terrain_size * 0.45)
