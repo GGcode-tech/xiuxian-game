@@ -25,6 +25,12 @@ var _npc_nodes: Dictionary = {}
 # Kenney模型路径常量
 const KENNEY_BUILDINGS = "res://assets/models/kenney_buildings/"
 const KENNEY_NATURE = "res://assets/models/kenney_nature/"
+const KENNEY_DECOR = "res://assets/models/kenney_decor/"
+const KENNEY_PLANTS = "res://assets/models/kenney_plants/"
+const KENNEY_TERRAIN = "res://assets/models/kenney_terrain/"
+const OGA_TEMPLE = "res://assets/models/opengameart_temple/"
+const OGA_BAMBOO = "res://assets/models/opengameart_bamboo/"
+const OGA_DRAGON = "res://assets/models/opengameart_dragon/"
 
 # 模型缓存
 var _model_cache: Dictionary = {}
@@ -34,6 +40,7 @@ func initialize() -> void:
 	_generate_terrain()
 	_place_buildings()
 	_generate_nature()
+	_place_decorations()
 	_spawn_characters()
 	_spawn_npcs()
 	_setup_camera()
@@ -77,7 +84,7 @@ func _get_building_model(building_type: int) -> Node3D:
 	var model_map: Dictionary = {
 		0: KENNEY_BUILDINGS + "gate.glb",           # 山门
 		1: KENNEY_BUILDINGS + "tower-square.glb",    # 主殿
-		2: KENNEY_BUILDINGS + "tower-square.glb",    # 祭坛
+		2: KENNEY_BUILDINGS + "tower-square.glb",    # 祭坛5
 		3: KENNEY_BUILDINGS + "tower-hexagon.glb",   # 藏经阁
 		4: KENNEY_BUILDINGS + "tower-square.glb",    # 炼丹房
 		5: KENNEY_BUILDINGS + "tower-square.glb",    # 炼器房
@@ -93,9 +100,21 @@ func _get_building_model(building_type: int) -> Node3D:
 func _get_tree_model(tree_type: int) -> Node3D:
 	"""根据树木类型返回对应的GLB模型"""
 	var model_map: Dictionary = {
-		0: KENNEY_NATURE + "tree_pineDefaultA.glb",  # 松树
-		1: KENNEY_NATURE + "tree_default.glb",       # 竹子/普通树
-		2: KENNEY_NATURE + "tree_oak.glb",           # 柳树/橡树
+		0: KENNEY_NATURE + "tree_pineDefaultA.glb",      # 松树
+		1: KENNEY_NATURE + "tree_default.glb",            # 普通树
+		2: KENNEY_NATURE + "tree_oak.glb",                # 橡树/柳树
+		3: KENNEY_PLANTS + "tree_pine_tall_a.glb",        # 高大古松
+		4: KENNEY_PLANTS + "tree_thin.glb",               # 细长树/竹形
+		5: KENNEY_PLANTS + "tree_fat.glb",                # 粗壮古树
+		6: KENNEY_PLANTS + "tree_detailed.glb",           # 精细树
+		7: KENNEY_PLANTS + "tree_tall.glb",               # 参天大树
+		8: KENNEY_PLANTS + "tree_cone.glb",               # 尖锥松
+		9: KENNEY_PLANTS + "tree_blocks.glb",             # 方块树(秋冬感)
+		10: KENNEY_PLANTS + "tree_simple.glb",            # 简约树
+		11: KENNEY_PLANTS + "tree_small.glb",             # 小树苗
+		12: KENNEY_PLANTS + "tree_pine_small_a.glb",      # 小松树
+		13: KENNEY_PLANTS + "tree_oak_fall.glb",          # 秋色橡树
+		14: KENNEY_PLANTS + "tree_default_fall.glb",      # 秋色树
 	}
 	
 	var path = model_map.get(tree_type, KENNEY_NATURE + "tree_default.glb")
@@ -109,6 +128,12 @@ func _get_rock_model(rock_type: int) -> Node3D:
 		1: KENNEY_NATURE + "rock_smallA.glb",        # 小岩石
 		2: KENNEY_NATURE + "rock_tallA.glb",         # 高岩石
 		3: KENNEY_NATURE + "stone_largeA.glb",       # 灵石
+		4: KENNEY_TERRAIN + "rock_large_b.glb",      # 大岩石B
+		5: KENNEY_TERRAIN + "rock_large_c.glb",      # 大岩石C
+		6: KENNEY_TERRAIN + "rock_tall_b.glb",       # 高岩石B
+		7: KENNEY_TERRAIN + "rock_tall_c.glb",       # 高岩石C
+		8: KENNEY_TERRAIN + "stone_large_b.glb",     # 大灵石B
+		9: KENNEY_TERRAIN + "stone_large_c.glb",     # 大灵石C
 	}
 	
 	var path = model_map.get(rock_type, KENNEY_NATURE + "rock_smallA.glb")
@@ -252,6 +277,68 @@ func _add_building_collision(node: Node3D) -> void:
 	node.add_child(body)
 
 
+# ==================== 装饰物放置 ====================
+
+func _place_decorations() -> void:
+	"""放置灵泉、灯笼、旗帜、摊位等装饰"""
+	# 灵泉（中心广场）
+	_place_deco(KENNEY_DECOR + "fountain-round.glb", Vector3(0, 0, -2), 2.5)
+	
+	# 灯笼（主要路口）
+	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(-8, 0, 12), 1.5)
+	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(8, 0, 12), 1.5)
+	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(0, 0, 22), 1.5)
+	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(-12, 0, -8), 1.5)
+	_place_deco(KENNEY_DECOR + "lantern.glb", Vector3(12, 0, -8), 1.5)
+	
+	# 旗帜（山门两侧）
+	_place_deco(KENNEY_DECOR + "banner-red.glb", Vector3(-4, 0, 28), 2.0)
+	_place_deco(KENNEY_DECOR + "banner-green.glb", Vector3(4, 0, 28), 2.0)
+	_place_deco(KENNEY_DECOR + "flag_wide.glb", Vector3(-3, 0, 32), 1.5)
+	_place_deco(KENNEY_DECOR + "flag_wide.glb", Vector3(3, 0, 32), 1.5)
+	
+	# 集市摊位（广场两侧）
+	_place_deco(KENNEY_DECOR + "stall-red.glb", Vector3(10, 0, -15), 2.0)
+	_place_deco(KENNEY_DECOR + "stall-green.glb", Vector3(-10, 0, -15), 2.0)
+	_place_deco(KENNEY_DECOR + "stall.glb", Vector3(6, 0, -18), 1.5)
+	_place_deco(KENNEY_DECOR + "stall-bench.glb", Vector3(-6, 0, -18), 1.5)
+	
+	# 石柱（主殿两侧）
+	_place_deco(KENNEY_DECOR + "pillar-stone.glb", Vector3(-5, 0, 10), 2.0)
+	_place_deco(KENNEY_DECOR + "pillar-stone.glb", Vector3(5, 0, 10), 2.0)
+	
+	# 推车（小径旁）
+	_place_deco(KENNEY_DECOR + "cart.glb", Vector3(18, 0, 3), 1.5)
+	
+	# 篱笆（居室周围）
+	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(-14, 0, -23), 2.0)
+	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(-8, 0, -23), 2.0)
+	_place_deco(KENNEY_DECOR + "fence-gate.glb", Vector3(-11, 0, -23), 2.0)
+	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(8, 0, -23), 2.0)
+	_place_deco(KENNEY_DECOR + "fence.glb", Vector3(14, 0, -23), 2.0)
+	
+	# 雕像（祭坛旁）
+	_place_deco(KENNEY_TERRAIN + "statue_obelisk.glb", Vector3(-6, 0, -1), 2.0)
+	_place_deco(KENNEY_TERRAIN + "statue_obelisk.glb", Vector3(6, 0, -1), 2.0)
+	
+	# 石桥（灵泉旁）
+	_place_deco(KENNEY_TERRAIN + "bridge_stone.glb", Vector3(12, 0.1, 15), 2.0)
+	_place_deco(KENNEY_TERRAIN + "bridge_wood.glb", Vector3(-12, 0.1, 15), 2.0)
+	
+	# 花盆（主殿门前）
+	_place_deco(KENNEY_TERRAIN + "pot_large.glb", Vector3(-3, 0, 14), 1.5)
+	_place_deco(KENNEY_TERRAIN + "pot_large.glb", Vector3(3, 0, 14), 1.5)
+
+
+func _place_deco(model_path: String, pos: Vector3, scale: float) -> void:
+	"""放置单个装饰物到buildings节点"""
+	var node := _load_glb_model(model_path)
+	if node:
+		node.position = pos
+		node.scale = Vector3(scale, scale, scale)
+		buildings.add_child(node)
+
+
 func _add_character_collision(node: Node3D) -> void:
 	"""给角色节点添加StaticBody3D碰撞体（碰撞层=3）"""
 	var body := StaticBody3D.new()
@@ -365,42 +452,45 @@ func _get_npc_color(npc: Dictionary) -> Color:
 # ==================== 自然物生成 ====================
 
 func _generate_nature() -> void:
+	# 树木：15种类型随机
 	for i in range(tree_count):
-		var tree_type := [0, 1, 2][randi() % 3] as int
+		var tree_type := randi() % 15 as int
 		var tree_node := _get_tree_model(tree_type)
 		if tree_node:
 			tree_node.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
 			tree_node.rotate_y(randf() * TAU)
-			tree_node.scale = Vector3(2.0, 2.0, 2.0)  # 放大2倍
+			var scale = randf_range(1.5, 3.0)
+			tree_node.scale = Vector3(scale, scale, scale)
 			if abs(tree_node.position.x) < 10 and abs(tree_node.position.z) < 20:
 				tree_node.position.x += 15 * (1 if tree_node.position.x > 0 else -1)
 			nature.add_child(tree_node)
 		else:
-			# 回退到程序化几何体
-			var tree := _create_tree_fallback(tree_type, randf_range(0.6, 1.4))
+			var tree := _create_tree_fallback(tree_type % 3, randf_range(0.6, 1.4))
 			tree.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
 			tree.rotate_y(randf() * TAU)
 			if abs(tree.position.x) < 10 and abs(tree.position.z) < 20:
 				tree.position.x += 15 * (1 if tree.position.x > 0 else -1)
 			nature.add_child(tree)
 
+	# 岩石：10种类型随机
 	for i in range(rock_count):
-		var rock_type := [0, 1, 2][randi() % 3] as int
+		var rock_type := randi() % 10 as int
 		var rock_node := _get_rock_model(rock_type)
 		if rock_node:
 			rock_node.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
 			rock_node.rotate_y(randf() * TAU)
-			rock_node.scale = Vector3(1.5, 1.5, 1.5)  # 放大1.5倍
+			rock_node.scale = Vector3(1.5, 1.5, 1.5)
 			nature.add_child(rock_node)
 		else:
-			# 回退到程序化几何体
-			var rock := _create_rock_fallback(rock_type, randf_range(0.4, 1.2))
+			var rock := _create_rock_fallback(rock_type % 4, randf_range(0.4, 1.2))
 			rock.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
 			rock.rotate_y(randf() * TAU)
 			nature.add_child(rock)
 
-	for i in range(3):
-		var spirit_stone := _get_rock_model(3)
+	# 灵石：5个
+	for i in range(5):
+		var spirit_type := 3 + randi() % 3  # 灵石变体
+		var spirit_stone := _get_rock_model(spirit_type)
 		if spirit_stone:
 			spirit_stone.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
 			spirit_stone.scale = Vector3(2.0, 2.0, 2.0)
@@ -409,6 +499,55 @@ func _generate_nature() -> void:
 			var spirit_stone_fallback := _create_rock_fallback(3, 0.8)
 			spirit_stone_fallback.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
 			nature.add_child(spirit_stone_fallback)
+
+	# 灵花：8-12朵
+	_place_plants_batch("flower_purple", KENNEY_PLANTS + "flower_purple.glb", 4, 0.8)
+	_place_plants_batch("flower_red", KENNEY_PLANTS + "flower_red.glb", 4, 0.8)
+	_place_plants_batch("flower_yellow", KENNEY_PLANTS + "flower_yellow.glb", 4, 0.8)
+	
+	# 灵芝/蘑菇：5-8个
+	_place_plants_batch("mushroom", KENNEY_PLANTS + "mushroom_red.glb", 3, 1.2)
+	_place_plants_batch("mushroom_group", KENNEY_PLANTS + "mushroom_tan_group.glb", 3, 1.0)
+	_place_plants_batch("mushroom_tall", KENNEY_PLANTS + "mushroom_red_tall.glb", 2, 1.0)
+	
+	# 莲花：在水边放4朵
+	_place_plants_batch("lily", KENNEY_PLANTS + "lily_large.glb", 4, 1.5, Vector3(18, 0.15, 13), 6.0)
+	
+	# 灌木：10-15丛
+	_place_plants_batch("bush", KENNEY_PLANTS + "bush.glb", 6, 1.5)
+	_place_plants_batch("bush_large", KENNEY_PLANTS + "bush_large.glb", 5, 1.8)
+	
+	# 草丛：大量
+	_place_plants_batch("grass", KENNEY_PLANTS + "grass.glb", 8, 1.0)
+	_place_plants_batch("grass_large", KENNEY_PLANTS + "grass_large.glb", 6, 1.2)
+	
+	# 营火：在炼丹房和广场各放一个
+	_place_single("campfire", KENNEY_PLANTS + "campfire_stones.glb", Vector3(15, 0, 8), 2.0)
+	_place_single("campfire2", KENNEY_PLANTS + "campfire_logs.glb", Vector3(-5, 0, -12), 1.5)
+
+
+func _place_plants_batch(name_prefix: String, model_path: String, count: int, scale: float, center: Vector3 = Vector3.ZERO, radius: float = 0.0) -> void:
+	"""批量放置植物类装饰"""
+	for i in range(count):
+		var node := _load_glb_model(model_path)
+		if not node:
+			continue
+		if radius > 0.0:
+			node.position = center + Vector3(randf_range(-radius, radius), 0, randf_range(-radius, radius))
+		else:
+			node.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
+		node.rotate_y(randf() * TAU)
+		node.scale = Vector3(scale, scale, scale)
+		nature.add_child(node)
+
+
+func _place_single(_name: String, model_path: String, pos: Vector3, scale: float) -> void:
+	"""放置单个装饰物"""
+	var node := _load_glb_model(model_path)
+	if node:
+		node.position = pos
+		node.scale = Vector3(scale, scale, scale)
+		nature.add_child(node)
 
 
 # ==================== 角色生成 ====================
@@ -453,9 +592,10 @@ func _create_default_characters() -> void:
 		char_node.set_meta("character_id", "default_%d" % i)
 		characters_node.add_child(char_node)
 		_add_character_collision(char_node)
-		# 第一个角色设为玩家
+	# 第一个角色设为玩家
 		if i == 0 and _player_node == null:
 			_player_node = char_node
+			_add_player_aura(char_node)
 
 
 func _spawn_character_node(character: Dictionary) -> void:
@@ -480,6 +620,7 @@ func _spawn_character_node(character: Dictionary) -> void:
 	# 如果是玩家角色（第一代修炼者），设置引用
 	if character.get("generation", 0) == 1 and character.get("role", "") == "cultivator":
 		_player_node = container
+		_add_player_aura(container)
 	print("[World] ✅ spawned character '%s' at %s" % [character.get("name", "?"), container.position])
 
 
@@ -613,22 +754,83 @@ func _create_character_mesh(char_type: int, color: Color) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
-	_add_sphere(st, Vector3(0, 1.6, 0), 0.2, 1)
-	_add_box(st, Vector3(0, 1.2, 0), Vector3(0.35, 0.5, 0.2))
-	_add_box(st, Vector3(-0.1, 0.45, 0), Vector3(0.12, 0.6, 0.15))
-	_add_box(st, Vector3(0.1, 0.45, 0), Vector3(0.12, 0.6, 0.15))
-	_add_box(st, Vector3(-0.28, 1.1, 0), Vector3(0.1, 0.4, 0.1))
-	_add_box(st, Vector3(0.28, 1.1, 0), Vector3(0.1, 0.4, 0.1))
+	# 头部（球形，稍大）
+	_add_sphere(st, Vector3(0, 1.7, 0), 0.22, 2)
+	# 发髻（头顶小球）
+	_add_sphere(st, Vector3(0, 1.95, 0), 0.12, 1)
+	# 身体/道袍（上窄下宽的梯形躯干）
+	_add_box(st, Vector3(0, 1.2, 0), Vector3(0.35, 0.55, 0.22))
+	# 道袍下摆（更宽）
+	_add_box(st, Vector3(0, 0.7, 0), Vector3(0.5, 0.45, 0.28))
+	# 腿部
+	_add_box(st, Vector3(-0.12, 0.3, 0), Vector3(0.1, 0.55, 0.12))
+	_add_box(st, Vector3(0.12, 0.3, 0), Vector3(0.1, 0.55, 0.12))
+	# 袖子（宽大的左右袖口）
+	_add_box(st, Vector3(-0.35, 1.15, 0), Vector3(0.2, 0.25, 0.18))
+	_add_box(st, Vector3(0.35, 1.15, 0), Vector3(0.2, 0.25, 0.18))
+	# 手臂
+	_add_box(st, Vector3(-0.25, 1.05, 0), Vector3(0.08, 0.35, 0.08))
+	_add_box(st, Vector3(0.25, 1.05, 0), Vector3(0.08, 0.35, 0.08))
 
 	st.generate_normals()
 	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.8
+	mat.roughness = 0.6
+	mat.metallic = 0.1
 	array_mesh.surface_set_material(0, mat)
 	mesh_instance.mesh = array_mesh
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	return mesh_instance
+
+
+func _add_player_aura(player_node: Node3D) -> void:
+	"""给玩家角色添加灵气光效和脚下光环"""
+	# 脚下光环
+	var ring_mesh := MeshInstance3D.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var ring_radius := 0.6
+	var ring_segments := 32
+	for i in range(ring_segments):
+		var a1 := (i / float(ring_segments)) * TAU
+		var a2 := ((i + 1) / float(ring_segments)) * TAU
+		var inner_r := ring_radius - 0.08
+		st.add_vertex(Vector3(cos(a1) * ring_radius, 0.05, sin(a1) * ring_radius))
+		st.add_vertex(Vector3(cos(a2) * ring_radius, 0.05, sin(a2) * ring_radius))
+		st.add_vertex(Vector3(cos(a1) * inner_r, 0.05, sin(a1) * inner_r))
+		st.add_vertex(Vector3(cos(a2) * inner_r, 0.05, sin(a2) * inner_r))
+		st.add_vertex(Vector3(cos(a1) * inner_r, 0.05, sin(a1) * inner_r))
+		st.add_vertex(Vector3(cos(a2) * ring_radius, 0.05, sin(a2) * ring_radius))
+	st.generate_normals()
+	var arr_mesh := ArrayMesh.new()
+	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.albedo_color = Color(0.5, 0.8, 1.0, 0.6)
+	ring_mat.emission_enabled = true
+	ring_mat.emission = Color(0.3, 0.6, 1.0)
+	ring_mat.emission_energy = 2.0
+	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	arr_mesh.surface_set_material(0, ring_mat)
+	ring_mesh.mesh = arr_mesh
+	player_node.add_child(ring_mesh)
+
+	# 头顶境界指示光点
+	var glow := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.08
+	sphere.height = 0.16
+	var glow_mat := StandardMaterial3D.new()
+	glow_mat.albedo_color = Color(1.0, 0.9, 0.4)
+	glow_mat.emission_enabled = true
+	glow_mat.emission = Color(1.0, 0.8, 0.3)
+	glow_mat.emission_energy = 3.0
+	glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sphere.surface_set_material(0, glow_mat)
+	glow.mesh = sphere
+	glow.position = Vector3(0, 2.3, 0)
+	player_node.add_child(glow)
 
 
 # ==================== 几何辅助 ====================
