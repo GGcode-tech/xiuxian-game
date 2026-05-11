@@ -294,8 +294,8 @@ func _place_decorations() -> void:
 	# 旗帜（山门两侧）
 	_place_deco(KENNEY_DECOR + "banner-red.glb", Vector3(-4, 0, 28), 2.0)
 	_place_deco(KENNEY_DECOR + "banner-green.glb", Vector3(4, 0, 28), 2.0)
-	_place_deco(KENNEY_DECOR + "flag_wide.glb", Vector3(-3, 0, 32), 1.5)
-	_place_deco(KENNEY_DECOR + "flag_wide.glb", Vector3(3, 0, 32), 1.5)
+	_place_deco(KENNEY_DECOR + "flag.glb", Vector3(-3, 0, 32), 1.5)
+	_place_deco(KENNEY_DECOR + "flag.glb", Vector3(3, 0, 32), 1.5)
 	
 	# 集市摊位（广场两侧）
 	_place_deco(KENNEY_DECOR + "stall-red.glb", Vector3(10, 0, -15), 2.0)
