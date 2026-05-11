@@ -1,4 +1,4 @@
-## HUD - 游戏主界面HUD
+## HUD - 游戏主界面HUD (梦幻西游风格底部通栏)
 extends Control
 
 # 顶部信息栏
@@ -12,10 +12,10 @@ extends Control
 @onready var spirit_stone_label: Label = $TopBar/SpiritStoneLabel
 
 # 底部操作栏
-@onready var action_bar: HBoxContainer = $BottomBar/ActionBar
+@onready var action_bar: HBoxContainer = $BottomBar/MarginContainer/HBox/ActionBar
 
-# 侧边角色列表
-@onready var character_sidebar: VBoxContainer = $SideBar/CharacterList
+# 底部角色列表(水平排列)
+@onready var character_sidebar: HBoxContainer = $BottomBar/MarginContainer/HBox/CharacterList
 
 # 信号
 signal character_selected(character)
@@ -28,8 +28,8 @@ func _ready() -> void:
 	GameManager.speed_changed.connect(_on_speed_changed)
 	
 	# 连接底部按钮
-	var family_btn = $BottomBar/ActionBar/FamilyButton
-	var map_btn = $BottomBar/ActionBar/MapButton
+	var family_btn = $BottomBar/MarginContainer/HBox/ActionBar/FamilyButton
+	var map_btn = $BottomBar/MarginContainer/HBox/ActionBar/MapButton
 	if family_btn:
 		family_btn.pressed.connect(_on_family_button_pressed)
 	if map_btn:
@@ -80,7 +80,6 @@ func _update_family_overview() -> void:
 	var members = family.get("members", [])
 	member_count_label.text = "族人: %d" % members.size()
 	
-	# 从玩家角色获取灵石
 	var player = _get_player_character_from_hud()
 	var spirit_stone = player.get("resources", {}).get("spirit_stone", 0) if player else 0
 	spirit_stone_label.text = "灵石: %d" % spirit_stone
@@ -103,7 +102,7 @@ func _update_character_sidebar() -> void:
 			var realm = DataManager.get_realm(realm_id)
 			var char_name = character.get("name", "未知")
 			button.text = "%s [%s]" % [char_name, realm.name if realm else "?"]
-			button.custom_minimum_size = Vector2(140, 26)
+			button.custom_minimum_size = Vector2(100, 28)
 			button.pressed.connect(_on_character_button_pressed.bind(character))
 			character_sidebar.add_child(button)
 

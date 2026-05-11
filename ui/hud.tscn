@@ -16,103 +16,130 @@ script = ExtResource("1")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 32.0
+offset_bottom = 26.0
 grow_horizontal = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 mouse_filter = 2
 
 [node name="DateLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "第1年 正月 1日"
 
 [node name="SeasonLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "🌸 春"
 
 [node name="SpeedLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "速度: 1x"
 
 [node name="FamilyNameLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "家族: ?"
 
-[node name="MemberCountLabel" type="Label" parent="TopBar"]
+[node name="MemberCountLabel" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "族人: 0"
 
 [node name="SpiritStoneLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "灵石: 0"
 
-[node name="SideBar" type="PanelContainer" parent="."]
+[node name="BottomBar" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 9
+anchors_preset = 12
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 160.0
-offset_top = 36.0
-offset_bottom = -48.0
-grow_vertical = 2
+offset_top = -52.0
+offset_left = 0.0
+grow_horizontal = 2
+grow_vertical = 0
 mouse_filter = 2
 
-[node name="CharacterList" type="VBoxContainer" parent="SideBar"]
+[node name="MarginContainer" type="MarginContainer" parent="BottomBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="BottomBar/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CharacterList" type="HBoxContainer" parent="BottomBar/MarginContainer/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 2
 mouse_filter = 2
 
-[node name="BottomBar" type="HBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -45.0
-offset_left = 164.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_constants/separation = 8
-mouse_filter = 2
+[node name="VSpacer" type="VSeparator" parent="BottomBar/MarginContainer/HBox"]
+layout_mode = 2
 
-[node name="ActionBar" type="HBoxContainer" parent="BottomBar"]
+[node name="ActionBar" type="HBoxContainer" parent="BottomBar/MarginContainer/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 mouse_filter = 2
 
-[node name="FamilyButton" type="Button" parent="BottomBar/ActionBar"]
+[node name="FamilyButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(70, 32)
+custom_minimum_size = Vector2(60, 36)
 text = "家族"
 
-[node name="MapButton" type="Button" parent="BottomBar/ActionBar"]
+[node name="MapButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(70, 32)
+custom_minimum_size = Vector2(60, 36)
 text = "地图"
 
-[node name="CultivateButton" type="Button" parent="BottomBar/ActionBar"]
+[node name="CultivateButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(70, 32)
+custom_minimum_size = Vector2(60, 36)
 text = "修炼"
 
-[node name="AlchemyButton" type="Button" parent="BottomBar/ActionBar"]
+[node name="AlchemyButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(70, 32)
+custom_minimum_size = Vector2(60, 36)
 text = "炼丹"
 
-[node name="ExploreButton" type="Button" parent="BottomBar/ActionBar"]
+[node name="ExploreButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(70, 32)
+custom_minimum_size = Vector2(60, 36)
 text = "探索"
+
+[node name="BreakthroughButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 36)
+text = "突破"
+
+[node name="SectButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 36)
+text = "宗门"
+
+[node name="DungeonButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
+layout_minimum_size = Vector2(60, 36)
+layout_mode = 2
+text = "秘境"
+
+[node name="SpiritBeastButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 36)
+text = "灵兽"
+
+[node name="EquipmentButton" type="Button" parent="BottomBar/MarginContainer/HBox/ActionBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 36)
+text = "装备"
