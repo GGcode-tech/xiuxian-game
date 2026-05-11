@@ -181,14 +181,15 @@ func _build_right_panel(parent: GridContainer) -> void:
 	parent.add_child(resource_panel)
 
 func _build_bottom_bar(parent: GridContainer) -> void:
-	# 底部快捷栏
+	# 底部快捷栏 - 使用GridContainer实现2行4列，紧凑布局
 	var bottom_panel = PanelContainer.new()
-	bottom_panel.custom_minimum_size = Vector2(700, 60)
 	bottom_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var hbox = HBoxContainer.new()
-	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bottom_panel.add_child(hbox)
-	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	var grid = GridContainer.new()
+	grid.columns = 4
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 4)
+	bottom_panel.add_child(grid)
 	
 	var quick_menus = [
 		{"icon": "📋", "name": "任务", "id": "quest"},
@@ -202,9 +203,9 @@ func _build_bottom_bar(parent: GridContainer) -> void:
 	]
 	
 	for menu in quick_menus:
-		var btn = _create_quick_button(menu["icon"], menu["name"])
+		var btn = _create_icon_only_button(menu["icon"], menu["name"])
 		btn.pressed.connect(_on_quick_menu_pressed.bind(menu["id"]))
-		hbox.add_child(btn)
+		grid.add_child(btn)
 		_quick_buttons.append(btn)
 	
 	# 设置grid位置到底部
@@ -221,27 +222,31 @@ func _create_spacer() -> Control:
 func _create_menu_button(text: String, callback: Callable) -> Button:
 	var btn = Button.new()
 	btn.text = text
-	btn.custom_minimum_size = Vector2(70, 32)
+	btn.custom_minimum_size = Vector2(60, 28)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	return btn
 
-func _create_quick_button(icon: String, name: String) -> Button:
+func _create_icon_only_button(icon: String, name: String) -> Button:
+	"""纯图标按钮 - 点击区域仅限图标本身，不遮挡其他按钮"""
 	var btn = Button.new()
-	btn.custom_minimum_size = Vector2(70, 45)
-	
-	var vbox = VBoxContainer.new()
-	btn.add_child(vbox)
-	
-	var icon_label = Label.new()
-	icon_label.text = icon
-	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(icon_label)
-	
-	var name_label = Label.new()
-	name_label.text = name
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 11)
-	vbox.add_child(name_label)
-	
+	btn.custom_minimum_size = Vector2(36, 36)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	# 透明背景，无边框
+	var style_normal = StyleBoxEmpty.new()
+	var style_hover = StyleBoxFlat.new()
+	style_hover.bg_color = Color(1, 1, 1, 0.15)
+	style_hover.set_corner_radius_all(4)
+	var style_pressed = StyleBoxFlat.new()
+	style_pressed.bg_color = Color(1, 1, 1, 0.25)
+	style_pressed.set_corner_radius_all(4)
+	btn.add_theme_stylebox_override("normal", style_normal)
+	btn.add_theme_stylebox_override("hover", style_hover)
+	btn.add_theme_stylebox_override("pressed", style_pressed)
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn.text = icon
 	return btn
 
 func _on_quick_menu_pressed(menu_id: String) -> void:
