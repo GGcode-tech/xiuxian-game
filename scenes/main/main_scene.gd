@@ -24,7 +24,6 @@ const COMBAT_SCENE           = preload("res://ui/combat_panel.tscn")
 # ==================== 核心系统脚本 ====================
 const CombatSystemScript         = preload("res://scripts/systems/combat_system.gd")
 const DungeonSystemScript        = preload("res://scripts/systems/dungeon_system.gd")
-const SectSystemScript           = preload("res://scripts/systems/sect_system.gd")
 const SpiritBeastSystemScript    = preload("res://scripts/systems/spirit_beast_system.gd")
 const EquipmentSystemScript      = preload("res://scripts/systems/equipment_system.gd")
 const DailyActivitySystemScript  = preload("res://scripts/systems/daily_activity_system.gd")
@@ -34,7 +33,6 @@ const DialogueSystemScript       = preload("res://scripts/systems/dialogue_syste
 # ==================== 核心系统实例引用 ====================
 var combat_system: Node = null
 var dungeon_system: Node = null
-var sect_system: Node = null
 var spirit_beast_system: Node = null
 var equipment_system: Node = null
 var daily_activity_system: Node = null
@@ -78,7 +76,7 @@ func _ready() -> void:
 
 
 func _initialize_game() -> void:
-	DataManager.load_all_data()
+	DataManager._load_all_data()
 	AudioManager.initialize()
 
 	# 实例化核心系统
@@ -103,12 +101,6 @@ func _instantiate_systems() -> void:
 	dungeon_system.name = "DungeonSystem"
 	dungeon_system.set_script(DungeonSystemScript)
 	add_child(dungeon_system)
-
-	# 门派系统
-	sect_system = Node.new()
-	sect_system.name = "SectSystem"
-	sect_system.set_script(SectSystemScript)
-	add_child(sect_system)
 
 	# 灵兽系统
 	spirit_beast_system = Node.new()
@@ -386,8 +378,9 @@ func _show_sect_panel() -> void:
 		_sect_panel = SECT_PANEL_SCENE.instantiate()
 		_sect_panel.sect_panel_closed.connect(_on_sect_panel_closed)
 		_sect_panel.sect_leave_requested.connect(_on_sect_leave_requested)
+		_sect_panel.sect_shop_requested.connect(_on_sect_shop_requested)
 		ui_layer.add_child(_sect_panel)
-	_sect_panel.setup_system(sect_system)
+	_sect_panel.setup_system(SectSystem)
 	_sect_panel.show()
 
 
@@ -396,6 +389,8 @@ func _show_spirit_beast_panel() -> void:
 	if not _spirit_beast_panel:
 		_spirit_beast_panel = SPIRIT_BEAST_SCENE.instantiate()
 		_spirit_beast_panel.spirit_beast_panel_closed.connect(_on_spirit_beast_panel_closed)
+		_spirit_beast_panel.beast_contract_requested.connect(_on_beast_contract_requested)
+		_spirit_beast_panel.beast_dispatch_requested.connect(_on_beast_dispatch_requested)
 		ui_layer.add_child(_spirit_beast_panel)
 	_spirit_beast_panel.setup_system(spirit_beast_system)
 	_spirit_beast_panel.show()
@@ -406,6 +401,9 @@ func _show_equipment_panel() -> void:
 	if not _equipment_panel:
 		_equipment_panel = EQUIPMENT_SCENE.instantiate()
 		_equipment_panel.equipment_panel_closed.connect(_on_equipment_panel_closed)
+		_equipment_panel.equipment_enhanced.connect(_on_equipment_enhanced)
+		_equipment_panel.equipment_gem_socketed.connect(_on_equipment_gem_socketed)
+		_equipment_panel.equipment_crafted.connect(_on_equipment_crafted)
 		ui_layer.add_child(_equipment_panel)
 	_equipment_panel.setup_system(equipment_system)
 	_equipment_panel.show()
@@ -417,6 +415,7 @@ func _show_dungeon_panel() -> void:
 		_dungeon_panel = DUNGEON_SCENE.instantiate()
 		_dungeon_panel.dungeon_panel_closed.connect(_on_dungeon_panel_closed)
 		_dungeon_panel.dungeon_started.connect(_on_dungeon_started)
+		_dungeon_panel.dungeon_sweep_requested.connect(_on_dungeon_sweep_requested)
 		ui_layer.add_child(_dungeon_panel)
 	_dungeon_panel.setup_system(dungeon_system)
 	_dungeon_panel.show()
@@ -427,6 +426,8 @@ func _show_daily_panel() -> void:
 	if not _daily_panel:
 		_daily_panel = DAILY_ACTIVITY_SCENE.instantiate()
 		_daily_panel.daily_activity_panel_closed.connect(_on_daily_panel_closed)
+		_daily_panel.activity_started.connect(_on_activity_started)
+		_daily_panel.vitality_reward_claimed.connect(_on_vitality_reward_claimed)
 		ui_layer.add_child(_daily_panel)
 	_daily_panel.setup_system(daily_activity_system)
 	_daily_panel.show()
@@ -438,6 +439,7 @@ func _show_combat_panel() -> void:
 		_combat_panel = COMBAT_SCENE.instantiate()
 		_combat_panel.combat_panel_closed.connect(_on_combat_panel_closed)
 		_combat_panel.combat_ended.connect(_on_combat_ended)
+		_combat_panel.skill_used.connect(_on_skill_used)
 		ui_layer.add_child(_combat_panel)
 	_combat_panel.setup_system(combat_system)
 	_combat_panel.show()
@@ -741,3 +743,92 @@ func _get_control_at_point(_point: Vector2) -> Control:
 		if hovered and hovered.visible:
 			return hovered
 	return null
+
+
+# ==================== 新增UI信号处理函数 ====================
+
+func _on_skill_used(skill_id: String, target_id: String) -> void:
+	"""战斗技能使用"""
+	if combat_system and combat_system.has_method("use_skill"):
+		combat_system.use_skill(skill_id, target_id)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("技能系统开发中...", "info")
+
+
+func _on_activity_started(activity_id: String) -> void:
+	"""日常活动开始"""
+	if daily_activity_system and daily_activity_system.has_method("start_activity"):
+		daily_activity_system.start_activity(activity_id)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("活动系统开发中...", "info")
+
+
+func _on_vitality_reward_claimed(level: int) -> void:
+	"""领取活力奖励"""
+	if daily_activity_system and daily_activity_system.has_method("claim_vitality_reward"):
+		daily_activity_system.claim_vitality_reward(level)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("活力奖励系统开发中...", "info")
+
+
+func _on_dungeon_sweep_requested(dungeon_id: String) -> void:
+	"""副本扫荡请求"""
+	if dungeon_system and dungeon_system.has_method("sweep_dungeon"):
+		dungeon_system.sweep_dungeon(dungeon_id)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("副本扫荡功能开发中...", "info")
+
+
+func _on_equipment_enhanced(slot_id: String, level: int) -> void:
+	"""装备强化"""
+	if equipment_system and equipment_system.has_method("enhance_equipment"):
+		equipment_system.enhance_equipment(slot_id, level)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("装备强化功能开发中...", "info")
+
+
+func _on_equipment_gem_socketed(slot_id: String, gem_type: String) -> void:
+	"""装备镶嵌宝石"""
+	if equipment_system and equipment_system.has_method("socket_gem"):
+		equipment_system.socket_gem(slot_id, gem_type)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("宝石镶嵌功能开发中...", "info")
+
+
+func _on_equipment_crafted(item_id: String) -> void:
+	"""装备打造"""
+	if equipment_system and equipment_system.has_method("craft_equipment"):
+		equipment_system.craft_equipment(item_id)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("装备打造功能开发中...", "info")
+
+
+func _on_sect_shop_requested() -> void:
+	"""门派商店请求"""
+	if _notification and _notification.has_method("show_notification"):
+		_notification.show_notification("门派商店功能开发中...", "info")
+
+
+func _on_beast_contract_requested(beast_id: String) -> void:
+	"""灵兽契约请求"""
+	if spirit_beast_system and spirit_beast_system.has_method("contract_beast"):
+		spirit_beast_system.contract_beast(beast_id)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("灵兽契约系统开发中...", "info")
+
+
+func _on_beast_dispatch_requested(beast_id: String) -> void:
+	"""灵兽派遣请求"""
+	if spirit_beast_system and spirit_beast_system.has_method("dispatch_beast"):
+		spirit_beast_system.dispatch_beast(beast_id)
+	else:
+		if _notification and _notification.has_method("show_notification"):
+			_notification.show_notification("灵兽派遣系统开发中...", "info")

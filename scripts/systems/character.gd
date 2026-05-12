@@ -79,7 +79,7 @@ var position: Vector3 = Vector3.ZERO
 var location_id: String = ""         # 当前所在地点ID
 
 
-var _inventory: CharacterInventory = CharacterInventory.new()
+var _inventory = preload("res://scripts/systems/character_inventory.gd").new()
 
 
 # ==================== 初始化 ====================
@@ -445,7 +445,7 @@ func learn_technique(tech_id: String) -> bool:
 	if tech_data.is_empty():
 		return false
 
-	if has_technique(tech_id):
+	if _has_technique(tech_id):
 		return false
 
 	# 检查境界需求（简化版）

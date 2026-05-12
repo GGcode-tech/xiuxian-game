@@ -329,6 +329,7 @@ func _get_or_create_instance(activity_id: String) -> ActivityInstance:
 func start_activity(activity_id: String) -> Dictionary:
 	var activity = get_activity(activity_id)
 	var error_reason = ""
+	var instance: ActivityInstance = null
 
 	if not activity:
 		error_reason = "活动不存在"
@@ -351,7 +352,7 @@ func start_activity(activity_id: String) -> Dictionary:
 					error_reason = "等级不足"
 				else:
 					# 检查次数限制
-					var instance = _get_or_create_instance(activity_id)
+					instance = _get_or_create_instance(activity_id)
 					_check_daily_reset(instance)
 
 					if instance.today_count >= activity.max_daily_count:
@@ -430,8 +431,7 @@ func _give_rewards(rewards: Dictionary) -> void:
 
 	# 贡献度（需要门派系统）
 	if rewards.has("contribution"):
-		# SectSystem.add_contribution(rewards.get("contribution", 0))
-		pass
+		SectSystem.add_contribution(rewards.get("contribution", 0))
 
 	# 竞技场积分
 	if rewards.has("arena_points"):

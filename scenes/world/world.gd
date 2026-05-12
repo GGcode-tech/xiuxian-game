@@ -26,7 +26,7 @@ var _npc_nodes: Dictionary = {}
 var _model_cache: Dictionary = {}
 
 # 网格构建器
-var _mesh_builder: WorldMeshBuilder = WorldMeshBuilder.new()
+var _mesh_builder = preload("res://scenes/world/world_mesh_builder.gd").new()
 
 # 相机控制参数
 var _camera_zoom_speed: float = 5.0
@@ -171,7 +171,7 @@ func _generate_terrain() -> void:
 	terrain.add_child(pond)
 
 	for i in range(5):
-		var lotus := _mesh_builder.create_plant(0)
+		var lotus: MeshInstance3D = _mesh_builder.create_plant(0)
 		lotus.position = Vector3(18 + randf() * 4, 0.1, 13 + randf() * 4)
 		nature.add_child(lotus)
 
@@ -409,7 +409,7 @@ func _spawn_npc_node(npc: Dictionary, index: int) -> void:
 
 	# 角色模型（使用已有模板）
 	var npc_color = _get_npc_color(npc)
-	var mesh := _mesh_builder.create_character_mesh(0, npc_color)
+	var mesh: MeshInstance3D = _mesh_builder.create_character_mesh(0, npc_color)
 	mesh.scale = Vector3(2.0, 2.0, 2.0)
 	container.add_child(mesh)
 
@@ -476,7 +476,7 @@ func _generate_nature() -> void:
 				tree_node.position.x += 15 * (1 if tree_node.position.x > 0 else -1)
 			nature.add_child(tree_node)
 		else:
-			var tree := _mesh_builder.create_tree_fallback(tree_type % 3, randf_range(0.6, 1.4))
+			var tree: MeshInstance3D = _mesh_builder.create_tree_fallback(tree_type % 3, randf_range(0.6, 1.4))
 			tree.position = Vector3(
 				randf_range(-terrain_size * 0.4, terrain_size * 0.4),
 				0,
@@ -499,7 +499,7 @@ func _generate_nature() -> void:
 			rock_node.scale = Vector3(1.5, 1.5, 1.5)
 			nature.add_child(rock_node)
 		else:
-			var rock := _mesh_builder.create_rock_fallback(rock_type % 4, randf_range(0.4, 1.2))
+			var rock: MeshInstance3D = _mesh_builder.create_rock_fallback(rock_type % 4, randf_range(0.4, 1.2))
 			rock.position = Vector3(
 				randf_range(-terrain_size * 0.35, terrain_size * 0.35),
 				0,
@@ -519,7 +519,7 @@ func _generate_nature() -> void:
 			spirit_stone.scale = Vector3(2.0, 2.0, 2.0)
 			nature.add_child(spirit_stone)
 		else:
-			var spirit_stone_fallback := _mesh_builder.create_rock_fallback(3, 0.8)
+			var spirit_stone_fallback: MeshInstance3D = _mesh_builder.create_rock_fallback(3, 0.8)
 			spirit_stone_fallback.position = Vector3(
 				randf_range(-terrain_size * 0.3, terrain_size * 0.3),
 				0.3,
@@ -620,7 +620,7 @@ func _create_default_characters() -> void:
 
 	for i in range(3):
 		var char_node := Node3D.new()
-		var mesh := _mesh_builder.create_character_mesh(types[i], colors[i])
+		var mesh: MeshInstance3D = _mesh_builder.create_character_mesh(types[i], colors[i])
 		char_node.add_child(mesh)
 		char_node.position = default_positions[i]
 		char_node.set_meta("character_id", "default_%d" % i)
@@ -634,7 +634,7 @@ func _create_default_characters() -> void:
 
 func _spawn_character_node(character: Dictionary) -> void:
 	var container := Node3D.new()
-	var mesh := _mesh_builder.create_character_mesh(
+	var mesh: MeshInstance3D = _mesh_builder.create_character_mesh(
 		_get_character_type(character), _get_character_color(character))
 	mesh.scale = Vector3(2.0, 2.0, 2.0)  # 放大2倍
 	container.add_child(mesh)
@@ -840,7 +840,7 @@ func show_effect(
 	size: float = 1.0,
 	color_key: String = "qi_blue"
 ) -> void:
-	var effect := _mesh_builder.create_effect_mesh(effect_type, size, color_key)
+	var effect: MeshInstance3D = _mesh_builder.create_effect_mesh(_effect_type, size, color_key)
 	effect.position = position
 	effects.add_child(effect)
 	var tween := create_tween()

@@ -92,6 +92,9 @@ func _advance_one_day() -> void:
 	# 每日自动修炼 - 所有存活角色获得经验
 	_daily_auto_cultivate()
 
+	# 每日事件处理
+	_process_daily_events()
+
 	day_passed.emit(game_time["day"], game_time["month"], game_time["year"])
 	time_elapsed.emit(game_time.duplicate())
 

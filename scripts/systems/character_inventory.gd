@@ -4,10 +4,10 @@ class_name CharacterInventory
 extends RefCounted
 
 
-var _owner: Character
+var _owner  # Character type (avoid circular dependency with class_name)
 
 
-func init(p_owner: Character) -> void:
+func init(p_owner) -> void:
 	_owner = p_owner
 
 

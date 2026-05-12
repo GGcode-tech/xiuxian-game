@@ -54,13 +54,14 @@ func delete_save(slot: String) -> bool:
 	var file_path = SAVE_DIR + slot + SAVE_EXTENSION
 	if FileAccess.file_exists(file_path):
 		var err = DirAccess.remove_absolute(file_path)
-		if err == OK:
+		if err != OK:
+			push_error("[SaveManager] 删除存档失败: " + str(err))
+			return false
 		refresh_save_slots()
 		print("[SaveManager] 删除存档: %s" % slot)
 		return true
 
-	push_error("[SaveManager] 删除存档失败")
-	return false
+	push_error("[SaveManager] 删除存档失败: 文件不存在")
 	return false
 
 
@@ -157,6 +158,9 @@ func _build_save_data() -> Dictionary:
 		"families": _serialize_families(),
 		"world_state": _serialize_world(),
 		"subsystems": _subsystem_data.duplicate(),
+		"game_seed": GameManager.game_seed,
+		"time_accumulator": GameManager._time_accumulator,
+		"event_manager": _serialize_event_manager(),
 	}
 
 
@@ -181,10 +185,19 @@ func _serialize_world() -> Dictionary:
 	return {"map_data": {}}
 
 
+func _serialize_event_manager() -> Dictionary:
+	return {
+		"notifications": EventManager.notifications.duplicate(),
+		"active_events": EventManager._active_events.duplicate(),
+	}
+
+
 func _restore_game_state(data: Dictionary) -> void:
 	GameManager.game_time = data.get("game_time", {"year": 1, "month": 1, "day": 1}).duplicate()
 	GameManager.game_speed = data.get("game_speed", 1.0)
 	GameManager.player_family_id = data.get("player_family_id", "")
+	GameManager.game_seed = data.get("game_seed", 0)
+	GameManager._time_accumulator = data.get("time_accumulator", 0.0)
 
 	GameManager.all_characters.clear()
 	GameManager.all_families.clear()
@@ -203,3 +216,21 @@ func _restore_game_state(data: Dictionary) -> void:
 
 	# 恢复子系统数据
 	_subsystem_data = data.get("subsystems", {}).duplicate()
+
+	# 通知各子系统恢复自身状态
+	if EquipmentSystem and EquipmentSystem.has_method("load_from_save"):
+		EquipmentSystem.load_from_save(_subsystem_data.get("equipment", {}))
+	if SectSystem and SectSystem.has_method("load_from_save"):
+		SectSystem.load_from_save(_subsystem_data.get("sect_system", {}))
+	if SpiritBeastSystem and SpiritBeastSystem.has_method("load_from_save"):
+		SpiritBeastSystem.load_from_save(_subsystem_data.get("spirit_beast", {}))
+	if DungeonSystem and DungeonSystem.has_method("load_from_save"):
+		DungeonSystem.load_from_save(_subsystem_data.get("dungeon", {}))
+	if DailyActivitySystem and DailyActivitySystem.has_method("load_from_save"):
+		DailyActivitySystem.load_from_save(_subsystem_data.get("daily_activity", {}))
+
+	# 恢复事件管理器状态
+	var event_data = data.get("event_manager", {})
+	if event_data is Dictionary:
+		EventManager.notifications = event_data.get("notifications", [])
+		EventManager._active_events = event_data.get("active_events", [])

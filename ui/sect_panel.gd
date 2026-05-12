@@ -234,7 +234,11 @@ func setup_system(sys: Node) -> void:
 
 func _load_real_data() -> void:
 	if not _sect_system:
-		return
+		# 尝试使用全局autoload
+		if has_node("/root/SectSystem"):
+			_sect_system = get_node("/root/SectSystem")
+		else:
+			return
 
 	# 检查玩家是否已加入门派
 	var player_sect_id = _sect_system.player_sect_id if _sect_system else ""

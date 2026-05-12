@@ -54,6 +54,7 @@ signal beast_evolution(beast_id: String, new_stage: int)
 signal beast_level_up(beast_id: String, new_level: int)
 ## 信号
 signal beast_fed(beast_id: String)
+signal beast_bonded(beast_id: String)
 
 enum BeastType {
 	BATTLE,    # 战斗型（输出）
