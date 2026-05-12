@@ -9,7 +9,7 @@ func start_new_game(family_name: String, founder_name: String) -> void:
 	# 创建家族
 	var family = FamilyData.new()
 	family.id = "player_family"
-	family.name = family_name
+	family.family_name = family_name
 	family.founded_year = 1
 	family.level = 1
 
@@ -20,7 +20,7 @@ func start_new_game(family_name: String, founder_name: String) -> void:
 		[],  # 无父母
 		0   # 男性
 	)
-	founder.name = founder_name
+	founder.char_name = founder_name
 	founder.age = 20
 	founder.realm_id = "refining_qi"
 	founder.realm_exp = 0

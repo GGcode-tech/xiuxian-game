@@ -3,7 +3,7 @@
 extends Node
 
 # 创建新家族
-static func create_family(founder: Dictionary, family_name: String) -> Dictionary:
+func create_family(founder: Dictionary, family_name: String) -> Dictionary:
 	var family: Dictionary = {
 		"id": "family_%d" % Time.get_ticks_msec(),
 		"name": family_name,
@@ -19,9 +19,8 @@ static func create_family(founder: Dictionary, family_name: String) -> Dictionar
 
 	return family
 
-
 # 创建夫妻关系
-static func create_marriage(char1: Dictionary, char2: Dictionary) -> void:
+func create_marriage(char1: Dictionary, char2: Dictionary) -> void:
 	if char1.get("spouse_id", "") != "" or char2.get("spouse_id", "") != "":
 		return
 
@@ -37,9 +36,8 @@ static func create_marriage(char1: Dictionary, char2: Dictionary) -> void:
 			"success"
 		)
 
-
 # 生育子女
-static func create_child(parents: Array, family: Dictionary) -> Dictionary:
+func create_child(parents: Array, family: Dictionary) -> Dictionary:
 	if parents.size() < 2:
 		return {}
 
@@ -75,8 +73,7 @@ static func create_child(parents: Array, family: Dictionary) -> Dictionary:
 
 	return child
 
-
-static func _create_child_character(
+func _create_child_character(
 	data: Dictionary,
 	father: Dictionary,
 	mother: Dictionary
@@ -121,9 +118,8 @@ static func _create_child_character(
 	}
 	return child
 
-
 # 学习功法
-static func learn_technique(character: Dictionary, tech_id: String) -> bool:
+func learn_technique(character: Dictionary, tech_id: String) -> bool:
 	if not character.has("techniques"):
 		return false
 	var techniques: Array = character.get("techniques", [])

@@ -52,7 +52,7 @@ func generate_character(
 	# 基本信息
 	character.id = _generate_id()
 	character.gender = forced_gender if forced_gender >= 0 else (0 if randf() < 0.5 else 1)
-	character.name = _generate_name(character.gender)
+	character.char_name = _generate_name(character.gender)
 	character.age = 0
 	character.birthday = {
 		"year": GameManager.game_time.year,

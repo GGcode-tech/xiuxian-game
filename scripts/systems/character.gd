@@ -3,7 +3,7 @@ class_name Character extends Resource
 
 # ==================== 基础信息 ====================
 var id: String = ""
-var name: String = ""
+var char_name: String = ""
 var gender: int = 0        # 0=男, 1=女
 var age: int = 0
 var birthday: Dictionary = {}  # {year, month, day}
@@ -214,7 +214,7 @@ func _check_technique_level_up(tech_id: String) -> void:
 
 		EventManager.add_notification(
 			"功法突破",
-			"%s 的 %s 突破至第%d层" % [name, tech_data.get("name", ""), new_level],
+			"%s 的 %s 突破至第%d层" % [char_name, tech_data.get("name", ""), new_level],
 			"success"
 		)
 
@@ -275,7 +275,7 @@ func attempt_breakthrough() -> Dictionary:
 		GameManager.realm_breakthrough.emit(self, next_realm)
 		EventManager.add_notification(
 			"突破成功",
-			"%s 成功突破至 %s！" % [name, next_realm.get("name", "")],
+			"%s 成功突破至 %s！" % [char_name, next_realm.get("name", "")],
 			"success"
 		)
 
@@ -332,7 +332,7 @@ func _apply_breakthrough_failure(realm) -> void:
 		take_damage(int(base_stats.max_hp * 0.3))
 		EventManager.add_notification(
 			"突破受伤",
-			"%s 突破失败，身受重伤！" % name,
+			"%s 突破失败，身受重伤！" % char_name,
 			"warning"
 		)
 
@@ -379,7 +379,7 @@ func die(reason: String) -> void:
 	GameManager.character_died.emit(self)
 	EventManager.add_notification(
 		"角色死亡",
-		"%s %s，享年%d岁" % [name, reason, age],
+		"%s %s，享年%d岁" % [char_name, reason, age],
 		"danger"
 	)
 
@@ -515,7 +515,7 @@ func _consume_resource(resource_id: String, amount: int) -> void:
 func serialize() -> Dictionary:
 	return {
 		"id": id,
-		"name": name,
+		"name": char_name,
 		"gender": gender,
 		"age": age,
 		"birthday": birthday,
@@ -554,7 +554,7 @@ func serialize() -> Dictionary:
 
 func deserialize(data: Dictionary) -> void:
 	id = data.get("id", "")
-	name = data.get("name", "")
+	char_name = data.get("name", "")
 	gender = data.get("gender", 0)
 	age = data.get("age", 0)
 	birthday = data.get("birthday", {})

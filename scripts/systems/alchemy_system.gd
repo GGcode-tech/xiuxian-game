@@ -144,7 +144,7 @@ func _handle_explosion(character, recipe: Dictionary) -> void:
 
 	EventManager.add_notification(
 		"炸炉！",
-		"%s 炼丹失败炸炉，受到%d点伤害！" % [character.name, damage],
+		"%s 炼丹失败炸炉，受到%d点伤害！" % [character.char_name, damage],
 		"danger"
 	)
 

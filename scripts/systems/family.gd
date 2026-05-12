@@ -3,7 +3,7 @@ class_name FamilyData extends Resource
 
 # ==================== 基础信息 ====================
 var id: String = ""
-var name: String = ""
+var family_name: String = ""
 var founder_id: String = ""
 var founded_year: int = 1
 
@@ -153,7 +153,7 @@ func _check_family_level() -> void:
 		level += 1
 		EventManager.add_notification(
 			"家族升级",
-			"%s 升级为 %d 级家族！" % [name, level],
+			"%s 升级为 %d 级家族！" % [family_name, level],
 			"success"
 		)
 

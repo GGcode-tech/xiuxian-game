@@ -35,7 +35,7 @@ func _create_audio_players() -> void:
 	add_child(bgm_player)
 
 	# 创建SFX播放器池
-	for i in range(max_sfx_players):
+	for _i in range(max_sfx_players):
 		var player = AudioStreamPlayer.new()
 		player.bus = "SFX"
 		sfx_players.append(player)
