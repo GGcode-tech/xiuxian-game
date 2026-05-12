@@ -274,7 +274,7 @@ func get_heir() -> String:
 func serialize() -> Dictionary:
 	return {
 		"id": id,
-		"name": name,
+		"name": family_name,
 		"founder_id": founder_id,
 		"founded_year": founded_year,
 
@@ -302,7 +302,7 @@ func serialize() -> Dictionary:
 
 func deserialize(data: Dictionary) -> void:
 	id = data.get("id", "")
-	name = data.get("name", "")
+	family_name = data.get("name", "")
 	founder_id = data.get("founder_id", "")
 	founded_year = data.get("founded_year", 1)
 

@@ -677,10 +677,15 @@ func _input(event: InputEvent) -> void:
 			# 先做射线检测，看是否命中建筑/角色
 			var hit_info = world.raycast_objects(event.position)
 			if hit_info.has("type"):
-				if hit_info["type"] == "building":
-					_on_building_clicked(hit_info["name"])
-				elif hit_info["type"] == "character":
-					_on_character_clicked(hit_info["id"])
+				# 距离检测：只有射线命中点离相机较近才算有效点击（防止远距离误触）
+				var hit_dist = hit_info.get("distance", 999.0)
+				if hit_dist < 80.0:  # 最大交互距离80单位
+					if hit_info["type"] == "building":
+						_on_building_clicked(hit_info["name"])
+					elif hit_info["type"] == "character":
+						_on_character_clicked(hit_info["id"])
+				else:
+					world.move_player_from_screen(event.position)
 			else:
 				# 未命中物体，移动角色
 				world.move_player_from_screen(event.position)

@@ -272,14 +272,35 @@ func _get_building_name(building_id: String) -> String:
 
 
 func _add_building_collision(node: Node3D) -> void:
-	"""给建筑节点添加StaticBody3D碰撞体（碰撞层=2）"""
+	"""给建筑节点添加StaticBody3D碰撞体（碰撞层=2），根据建筑类型调整大小"""
+	var building_name: String = ""
+	if node.has_meta("building_name"):
+		building_name = node.get_meta("building_name")
+	# 根据建筑名确定碰撞体大小（紧凑碰撞，避免误触）
+	var collision_size := Vector3(4.0, 5.0, 4.0)  # 默认值
+	match building_name:
+		"主殿":
+			collision_size = Vector3(5.0, 8.0, 5.0)
+		"山门":
+			collision_size = Vector3(5.0, 7.0, 2.0)
+		"祭坛":
+			collision_size = Vector3(3.0, 4.0, 3.0)
+		"藏经阁", "修炼塔":
+			collision_size = Vector3(3.0, 8.0, 3.0)
+		"炼丹房", "炼器房":
+			collision_size = Vector3(4.0, 5.0, 4.0)
+		"观景亭":
+			collision_size = Vector3(2.5, 3.0, 2.5)
+		_:
+			if building_name.begins_with("居室"):
+				collision_size = Vector3(3.0, 4.0, 3.0)
 	var body := StaticBody3D.new()
 	body.name = node.name + "_body"
 	body.collision_layer = 2   # layer 2 = buildings
 	body.collision_mask = 0    # 建筑不需要检测其他物理体
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(6, 6, 6)
+	box.size = collision_size
 	shape.shape = box
 	body.add_child(shape)
 	node.add_child(body)
@@ -780,14 +801,16 @@ func raycast_objects(screen_pos: Vector2) -> Dictionary:
 				"type": "building",
 				"name": node.get_meta("building_name"),
 				"node": node,
-				"position": result["position"]
+				"position": result["position"],
+				"distance": result["position"].distance_to(ray_origin)
 			}
 		if node.has_meta("character_id"):
 			return {
 				"type": "character",
 				"id": node.get_meta("character_id"),
 				"node": node,
-				"position": result["position"]
+				"position": result["position"],
+				"distance": result["position"].distance_to(ray_origin)
 			}
 		node = node.get_parent()
 	return {}

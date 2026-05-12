@@ -4,6 +4,13 @@ class_name GameStarter extends Node
 # 信号
 signal game_initialized
 
+var _char_gen: CharacterGenerator = null
+
+
+func _ready() -> void:
+	_char_gen = CharacterGenerator.new()
+	add_child(_char_gen)
+
 
 func start_new_game(family_name: String, founder_name: String) -> void:
 	# 创建家族
@@ -14,7 +21,7 @@ func start_new_game(family_name: String, founder_name: String) -> void:
 	family.level = 1
 
 	# 创建创始人
-	var founder = CharacterGenerator.generate_character(
+	var founder = _char_gen.generate_character(
 		family.id,
 		1,  # 第一代
 		[],  # 无父母
@@ -33,7 +40,7 @@ func start_new_game(family_name: String, founder_name: String) -> void:
 	family.add_member(founder.id)
 
 	# 创建初始配偶
-	var spouse = CharacterGenerator.generate_character(
+	var spouse = _char_gen.generate_character(
 		family.id,
 		1,
 		[],
@@ -51,7 +58,7 @@ func start_new_game(family_name: String, founder_name: String) -> void:
 
 	# 创建2-3个初始族人
 	for i in range(randi_range(2, 3)):
-		var member = CharacterGenerator.generate_character(
+		var member = _char_gen.generate_character(
 			family.id,
 			1
 		)
@@ -74,12 +81,11 @@ func start_new_game(family_name: String, founder_name: String) -> void:
 			if member:
 				GameManager.add_character(member)
 
-	# 初始化地图
-	GameManager.map_data = MapData.new()
-	GameManager.map_data.initialize()
+	# 初始化地图 — MapData是autoload单例，直接调用
+	MapData.initialize()
 
 	# 分配初始领地
-	var starting_territory = GameManager.map_data.get_territory("territory_2_2")
+	var starting_territory = MapData.get_territory("territory_2_2")
 	if starting_territory:
 		starting_territory.owner_id = family.id
 		family.territories.append(starting_territory.id)
