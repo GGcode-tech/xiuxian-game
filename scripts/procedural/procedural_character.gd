@@ -17,7 +17,10 @@ enum CharacterType {
 }
 
 # 生成角色
-static func generate(char_type: CharacterType, color_secondary: Color = Color(0.5, 0.3, 0.2)) -> MeshInstance3D:
+static func generate(
+		char_type: CharacterType,
+		color_secondary: Color = Color(0.5, 0.3, 0.2)
+	) -> MeshInstance3D:
 	match char_type:
 		CharacterType.CULTIVATOR:
 			return _generate_cultivator(color_secondary)
@@ -322,7 +325,10 @@ static func _add_box(st: SurfaceTool, center: Vector3, extents: Vector3) -> void
 	for i in indices:
 		st.add_vertex(verts[i])
 
-static func _add_sphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
+static func _add_sphere(
+		st: SurfaceTool, center: Vector3,
+		radius: float, _subdivisions: int = 1
+	) -> void:
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 
 	var verts := PackedVector3Array([

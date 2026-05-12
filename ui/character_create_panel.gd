@@ -4,16 +4,19 @@ extends Control
 signal character_created(character_data: Dictionary)
 signal back_to_menu_requested()
 
+const TOTAL_STEPS: int = 3
+
 var _character_name: String = ""
 var _selected_sect: String = ""
 var _selected_sect_name: String = ""
-var _attribute_points: Dictionary = {"strength": 0, "spirit": 0, "constitution": 0, "agility": 0, "luck": 0}
+var _attribute_points: Dictionary = {
+	"strength": 0, "spirit": 0,
+	"constitution": 0, "agility": 0, "luck": 0
+}
 var _remaining_points: int = 10
 
 var _name_input: LineEdit = null
 var _current_step: int = 0
-const TOTAL_STEPS: int = 3
-
 var _sects: Array = [
 	{"id": "sect_qingyun", "name": "青云门", "desc": "正道领袖，剑道至尊", "type": "正道"},
 	{"id": "sect_hepia", "name": "合欢派", "desc": "诡秘邪道，魅惑众生", "type": "邪道"},

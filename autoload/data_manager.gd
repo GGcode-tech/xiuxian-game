@@ -12,15 +12,18 @@ var game_constants: Dictionary = {}
 ## 便捷别名，供其他脚本通过 DataManager.constants.xxx 访问
 var constants: Dictionary = {}
 
+## game_database.json 查询（委托给DataManagerDB）
+var _db: RefCounted = preload("data_manager_db.gd").new()
+
 
 func _ready() -> void:
 	print("[DataManager] 初始化开始")
-	load_all_data()
+	_load_all_data()
 	print("[DataManager] 初始化完成，共加载: %d 境界, %d 功法, %d 技能, %d 物品, %d 事件" % [
 		realms.size(), techniques.size(), skills.size(), items.size(), events.size()])
 
 
-func load_all_data() -> void:
+func _load_all_data() -> void:
 	_load_realms()
 	_load_techniques()
 	_load_skills()
@@ -193,7 +196,11 @@ func _load_skills() -> void:
 		"target_type": "self",
 		"damage_multiplier": 0,
 		"heal_amount": 0,
-		"effects": [{"id": "dodge_buff", "name": "闪避提升", "type": "buff", "duration": 3, "effects": {"dodge": 0.2}}]
+		"effects": [{
+			"id": "dodge_buff", "name": "闪避提升",
+			"type": "buff", "duration": 3,
+			"effects": {"dodge": 0.2}
+		}]
 	})
 	_add_skill({
 		"id": "skill_huizhiling", "name": "回春术",
@@ -209,7 +216,11 @@ func _load_skills() -> void:
 		"target_type": "all_enemy",
 		"damage_multiplier": 2.0,
 		"heal_amount": 0,
-		"effects": [{"id": "armor_break", "name": "破甲", "type": "debuff", "duration": 2, "effects": {"defense_multiplier": 0.8}}]
+		"effects": [{
+			"id": "armor_break", "name": "破甲",
+			"type": "debuff", "duration": 2,
+			"effects": {"defense_multiplier": 0.8}
+		}]
 	})
 	_add_skill({
 		"id": "skill_bushu_shield", "name": "不死护盾",
@@ -217,7 +228,11 @@ func _load_skills() -> void:
 		"target_type": "self",
 		"damage_multiplier": 0,
 		"heal_amount": 0,
-		"effects": [{"id": "shield", "name": "护盾", "type": "buff", "duration": 3, "effects": {"damage_reduction": 0.5}}]
+		"effects": [{
+			"id": "shield", "name": "护盾",
+			"type": "buff", "duration": 3,
+			"effects": {"damage_reduction": 0.5}
+		}]
 	})
 	_add_skill({
 		"id": "skill_benlei", "name": "奔雷击",
@@ -337,7 +352,8 @@ func _load_events() -> void:
 				"requirements": {},
 				"outcomes": [
 					{"text": "你发现了一处前辈洞府！", "probability": 0.3, "effects": [
-						{"type": "learn_technique", "id": "technique_bushu"}, {"type": "add_item", "id": "item_jiuxuan"}
+						{"type": "learn_technique", "id": "technique_bushu"},
+					{"type": "add_item", "id": "item_jiuxuan"}
 					]},
 					{"text": "你找到了不少灵石。", "probability": 0.5, "effects": [
 						{"type": "add_resource", "id": "spirit_stone", "value": 500}
@@ -867,7 +883,7 @@ func get_all_events() -> Array:
 	return events.values()
 
 
-func get_all_alchemy_recipes() -> Array:
+func _get_all_alchemy_recipes() -> Array:
 	return alchemy_recipes.values()
 
 
@@ -887,56 +903,31 @@ func get_skills_by_target_type(target_type: String) -> Array:
 	return result
 
 
-func get_constant(key: String):
+func _get_constant(key: String):
 	return game_constants.get(key, null)
 
 
-# ==================== 从 game_database.json 加载额外数据 ====================
+
 
 func get_data(key: String):
-	var db = _load_game_database()
-	return db.get(key, {})
-
-
-func _load_game_database() -> Dictionary:
-	var db_path = "res://data/game_database.json"
-	if not FileAccess.file_exists(db_path):
-		return {}
-
-	var file = FileAccess.open(db_path, FileAccess.READ)
-	if not file:
-		return {}
-
-	var content = file.get_as_text()
-	file.close()
-
-	var json = JSON.new()
-	if json.parse(content) != OK:
-		return {}
-
-	return json.data if json.data is Dictionary else {}
+	return _db.get_data(key)
 
 
 func get_sects() -> Dictionary:
-	var db = _load_game_database()
-	return db.get("sects", {})
+	return _db.get_sects()
 
 
 func get_dungeons() -> Dictionary:
-	var db = _load_game_database()
-	return db.get("dungeons", {})
+	return _db.get_dungeons()
 
 
 func get_daily_activities() -> Dictionary:
-	var db = _load_game_database()
-	return db.get("daily_activities", {})
+	return _db.get_daily_activities()
 
 
 func get_spirit_beasts() -> Dictionary:
-	var db = _load_game_database()
-	return db.get("spirit_beasts", {})
+	return _db.get_spirit_beasts()
 
 
 func get_equipment_sets() -> Dictionary:
-	var db = _load_game_database()
-	return db.get("equipment_sets", {})
+	return _db.get_equipment_sets()

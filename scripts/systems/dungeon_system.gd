@@ -40,6 +40,14 @@ class DungeonProgress extends RefCounted:
 	var last_completed_date: String = ""
 
 
+## 信号
+signal dungeon_started(dungeon_id: String, wave: int)
+signal wave_started(wave_number: int, enemies_count: int)
+signal wave_completed(wave_number: int, rewards: Dictionary)
+signal dungeon_completed(dungeon_id: String, rewards: Dictionary)
+signal dungeon_failed(dungeon_id: String, failed_wave: int)
+signal stamina_changed(current: int, max_value: int)
+
 ## 副本类型
 enum DungeonType {
 	STORY,     # 剧情副本（一次性）
@@ -56,18 +64,18 @@ enum DungeonDifficulty {
 	HELL,     # 地狱
 }
 
-## 信号
-signal dungeon_started(dungeon_id: String, wave: int)
-signal wave_started(wave_number: int, enemies_count: int)
-signal wave_completed(wave_number: int, rewards: Dictionary)
-signal dungeon_completed(dungeon_id: String, rewards: Dictionary)
-signal dungeon_failed(dungeon_id: String, failed_wave: int)
-signal stamina_changed(current: int, max_value: int)
-
+## 常量
+const STAMINA_REGEN_INTERVAL: float = 5.0  # 每5分钟回复1点体力
 
 ## 副本配置数据
 var dungeons_data: Dictionary = {}
-
+var current_dungeon: DungeonData = null
+var current_wave: int = 0
+var dungeon_start_time: int = 0
+var player_progress: Dictionary = {}  # dungeon_id -> DungeonProgress
+var current_stamina: int = 100
+var max_stamina: int = 100
+var stamina_timer: float = 0.0
 
 func _init() -> void:
 	_init_default_dungeons()
@@ -317,13 +325,6 @@ func _create_dungeon_data(data: Dictionary) -> DungeonData:
 	return dd
 
 
-## 当前副本进度
-var current_dungeon: DungeonData = null
-var current_wave: int = 0
-var dungeon_start_time: int = 0
-var player_progress: Dictionary = {}  # dungeon_id -> DungeonProgress
-
-
 ## 开始副本
 func start_dungeon(dungeon_id: String) -> Dictionary:
 	var dungeon = get_dungeon(dungeon_id)
@@ -541,13 +542,6 @@ func _create_item(item_id: String):
 	item.count = 1
 	item.display_name = item_data.get("name", "未知物品")
 	return item
-
-
-## 体力系统
-var current_stamina: int = 100
-var max_stamina: int = 100
-var stamina_timer: float = 0.0
-const STAMINA_REGEN_INTERVAL: float = 5.0  # 每5分钟回复1点体力
 
 
 func _process(delta: float) -> void:

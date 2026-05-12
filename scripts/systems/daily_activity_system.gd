@@ -35,6 +35,17 @@ class VitalityReward extends RefCounted:
 	var is_claimed: bool = false
 
 
+## 信号
+signal activity_started(activity_id: String)
+signal activity_completed(activity_id: String, rewards: Dictionary)
+signal activity_failed(activity_id: String, reason: String)
+signal activity_claimed(activity_id: String)
+signal vitality_changed(current: int, target: int)
+signal vitality_reward_claimed(reward_index: int)
+signal daily_reset()
+signal stamina_changed(current: int, max_value: int)
+
+
 ## 活动类型
 enum ActivityType {
 	SECT_QUEST,    # 宗门任务
@@ -55,22 +66,34 @@ enum ActivityStatus {
 	COOLDOWN,    # 冷却中
 }
 
-## 信号
-signal activity_started(activity_id: String)
-signal activity_completed(activity_id: String, rewards: Dictionary)
-signal activity_failed(activity_id: String, reason: String)
-signal activity_claimed(activity_id: String)
-signal vitality_changed(current: int, target: int)
-signal vitality_reward_claimed(reward_index: int)
-signal daily_reset()
-signal stamina_changed(current: int, max_value: int)
-
+## 常量
+const STAMINA_REGEN_INTERVAL: float = 300.0  # 每5分钟回复1点体力
 
 ## 活动配置
 var activities_data: Dictionary = {}
+var vitality_rewards: Array[VitalityReward] = []
+var daily_vitality: int = 0
+var weekly_vitality: int = 0
+var claimed_daily_rewards: Array[int] = []
+var claimed_weekly_rewards: Array[int] = []
+var player_activities: Dictionary = {}  # activity_id -> ActivityInstance
+var exam_questions: Array[Dictionary] = [
+	{"question": "炼气期共有几层？", "answers": ["9层", "13层", "7层", "12层"], "correct": 1},
+	{"question": "筑基期需要什么丹药辅助？", "answers": ["筑基丹", "结丹期", "化神丹", "元婴丹"], "correct": 0},
+	{"question": "灵根分为几种属性？", "answers": ["3种", "4种", "5种", "6种"], "correct": 2},
+	{"question": "以下哪个是最高境界？", "answers": ["大乘期", "渡劫期", "飞升期", "真仙境"], "correct": 3},
+]
+
+var current_stamina: int = 100
+var max_stamina: int = 100
+var stamina_timer: float = 0.0
+
+
+var _handler: RefCounted = preload("daily_activity_handler.gd").new()
 
 
 func _init() -> void:
+	_handler.init(self)
 	_init_default_activities()
 
 
@@ -205,13 +228,6 @@ func _init_default_activities() -> void:
 	_init_vitality_rewards()
 
 
-var vitality_rewards: Array[VitalityReward] = []
-var daily_vitality: int = 0
-var weekly_vitality: int = 0
-var claimed_daily_rewards: Array[int] = []
-var claimed_weekly_rewards: Array[int] = []
-
-
 func _init_vitality_rewards() -> void:
 	vitality_rewards = [
 		_create_vitality_reward(30, {"spirit_stones": 50}),
@@ -297,10 +313,6 @@ func _create_activity_data(data: Dictionary) -> ActivityData:
 	return ad
 
 
-## 玩家活动记录
-var player_activities: Dictionary = {}  # activity_id -> ActivityInstance
-
-
 func get_activity_instance(activity_id: String) -> ActivityInstance:
 	return player_activities.get(activity_id, null)
 
@@ -316,41 +328,41 @@ func _get_or_create_instance(activity_id: String) -> ActivityInstance:
 ## 参与活动
 func start_activity(activity_id: String) -> Dictionary:
 	var activity = get_activity(activity_id)
+	var error_reason = ""
+
 	if not activity:
-		return {"success": false, "reason": "活动不存在"}
+		error_reason = "活动不存在"
+	else:
+		# 检查开放时间
+		var current_time = Time.get_datetime_dict_from_system()
+		var current_day = current_time.get("weekday", 1)
+		if not current_day in activity.open_days:
+			error_reason = "今日未开放"
+		else:
+			var current_hour = current_time.get("hour", 12)
+			if current_hour < activity.open_time_start or current_hour >= activity.open_time_end:
+				error_reason = "活动未在开放时间内"
+			else:
+				# 检查等级
+				var player = _get_current_player()
+				if not player:
+					error_reason = "玩家不存在"
+				elif player.get_realm_tier() * 10 < activity.level_requirement:
+					error_reason = "等级不足"
+				else:
+					# 检查次数限制
+					var instance = _get_or_create_instance(activity_id)
+					_check_daily_reset(instance)
 
-	# 检查开放时间
-	var current_time = Time.get_datetime_dict_from_system()
-	var current_day = current_time.get("weekday", 1)
-	if not current_day in activity.open_days:
-		return {"success": false, "reason": "今日未开放"}
+					if instance.today_count >= activity.max_daily_count:
+						error_reason = "今日参与次数已用完"
+					elif instance.cooldown_until > Time.get_unix_time_from_datetime_dict(current_time):
+						error_reason = "活动冷却中"
+					elif not _check_stamina(activity.stamina_cost):
+						error_reason = "体力不足"
 
-	var current_hour = current_time.get("hour", 12)
-	if current_hour < activity.open_time_start or current_hour >= activity.open_time_end:
-		return {"success": false, "reason": "活动未在开放时间内"}
-
-	# 检查等级
-	var player = _get_current_player()
-	if not player:
-		return {"success": false, "reason": "玩家不存在"}
-
-	if player.get_realm_tier() * 10 < activity.level_requirement:
-		return {"success": false, "reason": "等级不足"}
-
-	# 检查次数限制
-	var instance = _get_or_create_instance(activity_id)
-	_check_daily_reset(instance)
-
-	if instance.today_count >= activity.max_daily_count:
-		return {"success": false, "reason": "今日参与次数已用完"}
-
-	# 检查冷却
-	if instance.cooldown_until > Time.get_unix_time_from_datetime_dict(current_time):
-		return {"success": false, "reason": "活动冷却中"}
-
-	# 检查体力
-	if not _check_stamina(activity.stamina_cost):
-		return {"success": false, "reason": "体力不足"}
+	if error_reason:
+		return {"success": false, "reason": error_reason}
 
 	# 消耗体力
 	_consume_stamina(activity.stamina_cost)
@@ -365,7 +377,9 @@ func start_activity(activity_id: String) -> Dictionary:
 
 
 ## 完成活动
-func complete_activity(activity_id: String, success: bool = true, bonus_multiplier: float = 1.0) -> void:
+func complete_activity(activity_id: String,
+		success: bool = true,
+		bonus_multiplier: float = 1.0) -> void:
 	var activity = get_activity(activity_id)
 	if not activity:
 		return
@@ -441,94 +455,20 @@ func _check_daily_reset(instance: ActivityInstance) -> void:
 
 ## 灵兽岛 - 捕捉灵兽
 func capture_at_spirit_island() -> Dictionary:
-	var result = start_activity("activity_spirit_island")
-	if not result.get("success", false):
-		return result
-
-	# 计算捕捉成功率
-	var catch_chance = result.get("activity", {}).rewards.get("beast_catch_chance", 0.3)
-
-	if randf() < catch_chance:
-		# 成功捕捉 - 随机获取一个灵兽
-		var beast_id = _get_random_wild_beast()
-		complete_activity("activity_spirit_island", true, 1.0)
-		return {"success": true, "captured": true, "beast_id": beast_id}
-
-	complete_activity("activity_spirit_island", true, 0.5)
-	return {"success": true, "captured": false}
-
-
-func _get_random_wild_beast() -> String:
-	var wild_beasts = [
-		"beast_default",
-		"beast_default",
-		"beast_default",
-		"beast_hanli",  # 稀有
-	]
-	return wild_beasts[randi() % wild_beasts.size()]
+	return _handler.capture_at_spirit_island()
 
 
 ## 竞技场挑战
 func challenge_arena(_opponent_id: String) -> Dictionary:
-	var result = start_activity("activity_arena")
-	if not result.get("success", false):
-		return result
+	return _handler.challenge_arena(_opponent_id)
 
-	# 模拟战斗结果（实际应该调用战斗系统）
-	var player_power = _calculate_player_power()
-	var opponent_power = 1000 + randi() % 2000  # 模拟对手
-
-	var victory = player_power > opponent_power
-
-	if victory:
-		complete_activity("activity_arena", true, 1.5)
-	else:
-		complete_activity("activity_arena", true, 0.3)
-
-	return {
-		"success": true,
-		"victory": victory,
-		"arena_points_change": 10 if victory else -5
-	}
-
-
-func _calculate_player_power() -> int:
-	var player = _get_current_player()
-	if not player:
-		return 0
-
-	var stats = player.base_stats
-	return stats.get("attack", 10) * 2 + stats.get("max_hp", 100) + stats.get("defense", 5) * 3
-
-
-## 灵根测试（答题）
-var exam_questions: Array[Dictionary] = [
-	{"question": "炼气期共有几层？", "answers": ["9层", "13层", "7层", "12层"], "correct": 1},
-	{"question": "筑基期需要什么丹药辅助？", "answers": ["筑基丹", "结丹期", "化神丹", "元婴丹"], "correct": 0},
-	{"question": "灵根分为几种属性？", "answers": ["3种", "4种", "5种", "6种"], "correct": 2},
-	{"question": "以下哪个是最高境界？", "answers": ["大乘期", "渡劫期", "飞升期", "真仙境"], "correct": 3},
-]
 
 func start_exam() -> Dictionary:
-	var result = start_activity("activity_exam")
-	if not result.get("success", false):
-		return result
-
-	# 返回随机题目
-	var question = exam_questions[randi() % exam_questions.size()]
-	return {"success": true, "question": question}
+	return _handler.start_exam()
 
 
 func submit_exam_answer(question_index: int, answer_index: int) -> Dictionary:
-	var question = exam_questions[question_index]
-	var correct = question.get("correct", 0) == answer_index
-
-	if correct:
-		complete_activity("activity_exam", true, 1.5)
-		return {"success": true, "correct": true, "reward": {"exp": 150, "spirit_stones": 50}}
-
-	complete_activity("activity_exam", true, 0.5)
-	return {"success": true, "correct": false, "reward": {"exp": 50}}
+	return _handler.submit_exam_answer(question_index, answer_index)
 
 
 ## 活跃度系统
@@ -572,13 +512,6 @@ func claim_vitality_reward(index: int) -> bool:
 	vitality_reward_claimed.emit(index)
 	_save_to_game_db()
 	return true
-
-
-## 体力系统
-var current_stamina: int = 100
-var max_stamina: int = 100
-var stamina_timer: float = 0.0
-const STAMINA_REGEN_INTERVAL: float = 300.0  # 每5分钟回复1点体力
 
 
 func _process(delta: float) -> void:
@@ -627,7 +560,7 @@ func do_daily_reset() -> void:
 
 
 ## 每周重置
-func weekly_reset() -> void:
+func _weekly_reset() -> void:
 	weekly_vitality = 0
 	claimed_weekly_rewards.clear()
 	_save_to_game_db()
@@ -667,20 +600,21 @@ func _create_item(item_id: String):
 
 
 ## 获取活动类型名称
-func get_activity_type_name(atype: ActivityType) -> String:
-	match atype:
-		ActivityType.SECT_QUEST: return "宗门任务"
-		ActivityType.SPIRIT_ISLAND: return "灵兽岛"
-		ActivityType.ARENA: return "天梯竞技"
-		ActivityType.EXAM: return "灵根测试"
-		ActivityType.ESCORT: return "物资运输"
-		ActivityType.PRACTICE: return "修炼副本"
-		ActivityType.TREASURE: return "探索寻宝"
-		_: return "未知"
+func _get_activity_type_name(atype: ActivityType) -> String:
+	var names = {
+		ActivityType.SECT_QUEST: "宗门任务",
+		ActivityType.SPIRIT_ISLAND: "灵兽岛",
+		ActivityType.ARENA: "天梯竞技",
+		ActivityType.EXAM: "灵根测试",
+		ActivityType.ESCORT: "物资运输",
+		ActivityType.PRACTICE: "修炼副本",
+		ActivityType.TREASURE: "探索寻宝",
+	}
+	return names.get(atype, "未知")
 
 
 ## 获取活动状态
-func get_activity_status(activity_id: String) -> ActivityStatus:
+func _get_activity_status(activity_id: String) -> ActivityStatus:
 	var activity = get_activity(activity_id)
 	if not activity:
 		return ActivityStatus.LOCKED
@@ -759,6 +693,8 @@ func get_activity_stats() -> Dictionary:
 		"daily_vitality": daily_vitality,
 		"daily_target": _get_daily_vitality_target(),
 		"weekly_vitality": weekly_vitality,
-		"completed_today": player_activities.values().filter(func(inst): return inst.today_count > 0).size(),
+		"completed_today": player_activities.values() \
+			.filter(func(inst): return inst.today_count > 0) \
+			.size(),
 		"total_activities": activities_data.size()
 	}

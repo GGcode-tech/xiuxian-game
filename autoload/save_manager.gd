@@ -6,6 +6,7 @@ const SAVE_EXTENSION = ".sav"
 const AUTO_SAVE_SLOT = "auto"
 
 var _save_slots: Array[Dictionary] = []
+var _subsystem_data: Dictionary = {}
 
 
 func _ready() -> void:
@@ -123,12 +124,6 @@ func _check_version_compatibility(version: String) -> bool:
 	if current_parts.size() >= 1 and save_parts.size() >= 1:
 		return current_parts[0] == save_parts[0]
 	return true
-
-
-# ==================== 子系统数据存储（供各系统使用）====================
-
-# 临时存储各系统数据（实际存储在存档中）
-var _subsystem_data: Dictionary = {}
 
 
 func set_data(key: String, value) -> void:

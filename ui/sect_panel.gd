@@ -268,7 +268,11 @@ func _load_real_data() -> void:
 		var contrib = _sect_system.get("player_contribution")
 		if contrib:
 			_member_contribution = contrib.get("total_contribution", 0)
-			_member_rank = _sect_system.get_contribution_rank_name() if _sect_system.has_method("get_contribution_rank_name") else "普通弟子"
+			_member_rank = (
+				_sect_system.get_contribution_rank_name()
+				if _sect_system.has_method(
+					"get_contribution_rank_name")
+				else "普通弟子")
 
 		_update_skills_display()
 		_update_contribution_display()
@@ -373,7 +377,10 @@ func _update_skills_display() -> void:
 
 		var status_label = Label.new()
 		status_label.text = "✓ 已解锁" if skill.get("unlocked", false) else "🔒 未解锁"
-		status_label.add_theme_color_override("font_color", Color.GREEN if skill.get("unlocked", false) else Color.ORANGE)
+		status_label.add_theme_color_override(
+			"font_color",
+			Color.GREEN if skill.get("unlocked", false)
+			else Color.ORANGE)
 		hbox.add_child(status_label)
 
 		skills_vbox.add_child(skill_panel)

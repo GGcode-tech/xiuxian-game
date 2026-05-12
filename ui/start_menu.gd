@@ -1,14 +1,14 @@
 ## 开始菜单 - 游戏入口UI
 extends Control
 
+signal start_game_requested
+signal load_game_requested
+signal settings_requested
+
 @onready var start_button: Button = $VBox/StartButton
 @onready var load_button: Button = $VBox/LoadButton
 @onready var settings_button: Button = $VBox/SettingsButton
 @onready var quit_button: Button = $VBox/QuitButton
-
-signal start_game_requested
-signal load_game_requested
-signal settings_requested
 
 func _ready() -> void:
 	start_button.pressed.connect(_on_start_pressed)

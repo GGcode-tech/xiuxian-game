@@ -8,7 +8,10 @@ static func preload_common_assets() -> void:
 static func create_building(_building_type: int, _size: float = 1.0) -> MeshInstance3D:
 	return null
 
-static func create_character(_char_type: int, _color: Color = Color(0.5, 0.3, 0.2)) -> MeshInstance3D:
+static func create_character(
+		_char_type: int,
+		_color: Color = Color(0.5, 0.3, 0.2)
+	) -> MeshInstance3D:
 	return null
 
 static func create_tree(_tree_type: int, _size: float = 1.0) -> MeshInstance3D:
@@ -20,5 +23,9 @@ static func create_rock(_rock_type: int, _size: float = 1.0) -> MeshInstance3D:
 static func create_plant(_plant_type: int, _size: float = 1.0) -> MeshInstance3D:
 	return null
 
-static func create_effect(_effect_type: int, _size: float = 1.0, _color_key: String = "qi_blue") -> MeshInstance3D:
+static func create_effect(
+		_effect_type: int,
+		_size: float = 1.0,
+		_color_key: String = "qi_blue"
+	) -> MeshInstance3D:
 	return null

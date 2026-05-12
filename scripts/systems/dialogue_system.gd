@@ -51,7 +51,11 @@ func process_choice(npc_id: String, choice_index: int) -> Dictionary:
 			if techniques.size() > 0:
 				# 获得修炼经验
 				var exp_gain = randi_range(10, 30)
-				var resp_text = "%s取出一卷残卷递给你：「此法虽不完整，但对你应有裨益。」\n[color=#44ff88]修炼经验 +%d[/color]" % [npc_name, exp_gain]
+				var resp_text = (
+					"%s取出一卷残卷递给你：「此法虽不完整，但对你应有裨益。」\n"
+					% npc_name
+				)
+				resp_text += "[color=#44ff88]修炼经验 +%d[/color]" % exp_gain
 				return {
 					"response_text": resp_text,
 					"effects": [{"type": "realm_exp", "amount": exp_gain}],

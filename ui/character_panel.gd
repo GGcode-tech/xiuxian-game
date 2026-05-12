@@ -1,6 +1,11 @@
 ## 角色UI组件 - 角色信息面板
 extends Control
 
+# 修炼参数
+const BASE_CULTIVATE_EXP: int = 10   # 每次点击修炼获得基础经验
+
+var current_character = null
+
 # UI元素
 @onready var name_label: Label = $Panel/VBox/NameLabel
 @onready var realm_label: Label = $Panel/VBox/RealmLabel
@@ -10,12 +15,6 @@ extends Control
 @onready var stats_container: VBoxContainer = $Panel/VBox/StatsContainer
 @onready var techniques_container: VBoxContainer = $Panel/VBox/TechniquesContainer
 @onready var inventory_container: GridContainer = $Panel/VBox/InventoryContainer
-
-# 当前显示的角色
-var current_character = null
-
-# 修炼参数
-const BASE_CULTIVATE_EXP: int = 10   # 每次点击修炼获得基础经验
 
 
 func setup(character) -> void:

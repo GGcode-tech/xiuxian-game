@@ -58,57 +58,39 @@ enum ItemQuality {
 
 
 func get_quality_color() -> Color:
-	match quality:
-		ItemQuality.COMMON:
-			return Color(0.9, 0.9, 0.9)      # 白色
-		ItemQuality.UNCOMMON:
-			return Color(0.3, 0.9, 0.3)      # 绿色
-		ItemQuality.RARE:
-			return Color(0.3, 0.5, 1.0)      # 蓝色
-		ItemQuality.EPIC:
-			return Color(0.7, 0.3, 0.9)      # 紫色
-		ItemQuality.LEGENDARY:
-			return Color(1.0, 0.8, 0.2)      # 金色
-		ItemQuality.IMMORTAL:
-			return Color(1.0, 0.3, 0.3)      # 红色
-		_:
-			return Color.WHITE
+	var colors = {
+		ItemQuality.COMMON: Color(0.9, 0.9, 0.9),      # 白色
+		ItemQuality.UNCOMMON: Color(0.3, 0.9, 0.3),    # 绿色
+		ItemQuality.RARE: Color(0.3, 0.5, 1.0),        # 蓝色
+		ItemQuality.EPIC: Color(0.7, 0.3, 0.9),        # 紫色
+		ItemQuality.LEGENDARY: Color(1.0, 0.8, 0.2),   # 金色
+		ItemQuality.IMMORTAL: Color(1.0, 0.3, 0.3),    # 红色
+	}
+	return colors.get(quality, Color.WHITE)
 
 
 func get_quality_name() -> String:
-	match quality:
-		ItemQuality.COMMON:
-			return "普通"
-		ItemQuality.UNCOMMON:
-			return "优秀"
-		ItemQuality.RARE:
-			return "稀有"
-		ItemQuality.EPIC:
-			return "史诗"
-		ItemQuality.LEGENDARY:
-			return "传说"
-		ItemQuality.IMMORTAL:
-			return "仙器"
-		_:
-			return "未知"
+	var names = {
+		ItemQuality.COMMON: "普通",
+		ItemQuality.UNCOMMON: "优秀",
+		ItemQuality.RARE: "稀有",
+		ItemQuality.EPIC: "史诗",
+		ItemQuality.LEGENDARY: "传说",
+		ItemQuality.IMMORTAL: "仙器",
+	}
+	return names.get(quality, "未知")
 
 
 func get_type_name() -> String:
-	match type:
-		ItemType.MATERIAL:
-			return "材料"
-		ItemType.PILL:
-			return "丹药"
-		ItemType.EQUIPMENT:
-			return "装备"
-		ItemType.SCROLL:
-			return "秘籍"
-		ItemType.TREASURE:
-			return "法宝"
-		ItemType.CONSUMABLE:
-			return "消耗品"
-		_:
-			return "未知"
+	var names = {
+		ItemType.MATERIAL: "材料",
+		ItemType.PILL: "丹药",
+		ItemType.EQUIPMENT: "装备",
+		ItemType.SCROLL: "秘籍",
+		ItemType.TREASURE: "法宝",
+		ItemType.CONSUMABLE: "消耗品",
+	}
+	return names.get(type, "未知")
 
 
 func get_effect_string() -> String:

@@ -355,7 +355,11 @@ static func _add_box(st: SurfaceTool, center: Vector3, extents: Vector3) -> void
 	for i in indices:
 		st.add_vertex(verts[i])
 
-static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, height: float, segments: int = 16) -> void:
+static func _add_cylinder(
+		st: SurfaceTool, center: Vector3,
+		radius: float, height: float,
+		segments: int = 16
+	) -> void:
 	var h := height * 0.5
 	for i in range(segments):
 		var a1 := TAU * i / segments
@@ -384,7 +388,11 @@ static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, heigh
 		st.add_vertex(center + Vector3(c2, -h, s2))
 		st.add_vertex(center + Vector3(c1, -h, s1))
 
-static func _add_cone(st: SurfaceTool, apex: Vector3, radius: float, height: float, hollow := false, segments: int = 16) -> void:
+static func _add_cone(
+		st: SurfaceTool, apex: Vector3,
+		radius: float, height: float,
+		hollow := false, segments: int = 16
+	) -> void:
 	var base_y := apex.y - height
 	for i in range(segments):
 		var a1 := TAU * i / segments
@@ -405,7 +413,10 @@ static func _add_cone(st: SurfaceTool, apex: Vector3, radius: float, height: flo
 			st.add_vertex(Vector3(c2, base_y, s2) + Vector3(apex.x, 0, apex.z))
 			st.add_vertex(Vector3(c1, base_y, s1) + Vector3(apex.x, 0, apex.z))
 
-static func _add_pyramid_roof(st: SurfaceTool, center: Vector3, extents: Vector3, slope: float) -> void:
+static func _add_pyramid_roof(
+		st: SurfaceTool, center: Vector3,
+		extents: Vector3, slope: float
+	) -> void:
 	var h := extents * 0.5
 	var peak := center + Vector3(0, extents.y, 0)
 	var overhang := slope * extents.y
@@ -435,7 +446,11 @@ static func _add_pyramid_roof(st: SurfaceTool, center: Vector3, extents: Vector3
 	st.add_vertex(base[3])
 	st.add_vertex(base[0])
 
-static func _add_dome(st: SurfaceTool, center: Vector3, radius: float, height: float, segments: int = 12, rings: int = 6) -> void:
+static func _add_dome(
+		st: SurfaceTool, center: Vector3,
+		radius: float, height: float,
+		segments: int = 12, rings: int = 6
+	) -> void:
 	for ring in range(rings):
 		var r1 := float(ring) / rings
 		var r2 := float(ring + 1) / rings
@@ -461,7 +476,10 @@ static func _add_dome(st: SurfaceTool, center: Vector3, radius: float, height: f
 			st.add_vertex(p4)
 			st.add_vertex(p3)
 
-static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
+static func _add_icosphere(
+		st: SurfaceTool, center: Vector3,
+		radius: float, _subdivisions: int = 1
+	) -> void:
 	# 简化的二十面体球体
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 

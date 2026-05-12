@@ -3,14 +3,14 @@
 
 extends Node3D
 
-@onready var camera: Camera3D = $Camera3D
-@onready var light: DirectionalLight3D = $DirectionalLight3D
+const CATEGORIES := ["建筑", "角色", "自然", "特效"]
 
 var display_objects: Array[Node3D] = []
 var current_category := 0
 var rotation_angle := 0.0
 
-const CATEGORIES := ["建筑", "角色", "自然", "特效"]
+@onready var camera: Camera3D = $Camera3D
+@onready var light: DirectionalLight3D = $DirectionalLight3D
 
 func _ready() -> void:
 	_setup_scene()
@@ -199,7 +199,10 @@ func _display_effects() -> void:
 		ProceduralEffects.EffectType.MEDITATION_AURA,
 	]
 	var names := ["灵气球", "飞剑", "丹火", "突破", "金丹", "元婴", "传送门", "光环"]
-	var colors := ["qi_blue", "qi_gold", "fire_red", "breakthrough_white", "qi_gold", "qi_blue", "qi_purple", "qi_green"]
+	var colors := [
+		"qi_blue", "qi_gold", "fire_red", "breakthrough_white",
+		"qi_gold", "qi_blue", "qi_purple", "qi_green"
+	]
 
 	for i in range(types.size()):
 		var effect := ResourceManager.create_effect(types[i], 0.8, colors[i])

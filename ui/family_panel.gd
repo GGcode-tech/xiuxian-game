@@ -1,14 +1,14 @@
 ## 家族管理面板 - 家族信息和操作
 extends Control
 
+var current_family = null
+
 @onready var family_name_label: Label = $Panel/VBox/FamilyNameLabel
 @onready var level_label: Label = $Panel/VBox/LevelLabel
 @onready var member_list: ItemList = $Panel/VBox/HBox/MemberList
 @onready var resource_grid: GridContainer = $Panel/VBox/ResourceGrid
 @onready var building_list: ItemList = $Panel/VBox/HBox/BuildingList
 @onready var territory_list: ItemList = $Panel/VBox/HBox/TerritoryList
-
-var current_family = null
 
 
 func setup(family) -> void:

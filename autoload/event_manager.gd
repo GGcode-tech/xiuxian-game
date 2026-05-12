@@ -5,11 +5,12 @@ signal event_triggered(event: Dictionary, context: Dictionary)
 signal event_choice_made(event: Dictionary, choice: int, result: Dictionary)
 signal notification_added(title: String, content: String, type: String)
 
-var _active_events: Array[Dictionary] = []
-var _event_queue: Array[Dictionary] = []
 var max_active_events: int = 5
 var notifications: Array[Dictionary] = []
 var max_notifications: int = 100
+
+var _active_events: Array[Dictionary] = []
+var _event_queue: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -229,16 +230,19 @@ func _can_trigger_character_event(event: Dictionary, character: Dictionary) -> b
 
 func _can_trigger_family_event(event: Dictionary, family: Dictionary) -> bool:
 	var triggers = event.get("triggers", {})
-	if triggers.get("min_family_level", 0) > 0 and family.get("level", 0) < triggers.get("min_family_level", 0):
+	if triggers.get("min_family_level", 0) > 0 \
+		and family.get("level", 0) < triggers.get("min_family_level", 0):
 		return false
-	if triggers.get("min_members", 0) > 0 and family.get("members", []).size() < triggers.get("min_members", 0):
+	if triggers.get("min_members", 0) > 0 \
+		and family.get("members", []).size() < triggers.get("min_members", 0):
 		return false
 	return true
 
 
 func _can_trigger_world_event(event: Dictionary) -> bool:
 	var triggers = event.get("triggers", {})
-	if triggers.get("min_year", 0) > 0 and GameManager.game_time.get("year", 1) < triggers.get("min_year", 0):
+	if triggers.get("min_year", 0) > 0 \
+		and GameManager.game_time.get("year", 1) < triggers.get("min_year", 0):
 		return false
 	return true
 

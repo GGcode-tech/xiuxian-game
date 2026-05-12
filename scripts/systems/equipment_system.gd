@@ -42,6 +42,15 @@ class EquipmentInstance extends RefCounted:
 		gems.resize(4)  # 4个宝石孔
 
 
+## 信号
+signal equipment_equipped(equipment: EquipmentInstance, slot: EquipmentSlot)
+signal equipment_unequipped(equipment: EquipmentInstance)
+signal enhancement_success(equipment_id: String, new_level: int)
+signal enhancement_failed(equipment_id: String)
+signal gem_inserted(equipment_id: String, gem_type: GemType, slot_index: int)
+signal gem_removed(equipment_id: String, gem_type: GemType)
+signal set_completed(set_id: String, bonus: SetBonus)
+
 ## 装备槽位类型
 enum EquipmentSlot {
 	WEAPON = 0,    # 武器
@@ -82,15 +91,6 @@ enum GemType {
 	LUCK,       # 幸运宝石
 }
 
-## 信号
-signal equipment_equipped(equipment: EquipmentInstance, slot: EquipmentSlot)
-signal equipment_unequipped(equipment: EquipmentInstance)
-signal enhancement_success(equipment_id: String, new_level: int)
-signal enhancement_failed(equipment_id: String)
-signal gem_inserted(equipment_id: String, gem_type: GemType, slot_index: int)
-signal gem_removed(equipment_id: String, gem_type: GemType)
-signal set_completed(set_id: String, bonus: SetBonus)
-
 
 ## 装备配置数据
 var equipment_templates: Dictionary = {}
@@ -113,14 +113,46 @@ func _init_default_equipment() -> void:
 
 func _init_gem_templates() -> void:
 	gem_templates = {
-		"gem_attack_1": {"id": "gem_attack_1", "name": "攻击宝石", "type": GemType.ATTACK, "value": 10, "quality": EquipmentQuality.GREEN},
-		"gem_attack_2": {"id": "gem_attack_2", "name": "精致攻击宝石", "type": GemType.ATTACK, "value": 25, "quality": EquipmentQuality.BLUE},
-		"gem_attack_3": {"id": "gem_attack_3", "name": "极品攻击宝石", "type": GemType.ATTACK, "value": 50, "quality": EquipmentQuality.PURPLE},
-		"gem_defense_1": {"id": "gem_defense_1", "name": "防御宝石", "type": GemType.DEFENSE, "value": 10, "quality": EquipmentQuality.GREEN},
-		"gem_hp_1": {"id": "gem_hp_1", "name": "生命宝石", "type": GemType.HP, "value": 100, "quality": EquipmentQuality.GREEN},
-		"gem_hp_2": {"id": "gem_hp_2", "name": "精致生命宝石", "type": GemType.HP, "value": 250, "quality": EquipmentQuality.BLUE},
-		"gem_speed_1": {"id": "gem_speed_1", "name": "速度宝石", "type": GemType.SPEED, "value": 5, "quality": EquipmentQuality.GREEN},
-		"gem_luck_1": {"id": "gem_luck_1", "name": "幸运宝石", "type": GemType.LUCK, "value": 3, "quality": EquipmentQuality.BLUE},
+		"gem_attack_1": {
+			"id": "gem_attack_1", "name": "攻击宝石",
+			"type": GemType.ATTACK, "value": 10,
+			"quality": EquipmentQuality.GREEN
+		},
+		"gem_attack_2": {
+			"id": "gem_attack_2", "name": "精致攻击宝石",
+			"type": GemType.ATTACK, "value": 25,
+			"quality": EquipmentQuality.BLUE
+		},
+		"gem_attack_3": {
+			"id": "gem_attack_3", "name": "极品攻击宝石",
+			"type": GemType.ATTACK, "value": 50,
+			"quality": EquipmentQuality.PURPLE
+		},
+		"gem_defense_1": {
+			"id": "gem_defense_1", "name": "防御宝石",
+			"type": GemType.DEFENSE, "value": 10,
+			"quality": EquipmentQuality.GREEN
+		},
+		"gem_hp_1": {
+			"id": "gem_hp_1", "name": "生命宝石",
+			"type": GemType.HP, "value": 100,
+			"quality": EquipmentQuality.GREEN
+		},
+		"gem_hp_2": {
+			"id": "gem_hp_2", "name": "精致生命宝石",
+			"type": GemType.HP, "value": 250,
+			"quality": EquipmentQuality.BLUE
+		},
+		"gem_speed_1": {
+			"id": "gem_speed_1", "name": "速度宝石",
+			"type": GemType.SPEED, "value": 5,
+			"quality": EquipmentQuality.GREEN
+		},
+		"gem_luck_1": {
+			"id": "gem_luck_1", "name": "幸运宝石",
+			"type": GemType.LUCK, "value": 3,
+			"quality": EquipmentQuality.BLUE
+		},
 	}
 
 
@@ -136,7 +168,8 @@ func _init_equipment_sets() -> void:
 				"boots": ["equip_xuanwu_boots"]
 			},
 			"bonuses": [
-				{"required": 2, "stat_bonus": {"defense": 50, "max_hp": 500}, "special_effect": "玄武护体：受到伤害减少10%"},
+				{"required": 2, "stat_bonus": {"defense": 50, "max_hp": 500},
+				"special_effect": "玄武护体：受到伤害减少10%"},
 				{"required": 3, "stat_bonus": {"defense": 150, "max_hp": 1500}, "special_effect": "玄武真身：免疫控制效果"}
 			]
 		},
@@ -398,15 +431,16 @@ func _get_gem_data(gem_type: GemType) -> Dictionary:
 
 
 func _get_stat_for_gem_type(gem_type: GemType) -> String:
-	match gem_type:
-		GemType.ATTACK: return "attack"
-		GemType.DEFENSE: return "defense"
-		GemType.HP: return "max_hp"
-		GemType.MP: return "max_mp"
-		GemType.SPIRIT: return "spirit"
-		GemType.SPEED: return "speed"
-		GemType.LUCK: return "luck"
-		_: return "attack"
+	var stat_map = {
+		GemType.ATTACK: "attack",
+		GemType.DEFENSE: "defense",
+		GemType.HP: "max_hp",
+		GemType.MP: "max_mp",
+		GemType.SPIRIT: "spirit",
+		GemType.SPEED: "speed",
+		GemType.LUCK: "luck",
+	}
+	return stat_map.get(gem_type, "attack")
 
 
 ## 卸下宝石
@@ -555,25 +589,27 @@ func generate_random_equipment(quality: EquipmentQuality, level: int) -> Equipme
 
 ## 获取装备品质名称
 func get_quality_name(quality: EquipmentQuality) -> String:
-	match quality:
-		EquipmentQuality.WHITE: return "白色"
-		EquipmentQuality.GREEN: return "绿色"
-		EquipmentQuality.BLUE: return "蓝色"
-		EquipmentQuality.PURPLE: return "紫色"
-		EquipmentQuality.ORANGE: return "橙色"
-		EquipmentQuality.RED: return "红色"
-		_: return "未知"
+	var names = {
+		EquipmentQuality.WHITE: "白色",
+		EquipmentQuality.GREEN: "绿色",
+		EquipmentQuality.BLUE: "蓝色",
+		EquipmentQuality.PURPLE: "紫色",
+		EquipmentQuality.ORANGE: "橙色",
+		EquipmentQuality.RED: "红色",
+	}
+	return names.get(quality, "未知")
 
 
 func get_quality_color(quality: EquipmentQuality) -> String:
-	match quality:
-		EquipmentQuality.WHITE: return "#FFFFFF"
-		EquipmentQuality.GREEN: return "#00FF00"
-		EquipmentQuality.BLUE: return "#0000FF"
-		EquipmentQuality.PURPLE: return "#9900FF"
-		EquipmentQuality.ORANGE: return "#FF9900"
-		EquipmentQuality.RED: return "#FF0000"
-		_: return "#FFFFFF"
+	var colors = {
+		EquipmentQuality.WHITE: "#FFFFFF",
+		EquipmentQuality.GREEN: "#00FF00",
+		EquipmentQuality.BLUE: "#0000FF",
+		EquipmentQuality.PURPLE: "#9900FF",
+		EquipmentQuality.ORANGE: "#FF9900",
+		EquipmentQuality.RED: "#FF0000",
+	}
+	return colors.get(quality, "#FFFFFF")
 
 
 func get_slot_name(slot: EquipmentSlot) -> String:
@@ -585,15 +621,16 @@ func get_slot_name(slot: EquipmentSlot) -> String:
 
 
 func get_gem_name(gem_type: GemType) -> String:
-	match gem_type:
-		GemType.ATTACK: return "攻击宝石"
-		GemType.DEFENSE: return "防御宝石"
-		GemType.HP: return "生命宝石"
-		GemType.MP: return "法力宝石"
-		GemType.SPIRIT: return "精魂宝石"
-		GemType.SPEED: return "速度宝石"
-		GemType.LUCK: return "幸运宝石"
-		_: return "未知宝石"
+	var names = {
+		GemType.ATTACK: "攻击宝石",
+		GemType.DEFENSE: "防御宝石",
+		GemType.HP: "生命宝石",
+		GemType.MP: "法力宝石",
+		GemType.SPIRIT: "精魂宝石",
+		GemType.SPEED: "速度宝石",
+		GemType.LUCK: "幸运宝石",
+	}
+	return names.get(gem_type, "未知宝石")
 
 
 ## 工具函数

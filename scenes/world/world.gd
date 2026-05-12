@@ -2,26 +2,6 @@
 ## 使用Kenney GLB模型替换程序化几何体
 extends Node3D
 
-# 3D场景节点
-@onready var terrain: Node3D = $Terrain
-@onready var buildings: Node3D = $Buildings
-@onready var characters_node: Node3D = $Characters
-@onready var nature: Node3D = $Nature
-@onready var effects: Node3D = $Effects
-@onready var camera: Camera3D = $Camera3D
-@onready var environment: WorldEnvironment = $WorldEnvironment
-@onready var lighting: DirectionalLight3D = $Lighting
-
-# 缓存
-var _character_nodes: Dictionary = {}
-var _building_nodes: Dictionary = {}
-var _npc_nodes: Dictionary = {}
-
-# 地形参数
-@export var terrain_size: float = 100.0
-@export var tree_count: int = 50
-@export var rock_count: int = 20
-
 # Kenney模型路径常量
 const KENNEY_BUILDINGS = "res://assets/models/kenney_buildings/"
 const KENNEY_NATURE = "res://assets/models/kenney_nature/"
@@ -32,8 +12,47 @@ const OGA_TEMPLE = "res://assets/models/opengameart_temple/"
 const OGA_BAMBOO = "res://assets/models/opengameart_bamboo/"
 const OGA_DRAGON = "res://assets/models/opengameart_dragon/"
 
+# 地形参数
+@export var terrain_size: float = 100.0
+@export var tree_count: int = 50
+@export var rock_count: int = 20
+
+# 缓存
+var _character_nodes: Dictionary = {}
+var _building_nodes: Dictionary = {}
+var _npc_nodes: Dictionary = {}
+
 # 模型缓存
 var _model_cache: Dictionary = {}
+
+# 网格构建器
+var _mesh_builder: WorldMeshBuilder = WorldMeshBuilder.new()
+
+# 相机控制参数
+var _camera_zoom_speed: float = 5.0
+var _camera_min_height: float = 5.0
+var _camera_max_height: float = 60.0
+
+# 玩家角色节点引用
+var _player_node: Node3D = null
+var _move_target: Vector3 = Vector3.ZERO
+var _is_moving: bool = false
+var _move_speed: float = 8.0
+
+# 相机跟随参数
+var _camera_offset: Vector3 = Vector3(0, 25, 25)  # 相机相对玩家的偏移
+var _camera_look_ahead: float = 5.0  # 相机看向玩家前方距离
+var _camera_smoothing: float = 5.0  # 相机跟随平滑速度
+
+# 3D场景节点
+@onready var terrain: Node3D = $Terrain
+@onready var buildings: Node3D = $Buildings
+@onready var characters_node: Node3D = $Characters
+@onready var nature: Node3D = $Nature
+@onready var effects: Node3D = $Effects
+@onready var camera: Camera3D = $Camera3D
+@onready var environment: WorldEnvironment = $WorldEnvironment
+@onready var lighting: DirectionalLight3D = $Lighting
 
 
 func initialize() -> void:
@@ -47,17 +66,6 @@ func initialize() -> void:
 
 
 # ==================== GLB模型加载 ====================
-
-# 相机控制参数
-var _camera_zoom_speed: float = 5.0
-var _camera_min_height: float = 5.0
-var _camera_max_height: float = 60.0
-
-# 玩家角色节点引用
-var _player_node: Node3D = null
-var _move_target: Vector3 = Vector3.ZERO
-var _is_moving: bool = false
-var _move_speed: float = 8.0
 
 func _load_glb_model(path: String) -> Node3D:
 	"""加载GLB模型，带缓存（load()返回PackedScene，可安全instantiate）"""
@@ -163,7 +171,7 @@ func _generate_terrain() -> void:
 	terrain.add_child(pond)
 
 	for i in range(5):
-		var lotus := _create_plant(0)
+		var lotus := _mesh_builder.create_plant(0)
 		lotus.position = Vector3(18 + randf() * 4, 0.1, 13 + randf() * 4)
 		nature.add_child(lotus)
 
@@ -203,7 +211,7 @@ func _create_default_buildings() -> void:
 			_add_building_collision(building_node)
 		else:
 			# 回退到程序化几何体
-			var building: MeshInstance3D = _create_building_fallback(item["type"], 1.0)
+			var building: MeshInstance3D = _mesh_builder.create_building_fallback(item["type"], 1.0)
 			building.position = item["pos"]
 			building.set_meta("building_name", item["name"])
 			buildings.add_child(building)
@@ -401,7 +409,7 @@ func _spawn_npc_node(npc: Dictionary, index: int) -> void:
 
 	# 角色模型（使用已有模板）
 	var npc_color = _get_npc_color(npc)
-	var mesh := _create_character_mesh(0, npc_color)
+	var mesh := _mesh_builder.create_character_mesh(0, npc_color)
 	mesh.scale = Vector3(2.0, 2.0, 2.0)
 	container.add_child(mesh)
 
@@ -457,7 +465,10 @@ func _generate_nature() -> void:
 		var tree_type := randi() % 15 as int
 		var tree_node := _get_tree_model(tree_type)
 		if tree_node:
-			tree_node.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
+			tree_node.position = Vector3(
+				randf_range(-terrain_size * 0.4, terrain_size * 0.4),
+				0,
+				randf_range(-terrain_size * 0.4, terrain_size * 0.4))
 			tree_node.rotate_y(randf() * TAU)
 			var scale = randf_range(1.5, 3.0)
 			tree_node.scale = Vector3(scale, scale, scale)
@@ -465,8 +476,11 @@ func _generate_nature() -> void:
 				tree_node.position.x += 15 * (1 if tree_node.position.x > 0 else -1)
 			nature.add_child(tree_node)
 		else:
-			var tree := _create_tree_fallback(tree_type % 3, randf_range(0.6, 1.4))
-			tree.position = Vector3(randf_range(-terrain_size * 0.4, terrain_size * 0.4), 0, randf_range(-terrain_size * 0.4, terrain_size * 0.4))
+			var tree := _mesh_builder.create_tree_fallback(tree_type % 3, randf_range(0.6, 1.4))
+			tree.position = Vector3(
+				randf_range(-terrain_size * 0.4, terrain_size * 0.4),
+				0,
+				randf_range(-terrain_size * 0.4, terrain_size * 0.4))
 			tree.rotate_y(randf() * TAU)
 			if abs(tree.position.x) < 10 and abs(tree.position.z) < 20:
 				tree.position.x += 15 * (1 if tree.position.x > 0 else -1)
@@ -477,13 +491,19 @@ func _generate_nature() -> void:
 		var rock_type := randi() % 10 as int
 		var rock_node := _get_rock_model(rock_type)
 		if rock_node:
-			rock_node.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
+			rock_node.position = Vector3(
+				randf_range(-terrain_size * 0.35, terrain_size * 0.35),
+				0,
+				randf_range(-terrain_size * 0.35, terrain_size * 0.35))
 			rock_node.rotate_y(randf() * TAU)
 			rock_node.scale = Vector3(1.5, 1.5, 1.5)
 			nature.add_child(rock_node)
 		else:
-			var rock := _create_rock_fallback(rock_type % 4, randf_range(0.4, 1.2))
-			rock.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
+			var rock := _mesh_builder.create_rock_fallback(rock_type % 4, randf_range(0.4, 1.2))
+			rock.position = Vector3(
+				randf_range(-terrain_size * 0.35, terrain_size * 0.35),
+				0,
+				randf_range(-terrain_size * 0.35, terrain_size * 0.35))
 			rock.rotate_y(randf() * TAU)
 			nature.add_child(rock)
 
@@ -492,12 +512,18 @@ func _generate_nature() -> void:
 		var spirit_type := 3 + randi() % 3  # 灵石变体
 		var spirit_stone := _get_rock_model(spirit_type)
 		if spirit_stone:
-			spirit_stone.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
+			spirit_stone.position = Vector3(
+				randf_range(-terrain_size * 0.3, terrain_size * 0.3),
+				0.3,
+				randf_range(-terrain_size * 0.3, terrain_size * 0.3))
 			spirit_stone.scale = Vector3(2.0, 2.0, 2.0)
 			nature.add_child(spirit_stone)
 		else:
-			var spirit_stone_fallback := _create_rock_fallback(3, 0.8)
-			spirit_stone_fallback.position = Vector3(randf_range(-terrain_size * 0.3, terrain_size * 0.3), 0.3, randf_range(-terrain_size * 0.3, terrain_size * 0.3))
+			var spirit_stone_fallback := _mesh_builder.create_rock_fallback(3, 0.8)
+			spirit_stone_fallback.position = Vector3(
+				randf_range(-terrain_size * 0.3, terrain_size * 0.3),
+				0.3,
+				randf_range(-terrain_size * 0.3, terrain_size * 0.3))
 			nature.add_child(spirit_stone_fallback)
 
 	# 灵花：8-12朵
@@ -526,7 +552,12 @@ func _generate_nature() -> void:
 	_place_single("campfire2", KENNEY_PLANTS + "campfire_logs.glb", Vector3(-5, 0, -12), 1.5)
 
 
-func _place_plants_batch(name_prefix: String, model_path: String, count: int, scale: float, center: Vector3 = Vector3.ZERO, radius: float = 0.0) -> void:
+func _place_plants_batch(
+	_name_prefix: String, model_path: String,
+	count: int, scale: float,
+	center: Vector3 = Vector3.ZERO,
+	radius: float = 0.0
+) -> void:
 	"""批量放置植物类装饰"""
 	for i in range(count):
 		var node := _load_glb_model(model_path)
@@ -535,7 +566,10 @@ func _place_plants_batch(name_prefix: String, model_path: String, count: int, sc
 		if radius > 0.0:
 			node.position = center + Vector3(randf_range(-radius, radius), 0, randf_range(-radius, radius))
 		else:
-			node.position = Vector3(randf_range(-terrain_size * 0.35, terrain_size * 0.35), 0, randf_range(-terrain_size * 0.35, terrain_size * 0.35))
+			node.position = Vector3(
+				randf_range(-terrain_size * 0.35, terrain_size * 0.35),
+				0,
+				randf_range(-terrain_size * 0.35, terrain_size * 0.35))
 		node.rotate_y(randf() * TAU)
 		node.scale = Vector3(scale, scale, scale)
 		nature.add_child(node)
@@ -586,7 +620,7 @@ func _create_default_characters() -> void:
 
 	for i in range(3):
 		var char_node := Node3D.new()
-		var mesh := _create_character_mesh(types[i], colors[i])
+		var mesh := _mesh_builder.create_character_mesh(types[i], colors[i])
 		char_node.add_child(mesh)
 		char_node.position = default_positions[i]
 		char_node.set_meta("character_id", "default_%d" % i)
@@ -595,12 +629,13 @@ func _create_default_characters() -> void:
 	# 第一个角色设为玩家
 		if i == 0 and _player_node == null:
 			_player_node = char_node
-			_add_player_aura(char_node)
+			_mesh_builder.create_player_aura(char_node)
 
 
 func _spawn_character_node(character: Dictionary) -> void:
 	var container := Node3D.new()
-	var mesh := _create_character_mesh(_get_character_type(character), _get_character_color(character))
+	var mesh := _mesh_builder.create_character_mesh(
+		_get_character_type(character), _get_character_color(character))
 	mesh.scale = Vector3(2.0, 2.0, 2.0)  # 放大2倍
 	container.add_child(mesh)
 	# 名字标签（3D文字）
@@ -620,7 +655,7 @@ func _spawn_character_node(character: Dictionary) -> void:
 	# 如果是玩家角色（第一代修炼者），设置引用
 	if character.get("generation", 0) == 1 and character.get("role", "") == "cultivator":
 		_player_node = container
-		_add_player_aura(container)
+		_mesh_builder.create_player_aura(container)
 	print("[World] ✅ spawned character '%s' at %s" % [character.get("name", "?"), container.position])
 
 
@@ -645,282 +680,7 @@ func _get_character_color(character: Dictionary) -> Color:
 	return color_map.get(character.get("element", ""), Color(0.6, 0.7, 0.85))
 
 
-# ==================== 回退程序化生成（当GLB加载失败时） ====================
-
-func _create_building_fallback(building_type: int, size: float) -> MeshInstance3D:
-	var mesh_instance := MeshInstance3D.new()
-	var array_mesh := ArrayMesh.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-	match building_type:
-		0: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(2, 3, 0.5) * size)
-		1: _add_box_mesh(st, Vector3(0, 2.5, 0), Vector3(4, 5, 3) * size)
-		2: _add_box_mesh(st, Vector3(0, 1, 0), Vector3(3, 2, 3) * size)
-		3: _add_box_mesh(st, Vector3(0, 3, 0), Vector3(3, 6, 2) * size)
-		4: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(3, 3, 3) * size)
-		5: _add_box_mesh(st, Vector3(0, 2, 0), Vector3(3, 4, 3) * size)
-		6: _add_box_mesh(st, Vector3(0, 4, 0), Vector3(2, 8, 2) * size)
-		7: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(3, 3, 3) * size)
-		8: _add_box_mesh(st, Vector3(0, 1.5, 0), Vector3(2, 3, 2) * size)
-		_: _add_box_mesh(st, Vector3(0, 2, 0), Vector3(3, 4, 3) * size)
-
-	st.generate_normals()
-	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.85, 0.72, 0.50)
-	mat.roughness = 0.75
-	array_mesh.surface_set_material(0, mat)
-	mesh_instance.mesh = array_mesh
-	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	return mesh_instance
-
-
-func _create_tree_fallback(tree_type: int, size: float) -> MeshInstance3D:
-	var mesh_instance := MeshInstance3D.new()
-	var array_mesh := ArrayMesh.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-	match tree_type:
-		0: # 松树
-			_add_cylinder_mesh(st, Vector3(0, 1.0, 0), 0.15 * size, 2.0 * size)
-			_add_cone_mesh(st, Vector3(0, 2.5 * size, 0), 0.8 * size, 1.5 * size)
-		1: # 竹子
-			_add_cylinder_mesh(st, Vector3(0, 1.5, 0), 0.1 * size, 3.0 * size)
-		2: # 柳树
-			_add_cylinder_mesh(st, Vector3(0, 1.0, 0), 0.12 * size, 2.0 * size)
-			_add_sphere_mesh(st, Vector3(0, 2.5 * size, 0), 1.0 * size)
-		_: _add_cone_mesh(st, Vector3(0, 2 * size, 0), 0.7 * size, 2.0 * size)
-
-	st.generate_normals()
-	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.35, 0.75, 0.25)
-	mat.roughness = 0.9
-	array_mesh.surface_set_material(0, mat)
-	mesh_instance.mesh = array_mesh
-	return mesh_instance
-
-
-func _create_rock_fallback(rock_type: int, size: float) -> MeshInstance3D:
-	var mesh_instance := MeshInstance3D.new()
-	var array_mesh := ArrayMesh.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-	match rock_type:
-		0: _add_icosphere_mesh(st, Vector3(0, 0.4 * size, 0), 0.5 * size)
-		1: _add_box_mesh(st, Vector3(0, 0.2 * size, 0), Vector3(0.4, 0.4, 0.3) * size)
-		2: _add_sphere_mesh(st, Vector3(0, 0.3 * size, 0), 0.4 * size)
-		3: # 灵石
-			_add_icosphere_mesh(st, Vector3(0, 0.3 * size, 0), 0.3 * size)
-		_: _add_box_mesh(st, Vector3(0, 0.3 * size, 0), Vector3(0.5, 0.5, 0.4) * size)
-
-	st.generate_normals()
-	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	var mat := StandardMaterial3D.new()
-	if rock_type == 3:
-		mat.albedo_color = Color(0.5, 0.95, 1.0)
-		mat.emission = Color(0.2, 0.7, 0.9)
-		mat.emission_energy_multiplier = 3.0
-	else:
-		mat.albedo_color = Color(0.70, 0.68, 0.65)
-	mat.roughness = 0.9
-	array_mesh.surface_set_material(0, mat)
-	mesh_instance.mesh = array_mesh
-	return mesh_instance
-
-
-func _create_plant(plant_type: int) -> MeshInstance3D:
-	var mesh_instance := MeshInstance3D.new()
-	var array_mesh := ArrayMesh.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_add_sphere_mesh(st, Vector3(0, 0.15, 0), 0.15)
-	st.generate_normals()
-	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.9, 0.3, 0.5)
-	mat.roughness = 0.8
-	array_mesh.surface_set_material(0, mat)
-	mesh_instance.mesh = array_mesh
-	return mesh_instance
-
-
-func _create_character_mesh(char_type: int, color: Color) -> MeshInstance3D:
-	var mesh_instance := MeshInstance3D.new()
-	var array_mesh := ArrayMesh.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-
-	# 头部（球形，稍大）
-	_add_sphere(st, Vector3(0, 1.7, 0), 0.22, 2)
-	# 发髻（头顶小球）
-	_add_sphere(st, Vector3(0, 1.95, 0), 0.12, 1)
-	# 身体/道袍（上窄下宽的梯形躯干）
-	_add_box(st, Vector3(0, 1.2, 0), Vector3(0.35, 0.55, 0.22))
-	# 道袍下摆（更宽）
-	_add_box(st, Vector3(0, 0.7, 0), Vector3(0.5, 0.45, 0.28))
-	# 腿部
-	_add_box(st, Vector3(-0.12, 0.3, 0), Vector3(0.1, 0.55, 0.12))
-	_add_box(st, Vector3(0.12, 0.3, 0), Vector3(0.1, 0.55, 0.12))
-	# 袖子（宽大的左右袖口）
-	_add_box(st, Vector3(-0.35, 1.15, 0), Vector3(0.2, 0.25, 0.18))
-	_add_box(st, Vector3(0.35, 1.15, 0), Vector3(0.2, 0.25, 0.18))
-	# 手臂
-	_add_box(st, Vector3(-0.25, 1.05, 0), Vector3(0.08, 0.35, 0.08))
-	_add_box(st, Vector3(0.25, 1.05, 0), Vector3(0.08, 0.35, 0.08))
-
-	st.generate_normals()
-	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.5
-	mat.metallic = 0.15
-	array_mesh.surface_set_material(0, mat)
-	mesh_instance.mesh = array_mesh
-	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	return mesh_instance
-
-
-func _add_player_aura(player_node: Node3D) -> void:
-	"""给玩家角色添加灵气光效和脚下光环"""
-	# 脚下光环
-	var ring_mesh := MeshInstance3D.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var ring_radius := 0.6
-	var ring_segments := 32
-	for i in range(ring_segments):
-		var a1 := (i / float(ring_segments)) * TAU
-		var a2 := ((i + 1) / float(ring_segments)) * TAU
-		var inner_r := ring_radius - 0.08
-		st.add_vertex(Vector3(cos(a1) * ring_radius, 0.05, sin(a1) * ring_radius))
-		st.add_vertex(Vector3(cos(a2) * ring_radius, 0.05, sin(a2) * ring_radius))
-		st.add_vertex(Vector3(cos(a1) * inner_r, 0.05, sin(a1) * inner_r))
-		st.add_vertex(Vector3(cos(a2) * inner_r, 0.05, sin(a2) * inner_r))
-		st.add_vertex(Vector3(cos(a1) * inner_r, 0.05, sin(a1) * inner_r))
-		st.add_vertex(Vector3(cos(a2) * ring_radius, 0.05, sin(a2) * ring_radius))
-	st.generate_normals()
-	var arr_mesh := ArrayMesh.new()
-	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-	var ring_mat := StandardMaterial3D.new()
-	ring_mat.albedo_color = Color(0.6, 0.9, 1.0, 0.7)
-	ring_mat.emission_enabled = true
-	ring_mat.emission = Color(0.4, 0.8, 1.0)
-	ring_mat.emission_energy = 3.0
-	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	arr_mesh.surface_set_material(0, ring_mat)
-	ring_mesh.mesh = arr_mesh
-	player_node.add_child(ring_mesh)
-
-	# 头顶境界指示光点
-	var glow := MeshInstance3D.new()
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.08
-	sphere.height = 0.16
-	var glow_mat := StandardMaterial3D.new()
-	glow_mat.albedo_color = Color(1.0, 0.95, 0.5)
-	glow_mat.emission_enabled = true
-	glow_mat.emission = Color(1.0, 0.9, 0.4)
-	glow_mat.emission_energy = 4.0
-	glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	sphere.surface_set_material(0, glow_mat)
-	glow.mesh = sphere
-	glow.position = Vector3(0, 2.3, 0)
-	player_node.add_child(glow)
-
-
-# ==================== 几何辅助 ====================
-
-func _add_box(st: SurfaceTool, center: Vector3, extents: Vector3) -> void:
-	var h := extents * 0.5
-	var verts := PackedVector3Array([
-		center + Vector3(-h.x, -h.y, -h.z), center + Vector3(h.x, -h.y, -h.z),
-		center + Vector3(h.x, -h.y, h.z), center + Vector3(-h.x, -h.y, h.z),
-		center + Vector3(-h.x, h.y, -h.z), center + Vector3(h.x, h.y, -h.z),
-		center + Vector3(h.x, h.y, h.z), center + Vector3(-h.x, h.y, h.z),
-	])
-	var indices := [0,1,2, 0,2,3, 4,6,5, 4,7,6, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,7, 2,7,3, 3,7,4, 3,4,0]
-	for idx in indices:
-		st.add_vertex(verts[idx])
-
-
-func _add_sphere(st: SurfaceTool, center: Vector3, radius: float, subdivisions: int = 1) -> void:
-	var phi := (1.0 + sqrt(5.0)) / 2.0
-	var verts := PackedVector3Array([
-		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),
-		Vector3(0, -1, phi), Vector3(0, 1, phi), Vector3(0, -1, -phi), Vector3(0, 1, -phi),
-		Vector3(phi, 0, -1), Vector3(phi, 0, 1), Vector3(-phi, 0, -1), Vector3(-phi, 0, 1),
-	])
-	for i in range(verts.size()):
-		verts[i] = verts[i].normalized() * radius + center
-	var faces := [0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1]
-	for i in range(0, faces.size(), 3):
-		st.add_vertex(verts[faces[i]])
-		st.add_vertex(verts[faces[i+1]])
-		st.add_vertex(verts[faces[i+2]])
-
-
-func _add_box_mesh(st: SurfaceTool, center: Vector3, size: Vector3) -> void:
-	var h := size * 0.5
-	var verts := PackedVector3Array([
-		center + Vector3(-h.x,-h.y,-h.z), center + Vector3(h.x,-h.y,-h.z),
-		center + Vector3(h.x,-h.y,h.z), center + Vector3(-h.x,-h.y,h.z),
-		center + Vector3(-h.x,h.y,-h.z), center + Vector3(h.x,h.y,-h.z),
-		center + Vector3(h.x,h.y,h.z), center + Vector3(-h.x,h.y,h.z),
-	])
-	var idx := [0,1,2, 0,2,3, 4,6,5, 4,7,6, 0,4,5, 0,5,1, 1,5,6, 1,6,2, 2,6,7, 2,7,3, 3,7,4, 3,4,0]
-	for i in idx:
-		st.add_vertex(verts[i])
-
-
-func _add_cylinder_mesh(st: SurfaceTool, center: Vector3, radius: float, height: float) -> void:
-	var sides := 8
-	var half_h := height * 0.5
-	for i in range(sides):
-		var a1 := (float(i) / sides) * TAU
-		var a2 := (float(i + 1) / sides) * TAU
-		var v1 := center + Vector3(cos(a1) * radius, half_h, sin(a1) * radius)
-		var v2 := center + Vector3(cos(a2) * radius, half_h, sin(a2) * radius)
-		var v3 := center + Vector3(cos(a2) * radius, -half_h, sin(a2) * radius)
-		var v4 := center + Vector3(cos(a1) * radius, -half_h, sin(a1) * radius)
-		st.add_vertex(v1); st.add_vertex(v2); st.add_vertex(v3)
-		st.add_vertex(v1); st.add_vertex(v3); st.add_vertex(v4)
-
-
-func _add_cone_mesh(st: SurfaceTool, center: Vector3, radius: float, height: float) -> void:
-	var sides := 8
-	var top := center + Vector3(0, height, 0)
-	for i in range(sides):
-		var a1 := (float(i) / sides) * TAU
-		var a2 := (float(i + 1) / sides) * TAU
-		var v1 := center + Vector3(0, 0, 0)
-		var v2 := center + Vector3(cos(a1) * radius, 0, sin(a1) * radius)
-		var v3 := center + Vector3(cos(a2) * radius, 0, sin(a2) * radius)
-		var v4 := top
-		var v5 := center + Vector3(cos(a1) * radius, 0, sin(a1) * radius)
-		var v6 := center + Vector3(cos(a2) * radius, 0, sin(a2) * radius)
-		st.add_vertex(v1); st.add_vertex(v2); st.add_vertex(v3)
-		st.add_vertex(v4); st.add_vertex(v5); st.add_vertex(v6)
-
-
-func _add_sphere_mesh(st: SurfaceTool, center: Vector3, radius: float) -> void:
-	_add_sphere(st, center, radius, 1)
-
-
-func _add_icosphere_mesh(st: SurfaceTool, center: Vector3, radius: float) -> void:
-	_add_sphere(st, center, radius, 0)
-
-
 # ==================== 相机 ====================
-
-# 相机跟随参数
-var _camera_offset: Vector3 = Vector3(0, 25, 25)  # 相机相对玩家的偏移
-var _camera_look_ahead: float = 5.0  # 相机看向玩家前方距离
-var _camera_smoothing: float = 5.0  # 相机跟随平滑速度
 
 func _setup_camera() -> void:
 	# 初始相机位置：跟随玩家
@@ -934,7 +694,7 @@ func _setup_camera() -> void:
 
 # ==================== 输入控制 ====================
 
-func _unhandled_input(event: InputEvent) -> void:
+func _unhandled_input(_event: InputEvent) -> void:
 	# 滚轮缩放（移到 _input 由 main_scene 处理）
 	pass
 
@@ -952,7 +712,12 @@ func _process(delta: float) -> void:
 			_is_moving = false
 		else:
 			# 角色朝向移动方向
-			_player_node.look_at(Vector3(_move_target.x, _player_node.position.y, _move_target.z), Vector3.UP)
+			_player_node.look_at(
+				Vector3(
+					_move_target.x,
+					_player_node.position.y,
+					_move_target.z),
+				Vector3.UP)
 			var step = _move_speed * delta
 			_player_node.position += direction.normalized() * step
 
@@ -1011,9 +776,19 @@ func raycast_objects(screen_pos: Vector2) -> Dictionary:
 	var node = collider
 	while node:
 		if node.has_meta("building_name"):
-			return {"type": "building", "name": node.get_meta("building_name"), "node": node, "position": result["position"]}
+			return {
+				"type": "building",
+				"name": node.get_meta("building_name"),
+				"node": node,
+				"position": result["position"]
+			}
 		if node.has_meta("character_id"):
-			return {"type": "character", "id": node.get_meta("character_id"), "node": node, "position": result["position"]}
+			return {
+				"type": "character",
+				"id": node.get_meta("character_id"),
+				"node": node,
+				"position": result["position"]
+			}
 		node = node.get_parent()
 	return {}
 
@@ -1060,38 +835,17 @@ func remove_character_node(character_id: String) -> void:
 		_character_nodes.erase(character_id)
 
 
-func show_effect(effect_type: int, position: Vector3, size: float = 1.0, color_key: String = "qi_blue") -> void:
-	var effect := _create_effect_mesh(effect_type, size, color_key)
+func show_effect(
+	_effect_type: int, position: Vector3,
+	size: float = 1.0,
+	color_key: String = "qi_blue"
+) -> void:
+	var effect := _mesh_builder.create_effect_mesh(effect_type, size, color_key)
 	effect.position = position
 	effects.add_child(effect)
 	var tween := create_tween()
 	tween.tween_interval(3.0)
 	tween.tween_callback(effect.queue_free)
-
-
-func _create_effect_mesh(effect_type: int, size: float, color_key: String) -> MeshInstance3D:
-	var mesh_instance := MeshInstance3D.new()
-	var array_mesh := ArrayMesh.new()
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_add_sphere(st, Vector3(0, 0, 0), 0.5 * size, 1)
-	st.generate_normals()
-	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, st.commit_to_arrays())
-
-	var color_map: Dictionary = {
-		"qi_blue": Color(0.4, 0.7, 1.0),
-		"fire": Color(1.0, 0.5, 0.15),
-		"wood": Color(0.4, 0.85, 0.3),
-		"gold": Color(1.0, 0.9, 0.3),
-	}
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color_map.get(color_key, Color(0.3, 0.6, 0.9))
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.emission = mat.albedo_color
-	mat.emission_energy_multiplier = 3.0
-	array_mesh.surface_set_material(0, mat)
-	mesh_instance.mesh = array_mesh
-	return mesh_instance
 
 
 func update_time_of_day(hour: float) -> void:

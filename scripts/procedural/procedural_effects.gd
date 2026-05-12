@@ -32,7 +32,11 @@ const COLORS := {
 }
 
 # 生成特效
-static func generate(effect_type: EffectType, size: float = 1.0, color_key: String = "qi_blue") -> MeshInstance3D:
+static func generate(
+		effect_type: EffectType,
+		size: float = 1.0,
+		color_key: String = "qi_blue"
+	) -> MeshInstance3D:
 	match effect_type:
 		EffectType.QI_ORB:
 			return _generate_qi_orb(size, color_key)
@@ -405,7 +409,11 @@ static func _add_box(st: SurfaceTool, center: Vector3, extents: Vector3) -> void
 	for i in indices:
 		st.add_vertex(verts[i])
 
-static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, height: float, segments: int = 8) -> void:
+static func _add_cylinder(
+		st: SurfaceTool, center: Vector3,
+		radius: float, height: float,
+		segments: int = 8
+	) -> void:
 	var h := height * 0.5
 	for i in range(segments):
 		var a1 := TAU * i / segments
@@ -417,7 +425,10 @@ static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, heigh
 		st.add_vertex(center + Vector3(cos(a2) * radius, h, sin(a2) * radius))
 		st.add_vertex(center + Vector3(cos(a1) * radius, h, sin(a1) * radius))
 
-static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
+static func _add_icosphere(
+		st: SurfaceTool, center: Vector3,
+		radius: float, _subdivisions: int = 1
+	) -> void:
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 	var verts := PackedVector3Array([
 		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),
@@ -426,13 +437,22 @@ static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, _sub
 	])
 	for i in range(verts.size()):
 		verts[i] = verts[i].normalized() * radius + center
-	var faces := [0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1]
+	var faces := [
+		0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11,
+		1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8,
+		3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9,
+		4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1
+	]
 	for i in range(0, faces.size(), 3):
 		st.add_vertex(verts[faces[i]])
 		st.add_vertex(verts[faces[i+1]])
 		st.add_vertex(verts[faces[i+2]])
 
-static func _add_ring(st: SurfaceTool, center: Vector3, radius: float, thickness: float, segments: int = 12) -> void:
+static func _add_ring(
+		st: SurfaceTool, center: Vector3,
+		radius: float, thickness: float,
+		segments: int = 12
+	) -> void:
 	for i in range(segments):
 		var a1 := TAU * i / segments
 		var a2 := TAU * (i + 1) / segments
@@ -479,9 +499,15 @@ static func _add_light_ray(st: SurfaceTool, base: Vector3, length: float, angle:
 	var tip := base + Vector3(cos(angle) * length, length * 1.5, sin(angle) * length)
 	st.add_vertex(base)
 	st.add_vertex(tip)
-	st.add_vertex(base + Vector3(cos(angle + 0.1) * length * 0.8, length * 1.2, sin(angle + 0.1) * length * 0.8))
+	var cos_01 := cos(angle + 0.1) * length * 0.8
+	var sin_01 := sin(angle + 0.1) * length * 0.8
+	st.add_vertex(base + Vector3(cos_01, length * 1.2, sin_01))
 
-static func _add_torus(st: SurfaceTool, center: Vector3, major_radius: float, minor_radius: float, segments: int = 12) -> void:
+static func _add_torus(
+		st: SurfaceTool, center: Vector3,
+		major_radius: float, minor_radius: float,
+		segments: int = 12
+	) -> void:
 	for i in range(segments):
 		var a1 := TAU * i / segments
 		var a2 := TAU * (i + 1) / segments

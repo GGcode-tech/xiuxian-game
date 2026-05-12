@@ -1,6 +1,10 @@
 ## HUD - 游戏主界面HUD (梦幻西游风格底部通栏)
 extends Control
 
+signal character_selected(character)
+signal family_panel_requested
+signal map_panel_requested
+
 # 顶部信息栏
 @onready var date_label: Label = $TopBar/DateLabel
 @onready var speed_label: Label = $TopBar/SpeedLabel
@@ -16,11 +20,6 @@ extends Control
 
 # 底部角色列表(水平排列)
 @onready var character_sidebar: HBoxContainer = $BottomBar/MarginContainer/HBox/CharacterList
-
-# 信号
-signal character_selected(character)
-signal family_panel_requested
-signal map_panel_requested
 
 
 func _ready() -> void:

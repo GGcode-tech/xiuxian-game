@@ -79,12 +79,16 @@ var position: Vector3 = Vector3.ZERO
 var location_id: String = ""         # 当前所在地点ID
 
 
+var _inventory: CharacterInventory = CharacterInventory.new()
+
+
 # ==================== 初始化 ====================
 
 func _init() -> void:
 	hp = base_stats.max_hp
 	mp = base_stats.max_mp
 	recalculate_stats()
+	_inventory.init(self)
 
 
 # ==================== 每日处理 ====================
@@ -406,68 +410,32 @@ func recalculate_stats() -> void:
 
 	# 血脉加成
 	if bloodline_purity > 0:
-		derived_stats["attack"] = derived_stats.get("attack", 0) + int(base_stats.get("attack", 0) * bloodline_purity * 0.2)
-		derived_stats["defense"] = derived_stats.get("defense", 0) + int(base_stats.get("defense", 0) * bloodline_purity * 0.2)
+		derived_stats["attack"] = derived_stats.get(
+			"attack", 0) + int(base_stats.get(
+			"attack", 0) * bloodline_purity * 0.2)
+		derived_stats["defense"] = derived_stats.get(
+			"defense", 0) + int(base_stats.get(
+			"defense", 0) * bloodline_purity * 0.2)
 
 
 # ==================== 物品相关 ====================
 
+# ==================== 物品相关（委托给CharacterInventory） ====================
+
 func add_item(item) -> bool:
-	# 检查是否可堆叠
-	if item is Dictionary:
-		var item_id = item.get("id", item.get("item_id", ""))
-		var count = item.get("count", 1)
-		# 简化版：直接添加到inventory数组
-		inventory.append(item)
-		return true
-
-	var item_data = item.get_item_data() if item.has_method("get_item_data") else null
-	if item_data and item_data.get("stackable", false):
-		for inv_item in inventory:
-			if inv_item.get("item_id", "") == item.get("item_id", "") and inv_item.get("count", 0) < item_data.get("max_stack", 99):
-				var can_add = item_data.get("max_stack", 99) - inv_item.get("count", 0)
-				var to_add = mini(can_add, item.get("count", 1))
-				inv_item["count"] = inv_item.get("count", 0) + to_add
-				item["count"] = item.get("count", 1) - to_add
-				if item.get("count", 1) <= 0:
-					return true
-
-	# 添加到背包
-	if inventory.size() < DataManager.constants.get("max_inventory_slots", 50):
-		inventory.append(item)
-		return true
-
-	return false
+	return _inventory.add_item(item)
 
 
 func remove_item(item_id: String, amount: int = 1) -> bool:
-	for i in range(inventory.size()):
-		if inventory[i].item_id == item_id:
-			if inventory[i].count <= amount:
-				inventory.remove_at(i)
-				return true
-			inventory[i].count -= amount
-			return true
-	return false
+	return _inventory.remove_item(item_id, amount)
 
 
 func has_item(item_id: String, amount: int = 1) -> bool:
-	for inv_item in inventory:
-		var iid = inv_item.get("item_id", inv_item.get("id", "")) if inv_item is Dictionary else inv_item.get("item_id", "")
-		var cnt = inv_item.get("count", 1) if inv_item is Dictionary else 1
-		if iid == item_id and cnt >= amount:
-			return true
-	return false
+	return _inventory.has_item(item_id, amount)
 
 
 func get_item_count(item_id: String) -> int:
-	var count = 0
-	for inv_item in inventory:
-		var iid = inv_item.get("item_id", inv_item.get("id", "")) if inv_item is Dictionary else ""
-		var cnt = inv_item.get("count", 1) if inv_item is Dictionary else 1
-		if iid == item_id:
-			count += cnt
-	return count
+	return _inventory.get_item_count(item_id)
 
 
 # ==================== 功法相关 ====================
@@ -500,11 +468,11 @@ func learn_technique(tech_id: String) -> bool:
 	return true
 
 
-func has_technique(tech_id: String) -> bool:
+func _has_technique(tech_id: String) -> bool:
 	return techniques.has(tech_id)
 
 
-func get_technique_level(tech_id: String) -> int:
+func _get_technique_level(tech_id: String) -> int:
 	if techniques.has(tech_id):
 		var info = techniques[tech_id]
 		return info.get("level", 1) if info is Dictionary else 1
@@ -513,16 +481,16 @@ func get_technique_level(tech_id: String) -> int:
 
 # ==================== 特质相关 ====================
 
-func add_trait(trait_id: String) -> void:
-	if not has_trait(trait_id):
+func _add_trait(trait_id: String) -> void:
+	if not _has_trait(trait_id):
 		traits.append(trait_id)
 
 
-func remove_trait(trait_id: String) -> void:
+func _remove_trait(trait_id: String) -> void:
 	traits.erase(trait_id)
 
 
-func has_trait(trait_id: String) -> bool:
+func _has_trait(trait_id: String) -> bool:
 	return trait_id in traits
 
 

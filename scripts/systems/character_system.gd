@@ -12,12 +12,18 @@ static func create_character(data: Dictionary):
 	ch["family_id"] = data.get("family_id", "")
 	ch["generation"] = data.get("generation", 1)
 	ch["parent_ids"] = data.get("parent_ids", [])
-	ch["spirit_root"] = data.get("spirit_root", {"gold": 0.3, "wood": 0.3, "water": 0.3, "fire": 0.3, "earth": 0.3})
+	ch["spirit_root"] = data.get("spirit_root", {
+		"gold": 0.3, "wood": 0.3, "water": 0.3,
+		"fire": 0.3, "earth": 0.3
+	})
 	ch["bloodline"] = data.get("bloodline", "")
 	ch["bloodline_purity"] = data.get("bloodline_purity", 0.0)
 	ch["realm_id"] = data.get("realm_id", "mortal")
 	ch["realm_exp"] = data.get("realm_exp", 0)
-	ch["base_stats"] = {"max_hp": 100, "max_mp": 50, "attack": 10, "defense": 5, "spirit": 10, "speed": 10, "luck": 0}
+	ch["base_stats"] = {
+		"max_hp": 100, "max_mp": 50, "attack": 10,
+		"defense": 5, "spirit": 10, "speed": 10, "luck": 0
+	}
 	ch["hp"] = 100
 	ch["mp"] = 50
 	ch["traits"] = []

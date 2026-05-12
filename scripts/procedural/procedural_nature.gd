@@ -576,7 +576,11 @@ static func _add_box(st: SurfaceTool, center: Vector3, extents: Vector3) -> void
 	for i in indices:
 		st.add_vertex(verts[i])
 
-static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, height: float, segments: int = 12) -> void:
+static func _add_cylinder(
+		st: SurfaceTool, center: Vector3,
+		radius: float, height: float,
+		segments: int = 12
+	) -> void:
 	var h := height * 0.5
 	for i in range(segments):
 		var a1 := TAU * i / segments
@@ -592,7 +596,11 @@ static func _add_cylinder(st: SurfaceTool, center: Vector3, radius: float, heigh
 		st.add_vertex(center + Vector3(c2, h, s2))
 		st.add_vertex(center + Vector3(c1, h, s1))
 
-static func _add_cone(st: SurfaceTool, apex: Vector3, radius: float, height: float, _hollow: bool, segments: int = 8) -> void:
+static func _add_cone(
+		st: SurfaceTool, apex: Vector3,
+		radius: float, height: float,
+		_hollow: bool, segments: int = 8
+	) -> void:
 	var base_y := apex.y - height
 	for i in range(segments):
 		var a1 := TAU * i / segments
@@ -605,7 +613,10 @@ static func _add_cone(st: SurfaceTool, apex: Vector3, radius: float, height: flo
 		st.add_vertex(Vector3(c1, base_y, s1) + Vector3(apex.x, 0, apex.z))
 		st.add_vertex(Vector3(c2, base_y, s2) + Vector3(apex.x, 0, apex.z))
 
-static func _add_sphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
+static func _add_sphere(
+		st: SurfaceTool, center: Vector3,
+		radius: float, _subdivisions: int = 1
+	) -> void:
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 	var verts := PackedVector3Array([
 		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),
@@ -614,13 +625,22 @@ static func _add_sphere(st: SurfaceTool, center: Vector3, radius: float, _subdiv
 	])
 	for i in range(verts.size()):
 		verts[i] = verts[i].normalized() * radius + center
-	var faces := [0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1]
+	var faces := [
+		0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11,
+		1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8,
+		3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9,
+		4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1
+	]
 	for i in range(0, faces.size(), 3):
 		st.add_vertex(verts[faces[i]])
 		st.add_vertex(verts[faces[i+1]])
 		st.add_vertex(verts[faces[i+2]])
 
-static func _add_dome(st: SurfaceTool, center: Vector3, radius: float, height: float, segments: int = 8, rings: int = 4) -> void:
+static func _add_dome(
+		st: SurfaceTool, center: Vector3,
+		radius: float, height: float,
+		segments: int = 8, rings: int = 4
+	) -> void:
 	for ring in range(rings):
 		var r1 := float(ring) / rings
 		var r2 := float(ring + 1) / rings
@@ -638,7 +658,10 @@ static func _add_dome(st: SurfaceTool, center: Vector3, radius: float, height: f
 			st.add_vertex(p1); st.add_vertex(p2); st.add_vertex(p3)
 			st.add_vertex(p2); st.add_vertex(p4); st.add_vertex(p3)
 
-static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, _subdivisions: int = 1) -> void:
+static func _add_icosphere(
+		st: SurfaceTool, center: Vector3,
+		radius: float, _subdivisions: int = 1
+	) -> void:
 	var phi := (1.0 + sqrt(5.0)) / 2.0
 	var verts := PackedVector3Array([
 		Vector3(-1, phi, 0), Vector3(1, phi, 0), Vector3(-1, -phi, 0), Vector3(1, -phi, 0),
@@ -647,7 +670,12 @@ static func _add_icosphere(st: SurfaceTool, center: Vector3, radius: float, _sub
 	])
 	for i in range(verts.size()):
 		verts[i] = verts[i].normalized() * radius + center
-	var faces := [0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11, 1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8, 3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9, 4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1]
+	var faces := [
+		0,11,5, 0,5,1, 0,1,7, 0,7,10, 0,10,11,
+		1,5,9, 5,11,4, 11,10,2, 10,7,6, 7,1,8,
+		3,9,4, 3,4,2, 3,2,6, 3,6,8, 3,8,9,
+		4,9,5, 2,4,11, 6,2,10, 8,6,7, 9,8,1
+	]
 	for i in range(0, faces.size(), 3):
 		st.add_vertex(verts[faces[i]])
 		st.add_vertex(verts[faces[i+1]])
@@ -659,9 +687,12 @@ static func _add_dodecahedron(st: SurfaceTool, center: Vector3, radius: float) -
 	var verts := PackedVector3Array([
 		Vector3(1, 1, 1), Vector3(1, 1, -1), Vector3(1, -1, 1), Vector3(1, -1, -1),
 		Vector3(-1, 1, 1), Vector3(-1, 1, -1), Vector3(-1, -1, 1), Vector3(-1, -1, -1),
-		Vector3(0, inv_phi, phi), Vector3(0, inv_phi, -phi), Vector3(0, -inv_phi, phi), Vector3(0, -inv_phi, -phi),
-		Vector3(inv_phi, phi, 0), Vector3(inv_phi, -phi, 0), Vector3(-inv_phi, phi, 0), Vector3(-inv_phi, -phi, 0),
-		Vector3(phi, 0, inv_phi), Vector3(phi, 0, -inv_phi), Vector3(-phi, 0, inv_phi), Vector3(-phi, 0, -inv_phi),
+		Vector3(0, inv_phi, phi), Vector3(0, inv_phi, -phi),
+		Vector3(0, -inv_phi, phi), Vector3(0, -inv_phi, -phi),
+		Vector3(inv_phi, phi, 0), Vector3(inv_phi, -phi, 0),
+		Vector3(-inv_phi, phi, 0), Vector3(-inv_phi, -phi, 0),
+		Vector3(phi, 0, inv_phi), Vector3(phi, 0, -inv_phi),
+		Vector3(-phi, 0, inv_phi), Vector3(-phi, 0, -inv_phi),
 	])
 	for i in range(verts.size()):
 		verts[i] = verts[i].normalized() * radius + center
@@ -694,20 +725,28 @@ static func _add_octahedron(st: SurfaceTool, center: Vector3, radius: float) -> 
 
 static func _add_leaf(st: SurfaceTool, base: Vector3, length: float, rotation: float) -> void:
 	var tip := base + Vector3(cos(rotation) * length, length * 0.3, sin(rotation) * length)
-	var mid := base + Vector3(cos(rotation) * length * 0.5, length * 0.15, sin(rotation) * length * 0.5)
+	var mid_x := cos(rotation) * length * 0.5
+	var mid_s := sin(rotation) * length * 0.5
+	var mid := base + Vector3(mid_x, length * 0.15, mid_s)
 	var w := length * 0.2
 	st.add_vertex(base + Vector3(cos(rotation + PI/2) * w, 0, sin(rotation + PI/2) * w))
 	st.add_vertex(tip)
 	st.add_vertex(base + Vector3(cos(rotation - PI/2) * w, 0, sin(rotation - PI/2) * w))
 
-static func _add_grass_blade(st: SurfaceTool, base: Vector3, height: float, rotation: float) -> void:
+static func _add_grass_blade(
+		st: SurfaceTool, base: Vector3,
+		height: float, rotation: float
+	) -> void:
 	var tip := base + Vector3(0, height, 0)
 	var w := height * 0.1
 	st.add_vertex(base + Vector3(cos(rotation + PI/2) * w, 0, sin(rotation + PI/2) * w))
 	st.add_vertex(tip)
 	st.add_vertex(base + Vector3(cos(rotation - PI/2) * w, 0, sin(rotation - PI/2) * w))
 
-static func _add_willow_branch(st: SurfaceTool, base: Vector3, length: float, rotation: float) -> void:
+static func _add_willow_branch(
+		st: SurfaceTool, base: Vector3,
+		length: float, rotation: float
+	) -> void:
 	var segments := 5
 	for i in range(segments):
 		var t1 := float(i) / segments

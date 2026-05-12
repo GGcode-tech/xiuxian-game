@@ -48,7 +48,13 @@ class SpiritBeastInstance extends RefCounted:
 	var owner_id: String = ""  # 主人角色ID
 
 
-## 灵兽类型
+## 信号
+signal beast_contracted(beast_instance: SpiritBeastInstance)
+signal beast_evolution(beast_id: String, new_stage: int)
+signal beast_level_up(beast_id: String, new_level: int)
+## 信号
+signal beast_fed(beast_id: String)
+
 enum BeastType {
 	BATTLE,    # 战斗型（输出）
 	SUPPORT,   # 辅助型（治疗/buff）
@@ -69,13 +75,6 @@ enum ContractStatus {
 	CONTRACTED,# 已契约
 	BONDED     # 深度绑定
 }
-
-## 信号
-signal beast_contracted(beast_instance: SpiritBeastInstance)
-signal beast_evolution(beast_id: String, new_stage: int)
-signal beast_level_up(beast_id: String, new_level: int)
-signal beast_bonded(beast_id: String)
-signal beast_fed(beast_id: String)
 
 
 ## 灵兽配置数据（从novel_database读取）
@@ -99,7 +98,10 @@ func _init_default_beasts() -> void:
 			"beast_type": BeastType.BATTLE,
 			"grade": BeastGrade.S,
 			"description": "韩立的一缕神识所化，擅长隐匿和突袭",
-			"base_stats": {"max_hp": 200, "attack": 35, "defense": 15, "spirit": 25, "speed": 30, "luck": 10},
+			"base_stats": {
+				"max_hp": 200, "attack": 35, "defense": 15,
+				"spirit": 25, "speed": 30, "luck": 10
+			},
 			"skills": ["skill_hanli_invisible", "skill_hanli_punch"],
 			"growth_rate": {"max_hp": 15, "attack": 3.5, "defense": 1.5, "spirit": 2.5, "speed": 3.0}
 		},
@@ -123,7 +125,10 @@ func _init_default_beasts() -> void:
 			"beast_type": BeastType.BATTLE,
 			"grade": BeastGrade.S,
 			"description": "秦羽的伴生灵兽，紫爪火狼",
-			"base_stats": {"max_hp": 250, "attack": 40, "defense": 20, "spirit": 20, "speed": 35, "luck": 15},
+			"base_stats": {
+				"max_hp": 250, "attack": 40, "defense": 20,
+				"spirit": 20, "speed": 35, "luck": 15
+			},
 			"skills": ["skill_fire_bite", "skill_wolf_pack"],
 			"growth_rate": {"max_hp": 18, "attack": 4.0, "defense": 2.0, "spirit": 2.0, "speed": 3.5}
 		},
@@ -159,7 +164,10 @@ func _init_default_beasts() -> void:
 			"beast_type": BeastType.SUPPORT,
 			"grade": BeastGrade.A,
 			"description": "碧瑶的一缕精魂，化作灵狐形态",
-			"base_stats": {"max_hp": 160, "attack": 22, "defense": 15, "spirit": 40, "speed": 28, "luck": 12},
+			"base_stats": {
+				"max_hp": 160, "attack": 22, "defense": 15,
+				"spirit": 40, "speed": 28, "luck": 12
+			},
 			"skills": ["skill_charm", "skill_heal_aura"],
 			"growth_rate": {"max_hp": 13, "attack": 2.2, "defense": 1.5, "spirit": 4.0, "speed": 2.8}
 		},
@@ -278,7 +286,8 @@ func _create_beast_data(data: Dictionary) -> SpiritBeastData:
 
 
 ## 野外捕捉（消耗道具契约灵兽）
-func capture_beast(beast_id: String, contract_item_id: String = "item_contract_talisman") -> SpiritBeastInstance:
+func capture_beast(beast_id: String,
+		contract_item_id: String = "item_contract_talisman") -> SpiritBeastInstance:
 	var beast_data = get_beast_data(beast_id)
 	if not beast_data:
 		return null

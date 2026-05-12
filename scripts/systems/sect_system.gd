@@ -20,6 +20,13 @@ class SectContribution extends RefCounted:
 	var sect_rank: int = 1
 	var accumulated_points: int = 0
 
+## 信号
+signal sect_joined(sect_id: String)
+signal sect_left(sect_id: String)
+signal contribution_changed(new_contribution: int)
+signal sect_rank_up(new_rank: int)
+signal skill_learned(skill_id: String)
+
 ## 门派类型枚举
 enum SectType {
 	NONE,
@@ -34,13 +41,6 @@ enum SectType {
 	SECT_WANJIAN,
 	SECT_WUSHUANG,
 }
-
-## 信号
-signal sect_joined(sect_id: String)
-signal sect_left(sect_id: String)
-signal contribution_changed(new_contribution: int)
-signal sect_rank_up(new_rank: int)
-signal skill_learned(skill_id: String)
 
 ## 门派配置数据
 var sects_data: Dictionary = {}
@@ -249,18 +249,19 @@ func get_current_sect_name() -> String:
 
 ## 获取门派类型名称
 func get_sect_type_name(sect_type: SectType) -> String:
-	match sect_type:
-		SectType.SECT_YAOYAO: return "掩月宗"
-		SectType.SECT_HECUN: return "黄枫谷"
-		SectType.SECT_BAILIU: return "百机阁"
-		SectType.SECT_CIYAN: return "慈云寺"
-		SectType.SECT_QIN: return "秦王朝"
-		SectType.SECT_QINGXIA: return "清虚观"
-		SectType.SECT_TIANCHUAN: return "天策府"
-		SectType.SECT_XIAOYAO: return "逍遥派"
-		SectType.SECT_WANJIAN: return "万剑宗"
-		SectType.SECT_WUSHUANG: return "无双城"
-		_: return "未知"
+	var names = {
+		SectType.SECT_YAOYAO: "掩月宗",
+		SectType.SECT_HECUN: "黄枫谷",
+		SectType.SECT_BAILIU: "百机阁",
+		SectType.SECT_CIYAN: "慈云寺",
+		SectType.SECT_QIN: "秦王朝",
+		SectType.SECT_QINGXIA: "清虚观",
+		SectType.SECT_TIANCHUAN: "天策府",
+		SectType.SECT_XIAOYAO: "逍遥派",
+		SectType.SECT_WANJIAN: "万剑宗",
+		SectType.SECT_WUSHUANG: "无双城",
+	}
+	return names.get(sect_type, "未知")
 
 ## 每周重置
 func weekly_reset() -> void:

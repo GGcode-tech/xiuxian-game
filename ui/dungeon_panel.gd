@@ -5,6 +5,9 @@ signal dungeon_panel_closed()
 signal dungeon_started(dungeon_id: String, difficulty: String)
 signal dungeon_sweep_requested(dungeon_id: String)
 
+const DIFFICULTIES = ["simple", "normal", "hard", "hell"]
+const DIFFICULTY_NAMES = {"simple": "简单", "normal": "普通", "hard": "困难", "hell": "地狱"}
+
 # 副本数据
 var _all_dungeons: Dictionary = {}
 var _selected_chapter: String = ""
@@ -20,9 +23,6 @@ var _main_container: VBoxContainer
 var _chapter_list: ItemList
 var _dungeon_detail_panel: PanelContainer
 var _difficulty_buttons: HBoxContainer
-
-const DIFFICULTIES = ["simple", "normal", "hard", "hell"]
-const DIFFICULTY_NAMES = {"simple": "简单", "normal": "普通", "hard": "困难", "hell": "地狱"}
 
 func _ready() -> void:
 	visible = false

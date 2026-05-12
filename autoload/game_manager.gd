@@ -26,6 +26,11 @@ enum GameState {
 	GAME_OVER,
 }
 
+# ==================== 常量定义 ====================
+const DAYS_PER_MONTH: int = 30
+const MONTHS_PER_YEAR: int = 12
+const TIME_PER_DAY: float = 1.0
+
 # ==================== 游戏状态 ====================
 var current_state: GameState = GameState.MAIN_MENU
 var current_save_slot: String = ""
@@ -40,9 +45,6 @@ var game_time: Dictionary = {
 	"day": 1
 }
 
-const DAYS_PER_MONTH: int = 30
-const MONTHS_PER_YEAR: int = 12
-
 # ==================== 全局数据容器 ====================
 var all_characters: Dictionary = {}
 var all_families: Dictionary = {}
@@ -52,7 +54,6 @@ var player_family_id: String = ""
 # 时间积累器
 var game_seed: int = 0
 var _time_accumulator: float = 0.0
-const TIME_PER_DAY: float = 1.0
 
 
 func _ready() -> void:
@@ -170,12 +171,19 @@ func _create_character_dict(data: Dictionary) -> Dictionary:
 		"parent_ids": data.get("parent_ids", []),
 		"spouse_id": "",
 		"children_ids": [],
-		"spirit_root": data.get("spirit_root", {"gold": 0.3, "wood": 0.3, "water": 0.3, "fire": 0.3, "earth": 0.3}),
+		"spirit_root": data.get("spirit_root", {
+			"gold": 0.3, "wood": 0.3,
+			"water": 0.3, "fire": 0.3, "earth": 0.3
+		}),
 		"bloodline": data.get("bloodline", ""),
 		"bloodline_purity": data.get("bloodline_purity", 0.0),
 		"realm_id": "mortal",
 		"realm_exp": 0,
-		"base_stats": {"max_hp": 100, "max_mp": 50, "attack": 10, "defense": 5, "spirit": 10, "speed": 10, "luck": 0},
+		"base_stats": {
+			"max_hp": 100, "max_mp": 50, "attack": 10,
+			"defense": 5, "spirit": 10,
+			"speed": 10, "luck": 0
+		},
 		"hp": 100,
 		"mp": 50,
 		"is_alive": true,

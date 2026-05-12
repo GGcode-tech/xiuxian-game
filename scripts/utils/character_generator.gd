@@ -21,11 +21,22 @@ var rare_traits = ["先天道体", "至尊灵根", "不灭金身", "万毒不侵
 
 # 血脉池
 var bloodlines = [
-	{"id": "azure_dragon", "name": "青龙血脉", "element": "wood", "rarity": 0.05, "bonus": {"attack": 0.15, "max_hp": 0.1}},
-	{"id": "white_tiger", "name": "白虎血脉", "element": "gold", "rarity": 0.05, "bonus": {"attack": 0.2, "crit_rate": 0.05}},
-	{"id": "vermillion_bird", "name": "朱雀血脉", "element": "fire", "rarity": 0.05, "bonus": {"attack": 0.15, "spirit": 0.1}},
-	{"id": "black_tortoise", "name": "玄武血脉", "element": "water", "rarity": 0.05, "bonus": {"defense": 0.2, "max_hp": 0.15}},
-	{"id": "qilin", "name": "麒麟血脉", "element": "earth", "rarity": 0.02, "bonus": {"attack": 0.1, "defense": 0.1, "spirit": 0.1, "max_hp": 0.1}}
+	{"id": "azure_dragon", "name": "青龙血脉",
+		"element": "wood", "rarity": 0.05,
+		"bonus": {"attack": 0.15, "max_hp": 0.1}},
+	{"id": "white_tiger", "name": "白虎血脉",
+		"element": "gold", "rarity": 0.05,
+		"bonus": {"attack": 0.2, "crit_rate": 0.05}},
+	{"id": "vermillion_bird", "name": "朱雀血脉",
+		"element": "fire", "rarity": 0.05,
+		"bonus": {"attack": 0.15, "spirit": 0.1}},
+	{"id": "black_tortoise", "name": "玄武血脉",
+		"element": "water", "rarity": 0.05,
+		"bonus": {"defense": 0.2, "max_hp": 0.15}},
+	{"id": "qilin", "name": "麒麟血脉",
+		"element": "earth", "rarity": 0.02,
+		"bonus": {"attack": 0.1, "defense": 0.1,
+			"spirit": 0.1, "max_hp": 0.1}}
 ]
 
 

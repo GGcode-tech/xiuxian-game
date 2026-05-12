@@ -17,7 +17,9 @@ func _ready() -> void:
 func _load_recipes() -> void:
 	recipes = DataManager.alchemy_recipes
 
-func attempt_alchemy(character, recipe_id: String, quantity: int = 1, use_best_materials: bool = false) -> Dictionary:
+func attempt_alchemy(character, recipe_id: String,
+		quantity: int = 1,
+		use_best_materials: bool = false) -> Dictionary:
 	var recipe = recipes.get(recipe_id)
 	if not recipe:
 		return {"success": false, "reason": "配方不存在"}

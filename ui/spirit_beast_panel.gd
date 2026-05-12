@@ -277,7 +277,10 @@ func _create_beast_card(beast: Dictionary) -> PanelContainer:
 	info_vbox.add_child(name_label)
 
 	var type_label = Label.new()
-	type_label.text = "%s | Lv.%d | %s" % [beast.get("type", ""), beast.get("level", 1), beast.get("quality", "C级")]
+	type_label.text = "%s | Lv.%d | %s" % [
+		beast.get("type", ""),
+		beast.get("level", 1),
+		beast.get("quality", "C级")]
 	info_vbox.add_child(type_label)
 
 	var status_label = Label.new()
@@ -326,7 +329,10 @@ func _update_detail_panel() -> void:
 
 	# 基本信息
 	var info_label = Label.new()
-	info_label.text = "等级: %d | 类型: %s | 来源: %s" % [_selected_beast.get("level", 1), _selected_beast.get("type", ""), _selected_beast.get("novel_source", "通用")]
+	info_label.text = "等级: %d | 类型: %s | 来源: %s" % [
+		_selected_beast.get("level", 1),
+		_selected_beast.get("type", ""),
+		_selected_beast.get("novel_source", "通用")]
 	detail_vbox.add_child(info_label)
 
 	# 属性
@@ -382,7 +388,9 @@ func _update_beast_counts() -> void:
 	if not info_label:
 		return
 	var combat_count = _all_beasts.filter(func(b): return b.get("in_combat", false)).size()
-	var warehouse_count = _all_beasts.filter(func(b): return not b.get("in_combat", false) and b.get("contracted", false)).size()
+	var warehouse_count = _all_beasts.filter(
+		func(b):
+			return not b.get("in_combat", false) and b.get("contracted", false)).size()
 	info_label.text = "参战: %d/6 | 仓库: %d" % [combat_count, warehouse_count]
 
 # ==================== 事件处理 ====================
@@ -428,7 +436,10 @@ func _show_contract_interface() -> void:
 	else:
 		for beast in contractable:
 			var beast_btn = Button.new()
-			beast_btn.text = "%s [%s] Lv.%d" % [beast.get("name", ""), beast.get("quality", ""), beast.get("level", 1)]
+			beast_btn.text = "%s [%s] Lv.%d" % [
+				beast.get("name", ""),
+				beast.get("quality", ""),
+				beast.get("level", 1)]
 			beast_btn.custom_minimum_size = Vector2(300, 40)
 			beast_btn.pressed.connect(_on_contract_beast.bind(beast.get("id", "")))
 			detail_vbox.add_child(beast_btn)
@@ -457,7 +468,10 @@ func _show_dispatch_interface() -> void:
 	else:
 		for beast in contracted:
 			var beast_btn = Button.new()
-			beast_btn.text = "%s [%s] Lv.%d" % [beast.get("name", ""), beast.get("quality", ""), beast.get("level", 1)]
+			beast_btn.text = "%s [%s] Lv.%d" % [
+				beast.get("name", ""),
+				beast.get("quality", ""),
+				beast.get("level", 1)]
 			beast_btn.custom_minimum_size = Vector2(300, 40)
 			beast_btn.pressed.connect(_on_dispatch_beast.bind(beast.get("id", "")))
 			detail_vbox.add_child(beast_btn)

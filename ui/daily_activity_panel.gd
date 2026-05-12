@@ -259,15 +259,16 @@ func _load_real_data() -> void:
 	_update_vitality_display()
 
 func _get_activity_icon(activity_type: int) -> String:
-	match activity_type:
-		0: return "🏛️"  # SECT_QUEST
-		1: return "🐉"  # SPIRIT_ISLAND
-		2: return "⚔️"  # ARENA
-		3: return "📝"  # EXAM
-		4: return "🚗"  # ESCORT
-		5: return "🧘"  # PRACTICE
-		6: return "💰"  # TREASURE
-		_: return "📋"
+	var icons = {
+		0: "🏛️",  # SECT_QUEST
+		1: "🐉",  # SPIRIT_ISLAND
+		2: "⚔️",  # ARENA
+		3: "📝",  # EXAM
+		4: "🚗",  # ESCORT
+		5: "🧘",  # PRACTICE
+		6: "💰",  # TREASURE
+	}
+	return icons.get(activity_type, "📋")
 
 func _update_activity_list() -> void:
 	var list_vbox = _activity_list_container.get_child(0)

@@ -1,13 +1,13 @@
 ## 通知系统UI - 显示游戏内通知和消息
 extends Control
 
-@onready var notification_container: VBoxContainer = $NotificationContainer
-@onready var event_popup: PanelContainer = $EventPopup
-
 # 通知场景
 const NOTIFICATION_SCENE = preload("res://ui/notification_item.tscn")
 
 var _active_notifications: Array[Control] = []
+
+@onready var notification_container: VBoxContainer = $NotificationContainer
+@onready var event_popup: PanelContainer = $EventPopup
 
 
 func _ready() -> void:
@@ -19,7 +19,10 @@ func _ready() -> void:
 
 
 func _on_notification(_notification: Dictionary) -> void:
-	_add_notification(_notification.get("title", ""), _notification.get("message", ""), _notification.get("type", "info"))
+	_add_notification(
+		_notification.get("title", ""),
+		_notification.get("message", ""),
+		_notification.get("type", "info"))
 
 
 func _add_notification(title: String, message: String, type: String = "info") -> void:
@@ -154,7 +157,10 @@ func _on_event_choice(event, choice_index: int) -> void:
 
 		# 显示结果
 		var event_title: String = event.get("title", "") if event is Dictionary else ""
-		var outcome_text: String = selected_outcome.get("text", "") if selected_outcome is Dictionary else ""
+		var outcome_text: String = (
+			selected_outcome.get("text", "")
+			if selected_outcome is Dictionary
+			else "")
 		_add_notification(event_title, outcome_text, "info")
 
 	event_popup.visible = false

@@ -139,7 +139,10 @@ func _generate_resource_nodes() -> void:
 			var n = ResourceNode.new()
 			n.id = "node_%s_%d" % [tid, k]
 			n.territory_id = tid
-			n.type = _get_random_type(["spirit_grass_depot", "spirit_wood_depot", "spirit_mine", "spirit_spring", "fire_vein"])
+			n.type = _get_random_type([
+			"spirit_grass_depot", "spirit_wood_depot",
+			"spirit_mine", "spirit_spring", "fire_vein"
+		])
 			n.remaining = randi_range(100, 500)
 			n.max_amount = n.remaining + 100
 			resource_nodes_data[n.id] = n

@@ -1,6 +1,14 @@
 ## 战斗系统 - 回合制战斗逻辑（统一使用 Dictionary 角色数据）
 extends Node
 
+# 信号
+signal combat_started
+signal combat_ended(result: CombatResult)
+signal turn_started(character)
+signal action_executed(action: Dictionary)
+signal character_damaged(character, amount: int)
+signal character_healed(character, amount: int)
+
 enum CombatResult {
 	PLAYER_WIN,
 	PLAYER_LOSE,
@@ -22,15 +30,6 @@ var enemy_team: Array = []
 var current_turn: int = 0
 var turn_order: Array = []
 var combat_log: Array[String] = []
-
-# 信号
-signal combat_started
-signal combat_ended(result: CombatResult)
-signal turn_started(character)
-signal action_executed(action: Dictionary)
-signal character_damaged(character, amount: int)
-signal character_healed(character, amount: int)
-
 
 # ==================== 角色属性辅助函数 ====================
 
@@ -265,7 +264,10 @@ func _normal_attack(attacker, defender) -> void:
 
 		_char_take_damage(defender, damage)
 		character_damaged.emit(defender, damage)
-		combat_log.append("⚔️ %s 攻击 %s，造成 %d 伤害" % [_char_get_name(attacker), _char_get_name(defender), damage])
+		combat_log.append(
+			"⚔️ %s 攻击 %s，造成 %d 伤害" %
+			[_char_get_name(attacker),
+				_char_get_name(defender), damage])
 	else:
 		combat_log.append("⚔️ %s 的攻击被 %s 闪避" % [_char_get_name(attacker), _char_get_name(defender)])
 
@@ -311,14 +313,19 @@ func _apply_skill_effect(caster, target, skill) -> void:
 	var skill_name = skill.get("name", "未知技能")
 
 	# 伤害效果
-	var damage_multiplier = skill.get("damage_multiplier", skill.get("effect", {}).get("attack", 0) * 0.1)
+	var damage_multiplier = skill.get(
+		"damage_multiplier",
+		skill.get("effect", {}).get("attack", 0) * 0.1)
 	if damage_multiplier > 0:
 		var base_damage = _char_get_stat(caster, "attack", 10) * damage_multiplier
 		var defense = _char_get_stat(target, "defense", 5)
 		var damage = maxi(1, int(base_damage - defense * 0.3))
 		_char_take_damage(target, damage)
 		character_damaged.emit(target, damage)
-		combat_log.append("✨ %s 使用 %s 对 %s 造成 %d 伤害" % [_char_get_name(caster), skill_name, _char_get_name(target), damage])
+		combat_log.append(
+			"✨ %s 使用 %s 对 %s 造成 %d 伤害" %
+			[_char_get_name(caster), skill_name,
+				_char_get_name(target), damage])
 
 	# 治疗效果
 	var heal_amount = skill.get("heal_amount", 0)
@@ -326,7 +333,10 @@ func _apply_skill_effect(caster, target, skill) -> void:
 		var heal = heal_amount + _char_get_stat(caster, "spirit", 10) * 0.5
 		_char_heal(target, int(heal))
 		character_healed.emit(target, int(heal))
-		combat_log.append("💚 %s 使用 %s 恢复 %s %d 生命" % [_char_get_name(caster), skill_name, _char_get_name(target), int(heal)])
+		combat_log.append(
+			"💚 %s 使用 %s 恢复 %s %d 生命" %
+			[_char_get_name(caster), skill_name,
+				_char_get_name(target), int(heal)])
 
 	# 状态效果
 	var effects_data = skill.get("effects", [])

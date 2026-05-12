@@ -2,10 +2,6 @@
 ## 整合：角色创建 → 主界面 → 各功能面板
 extends Node3D
 
-# ==================== 场景引用 ====================
-@onready var world = $World
-@onready var ui_layer: CanvasLayer = $UILayer
-
 # ==================== 旧面板（保留）====================
 const START_MENU_SCENE     = preload("res://ui/start_menu.tscn")
 const HUD_SCENE            = preload("res://ui/hud.tscn")
@@ -35,6 +31,19 @@ const DailyActivitySystemScript  = preload("res://scripts/systems/daily_activity
 const AlchemySystemScript        = preload("res://scripts/systems/alchemy_system.gd")
 const DialogueSystemScript       = preload("res://scripts/systems/dialogue_system.gd")
 
+# ==================== 核心系统实例引用 ====================
+var combat_system: Node = null
+var dungeon_system: Node = null
+var sect_system: Node = null
+var spirit_beast_system: Node = null
+var equipment_system: Node = null
+var daily_activity_system: Node = null
+var alchemy_system: Node = null
+var dialogue_system: Node = null
+
+# 当前游戏状态
+var current_state: GameManager.GameState = GameManager.GameState.MAIN_MENU
+
 # ==================== 面板实例引用 ====================
 var _start_menu:        Control = null
 var _character_create:  Control = null
@@ -53,21 +62,12 @@ var _daily_panel:       Control = null
 var _combat_panel:      Control = null
 var _dialogue_panel:    Control = null
 
-# ==================== 核心系统实例引用 ====================
-var combat_system: Node = null
-var dungeon_system: Node = null
-var sect_system: Node = null
-var spirit_beast_system: Node = null
-var equipment_system: Node = null
-var daily_activity_system: Node = null
-var alchemy_system: Node = null
-var dialogue_system: Node = null
-
-# 当前游戏状态
-var current_state: GameManager.GameState = GameManager.GameState.MAIN_MENU
-
 # 当前玩家角色数据（新建角色流程产生）
 var _player_data: Dictionary = {}
+
+# ==================== 场景引用 ====================
+@onready var world = $World
+@onready var ui_layer: CanvasLayer = $UILayer
 
 # ==================== 生命周期 ====================
 
@@ -86,6 +86,7 @@ func _initialize_game() -> void:
 
 	_notification = NOTIFICATION_SCENE.instantiate()
 	ui_layer.add_child(_notification)
+
 
 	_show_start_menu()
 
@@ -543,7 +544,7 @@ func _on_dungeon_panel_closed() -> void:
 		_main_menu.show()
 
 
-func _on_dungeon_started(dungeon_id: String, difficulty: String) -> void:
+func _on_dungeon_started(dungeon_id: String, _difficulty: String) -> void:
 	"""副本开始 → 自动进入战斗面板"""
 	# 隐藏副本面板，显示战斗面板
 	if _dungeon_panel:
@@ -575,7 +576,7 @@ func _on_combat_ended(victory: bool) -> void:
 
 func _on_sect_leave_requested() -> void:
 	"""门派退出请求已处理（sect_panel内部已调用sect_system）"""
-	pass
+	return
 
 
 func _on_daily_panel_closed() -> void:
@@ -731,7 +732,7 @@ func _on_character_clicked(character_id: String) -> void:
 			_notification.show_notification("角色信息暂不可用", "info")
 
 
-func _get_control_at_point(point: Vector2) -> Control:
+func _get_control_at_point(_point: Vector2) -> Control:
 	"""检查指定屏幕坐标下是否有Control节点（使用Viewport内置检测）"""
 	# 使用根视口的gui_get_hovered_control
 	var viewport = get_viewport()

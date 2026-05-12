@@ -665,7 +665,10 @@ func _execute_skill(caster: Dictionary, target: Dictionary, skill: Dictionary) -
 		target["hp"] = max(target["hp"] - damage, 0)
 		if target["hp"] <= 0:
 			target["is_alive"] = false
-		_add_combat_log("%s 使用 %s 对 %s 造成 %d 伤害" % [caster.get("name", ""), skill_name, target.get("name", ""), damage])
+		_add_combat_log(
+			"%s 使用 %s 对 %s 造成 %d 伤害" %
+			[caster.get("name", ""), skill_name,
+			target.get("name", ""), damage])
 	else:
 		_add_combat_log("%s 使用了 %s" % [caster.get("name", ""), skill_name])
 

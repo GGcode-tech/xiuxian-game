@@ -1,10 +1,10 @@
 ## 3D角色节点 - 游戏世界中的角色表示
 extends CharacterBody3D
 
+var character_data = null
+
 @onready var name_label: Label3D = $NameLabel
 @onready var realm_indicator: MeshInstance3D = $RealmIndicator
-
-var character_data = null
 
 func setup(character) -> void:
 	character_data = character

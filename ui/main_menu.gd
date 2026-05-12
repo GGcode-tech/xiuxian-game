@@ -291,7 +291,9 @@ func update_resources(resources: Dictionary) -> void:
 	_spirit_stone_label.text = "灵石: %d" % resources.get("spirit_stone", 0)
 	_essence_label.text = "精华: %d" % resources.get("essence", 0)
 	_spirit_jade_label.text = "灵玉: %d" % resources.get("spirit_jade", 0)
-	_stamina_label.text = "体力: %d/%d" % [resources.get("stamina", 100), resources.get("max_stamina", 100)]
+	_stamina_label.text = "体力: %d/%d" % [
+		resources.get("stamina", 100),
+		resources.get("max_stamina", 100)]
 	_energy_label.text = "精力: %d/%d" % [resources.get("energy", 50), resources.get("max_energy", 50)]
 	resource_updated.emit()
 

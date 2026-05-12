@@ -76,12 +76,19 @@ static func create_child(parents: Array, family: Dictionary) -> Dictionary:
 	return child
 
 
-static func _create_child_character(data: Dictionary, father: Dictionary, mother: Dictionary) -> Dictionary:
+static func _create_child_character(
+	data: Dictionary,
+	father: Dictionary,
+	mother: Dictionary
+) -> Dictionary:
 	var spirit_root: Dictionary = {}
 	var father_sr = father.get("spirit_root", {})
 	var mother_sr = mother.get("spirit_root", {})
 	for key in ["gold", "wood", "water", "fire", "earth"]:
-		spirit_root[key] = (father_sr.get(key, 0.3) + mother_sr.get(key, 0.3)) / 2.0 + randf_range(-0.1, 0.1)
+		spirit_root[key] = (
+			(father_sr.get(key, 0.3) +
+			mother_sr.get(key, 0.3)) / 2.0 +
+			randf_range(-0.1, 0.1))
 		spirit_root[key] = clampf(spirit_root[key], 0.0, 1.0)
 
 	var child: Dictionary = {
@@ -99,7 +106,11 @@ static func _create_child_character(data: Dictionary, father: Dictionary, mother
 		"bloodline_purity": father.get("bloodline_purity", 0.0) * 0.5,
 		"realm_id": "mortal",
 		"realm_exp": 0,
-		"base_stats": {"max_hp": 100, "max_mp": 50, "attack": 10, "defense": 5, "spirit": 10, "speed": 10, "luck": 0},
+		"base_stats": {
+			"max_hp": 100, "max_mp": 50,
+			"attack": 10, "defense": 5,
+			"spirit": 10, "speed": 10, "luck": 0
+		},
 		"hp": 100,
 		"mp": 50,
 		"is_alive": true,
