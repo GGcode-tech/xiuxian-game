@@ -1,14 +1,15 @@
-[gd_scene load_steps=3 format=3 uid="uid://bmain_scene"]
+[gd_scene format=3 uid="uid://0yq02ofjqt37"]
 
-[ext_resource type="Script" path="res://scenes/main/main_scene.gd" id="1"]
+[ext_resource type="Script" uid="uid://by7kaijklc32l" path="res://scenes/main/main_scene.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/world/world.tscn" id="2"]
 
-[node name="MainScene" type="Node3D"]
+[node name="MainScene" type="Node3D" unique_id=25700408]
 script = ExtResource("1")
 
-[node name="World" parent="." instance=ExtResource("2")]
+[node name="World" parent="." unique_id=906028575 instance=ExtResource("2")]
 unique_name_in_owner = true
 
-[node name="UILayer" type="CanvasLayer" parent="."]
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=963734443]
 unique_name_in_owner = true
-layer = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1769371967]
